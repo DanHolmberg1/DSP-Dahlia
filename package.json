@@ -16,5 +16,12 @@
   "bugs": {
     "url": "https://github.com/DanHolmberg1/DSP-Dahlia/issues"
   },
-  "homepage": "https://github.com/DanHolmberg1/DSP-Dahlia#readme"
+  "homepage": "https://github.com/DanHolmberg1/DSP-Dahlia#readme",
+  "dependencies": {
+    "axios": "^1.8.4",
+    "polyline": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.13"
+  }
 }
