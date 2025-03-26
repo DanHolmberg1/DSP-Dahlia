@@ -1,50 +1,46 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = "YOUR_ORS_API_KEY";
-const ORS_URL = "https://api.openrouteservice.org/v2/directions/foot-walking";
+const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
 
-const useWalkingRoute = (start: [number, number], end: [number, number]) => {
-  const [routeCoords, setRouteCoords] = useState<{ latitude: number; longitude: number }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function getWalkingRoute() {
-      try {
-        setLoading(true);
-        const response = await axios.post(
-          ORS_URL,
-          { coordinates: [start, end] },
-          { headers: { Authorization: ORS_API_KEY, "Content-Type": "application/json" } }
-        );
-
-        if (!response.data.routes || response.data.routes.length === 0) {
-          setError("No route found");
-          return;
-        }
-
-        const coordinates = response.data.routes[0].geometry.coordinates.map(([lon, lat]: [number, number]) => ({
-          latitude: lat,
-          longitude: lon,
-        }));
-
-        setRouteCoords(coordinates);
-      } catch (err: any) {
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.message || "API Error");
-        } else {
-          setError(err instanceof Error ? err.message : "An unknown error occurred");
-        }
-      } finally {
-        setLoading(false);
-      }
+export const getRoundTripRoute = async (start: {latitude: number, longitude:number}, len: number, seed: number, p: number) => {
+    try {
+        const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
+            method: "POST",
+            headers: {
+                Authorization: ORS_API_KEY,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                coordinates: [[start.longitude, start.latitude]], // Start coordinate
+                options: { 
+                    round_trip: { // Correctly placed under options
+                        length: len,  // Length of the route (in meters)
+                        seed: seed,   // Random seed for the route calculation
+                        points: p // Number of points for the round trip
+                    }
+                }
+            }),
+            
+        });
+     
+        const data = await response.json();
+        //console.log("here",data);
+        if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
+        return data.routes[0].geometry;//.map((coord: [number, number]) => ({
+        //     latitude: coord[1],
+        //     longitude: coord[0],
+        // }));
+    } else {
+        console.error("route data is invalid")
     }
 
-    getWalkingRoute();
-  }, [start, end]);
-
-  return { routeCoords, loading, error };
+    }   catch (error) {
+        console.error("API error:", error);
+    }
 };
 
-export default useWalkingRoute;
+
+
+
