@@ -9,7 +9,7 @@ const MapScreen = ({}) => {
   
     useEffect(() => {
       const fetchRoute = async () => {
-        const start = { latitude: 52.52, longitude: 13.405 }; // Example starting point (Berlin)
+        const start = { latitude: 59.8586, longitude: 17.6450}; // Example starting point (Berlin)
         const result = await getRoundTripRoute(start, 1000, 42, 3);
         console.log("result", result);
             const decodegeom = polyline.decode(result);
@@ -31,14 +31,14 @@ const MapScreen = ({}) => {
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: 52.52, // Example center (Berlin)
-            longitude: 13.405,
+            latitude: 59.8586, // Example center (Berlin)
+            longitude: 17.6450,
             latitudeDelta: 0.05, // Zoom level
             longitudeDelta: 0.05,
           }}
         >
           {/* Optionally, display a marker at the start location */}
-          <Marker coordinate={{ latitude: 52.52, longitude: 13.405 }} title="Start & End" />
+          <Marker coordinate={{ latitude: 59.8586, longitude: 17.6450 }} title="Start & End" />
   
           {/* Render the route on the map */}
           <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" />
