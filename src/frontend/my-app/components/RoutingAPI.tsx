@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
+const ORS_API_KEY = '';
 
 /**
  * Function that makes an API call to OpenRouteService to get the desired route.

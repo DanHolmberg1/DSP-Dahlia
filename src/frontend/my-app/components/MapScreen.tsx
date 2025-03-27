@@ -11,7 +11,7 @@ import { abort } from "process";
 
 const MapScreen = ({}) => {
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
-    const [distance, setDistance] = useState('');
+    const [distance, setDistance] = useState('500');
     const [startLocation, setStartLocation] = useState<{latitude: number; longitude: number} | null> (null);
     const distanceOptions = ['500', '700', '1000', '1500', '2000', '2500']
     const pointValues = [3, 4, 5];
@@ -67,7 +67,7 @@ const MapScreen = ({}) => {
           {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
         </MapView>
 
-<View style={{alignItems: 'center',  backgroundColor: "transparent"}}>
+<View style={{alignItems: 'center', width: "100%", backgroundColor: 'rgba(7, 39, 14, 0.8)', position:"absolute", bottom:4}}>
 
 <Text style={[styles.inputLable, {marginBottom: 20}]}> Choose route length</Text>
 
@@ -77,17 +77,20 @@ const MapScreen = ({}) => {
     onValueChange={(distanceValue)=>{
         setDistance(distanceValue)
     }}
-    style = {{width:'60%', backgroundColor: "rgba(7, 39, 14, 0.8)"}}
+    style = {{width:'50%', backgroundColor: "rgba(7, 39, 14, 0.8)",  borderRadius: 30, height: 200, marginBottom: 90}}
     mode="dropdown"
     >
     
     <Picker.Item label='500 meters' value ={'500'} />
     <Picker.Item label='1km' value ={'1000'} />
     <Picker.Item label='1,5km' value ={'1500'} />
+    <Picker.Item label='500 meters' value ={'500'} />
+    <Picker.Item label='1km' value ={'1000'} />
+    <Picker.Item label='1,5km' value ={'1500'} />
     </Picker>
     <StatusBar style = "auto"/>
 
-</View>
+</View> 
 
 
         {/* <View style={styles.controls}/>
@@ -112,9 +115,9 @@ const MapScreen = ({}) => {
         /> */}
 
 
-    <View style={styles.buttoncontainer}>
+     <View style={styles.buttoncontainer}>
         <Button title="Generate Route" onPress={fetchRoute} />
-        </View>
+        </View> 
       </View>
       </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -129,7 +132,7 @@ const MapScreen = ({}) => {
         bottom: 0,
         width:"100%",
         height:"30%",
-        backgroundColor: "rgba(48, 142, 71, 0.8)",
+        backgroundColor: 'rgba(52, 52, 52, 0.8)',
         padding: 20,
         justifyContent:"center",
         alignItems:"center",
