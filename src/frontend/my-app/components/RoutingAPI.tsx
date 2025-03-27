@@ -2,9 +2,25 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = '';
+const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
 
-export const getRoundTripRoute = async (start: {latitude: number, longitude:number}, len: number, seed: number, p: number) => {
+/**
+ * Function that makes an API call to OpenRouteService to get the desired route.
+ * 
+ * @param {number | null } start - Start and end coordinates for the route.
+ * @param {number }len  - Lenght of route in meters.
+ * @param {number} seed -  Value used to ensure reproducibility of the route generation process. 
+ * It is essentially a number used to initialize a random number generator.
+ * @param {number} p - This specifies how many points you want along the round trip route.
+ * @returns -  This function returns the geometry object of the first route in the routes array from the data object. 
+ * The geometry contains the geographic data representing the route's path, 
+ * which is usually a series of coordinates (latitude and longitude). 
+ * This data is typically used to render a route on a map.
+ */
+export const getRoundTripRoute = async (start: {latitude: number, longitude:number} | null, len: number, seed: number, p: number) => {
+    if (start == null) {
+        return;
+    }
     try {
         const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
             method: "POST",
@@ -13,9 +29,9 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                coordinates: [[start.longitude, start.latitude]], // Start coordinate
+                coordinates: [[start.longitude, start.latitude]], // Start/end coordinate
                 options: { 
-                    round_trip: { // Correctly placed under options
+                    round_trip: { // Round-trip: start and end points are the same
                         length: len,  // Length of the route (in meters)
                         seed: seed,   // Random seed for the route calculation
                         points: p // Number of points for the round trip
@@ -26,18 +42,14 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
         });
      
         const data = await response.json();
-        //console.log("here",data);
         if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-        return data.routes[0].geometry;//.map((coord: [number, number]) => ({
-        //     latitude: coord[1],
-        //     longitude: coord[0],
-        // }));
-    } else {
+        return data.routes[0].geometry;
+    }   else {
         console.error("route data is invalid")
     }
 
-    }   catch (error) {
-        console.error("API error:", error);
+    } catch (error) {
+    console.error("API error:", error);
     }
 };
 

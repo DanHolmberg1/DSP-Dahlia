@@ -5,9 +5,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import MapScreen from '@/components/MapScreen';
+import { useColorScheme } from '@/hooks/useColorScheme';
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 
@@ -15,9 +16,9 @@ export default function RootLayout() {
   
 
   return (
-<MapScreen />
-
-
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <MapScreen />
+    </GestureHandlerRootView>
   );
 }
 
