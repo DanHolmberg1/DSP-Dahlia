@@ -8,12 +8,14 @@ import { Stack } from "expo-router";
 import BookWalkScreen from "../components/BookWalkScreen";
 import LoginScreen from "../components/LoginScreen";
 import CreateAccountScreen from "../components/CreateAccountScreen";
+import StartScreen from "../components/StartScreen";
 
 const {Navigator, Screen} = createStackNavigator();
 
 const AppNavigator = () => (
     
-    <Navigator initialRouteName="Login">
+    <Navigator initialRouteName="Start">
+            <Screen name = "Start" component={StartScreen}/>
             <Screen name = "Login" component={LoginScreen}/>
             <Screen name = "Create account" component={CreateAccountScreen}/>
             <Screen name = "Home" component={HomeScreen} />

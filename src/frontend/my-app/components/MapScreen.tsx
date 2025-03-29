@@ -30,8 +30,10 @@ const MapScreen = ({}) => {
         //setDistance('');
         const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
 
-        console.log("result", result);
-            const decodegeom = polyline.decode(result);
+        const resultGeometry = result.geometry;
+
+        console.log("result", resultGeometry);
+            const decodegeom = polyline.decode(resultGeometry);
             console.log("decode", decodegeom);
             const formattedRoute = decodegeom.map((coord: number[]) => ({
                 latitude: coord[0],
