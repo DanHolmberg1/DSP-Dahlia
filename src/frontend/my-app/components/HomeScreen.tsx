@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoutingAPI";
+import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -29,11 +29,13 @@ const HomeScreen = (props: HomeScreenProps) => {
             <Button title="Map" onPress={() => props.navigation.navigate('Map')}/>
         </View>
 
+        <View>
+            <Button title="Book walk" onPress={() => props.navigation.navigate('Book walk')}/>
+        </View>
 
-
-    
-
-
+        <View>
+            <Button title="Find Walk Buddy" onPress={() => props.navigation.navigate('Walk Buddy')}/>
+        </View>
     </View>
 
 )};

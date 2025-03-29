@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoutingAPI";
+import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -10,11 +10,7 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 
-
 const MapScreen = ({}) => {
-    
-   
-    
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
     const [distance, setDistance] = useState('500');
     const [menuExpand, setMenuExpand] = useState<boolean>(false);
@@ -57,7 +53,7 @@ const MapScreen = ({}) => {
       <View style={styles.container}>
 
 {showStartText && (
-    <View style={{backgroundColor: 'rgba(7, 39, 14, 0.8)'}}> 
+    <View style={styles.messageContainer}> 
         <Text style={styles.startText}> Click on screen to choose start point </Text>
     </View>  )} 
         <MapView
@@ -87,7 +83,7 @@ const MapScreen = ({}) => {
 <Pressable style={{marginLeft: "auto", marginRight: 25, zIndex: 20, position: "absolute", right: 0}}  onPress={toggleMenuExpander} >
 <Arrow width={36} height={36} angle={menuExpand}/>
 </Pressable>
-    </View>
+</View>
 
     {menuExpand && (
     <Picker
@@ -106,6 +102,10 @@ const MapScreen = ({}) => {
     <Picker.Item label='2km' value ={'2000'} />
     <Picker.Item label='2.5km' value ={'2500'} />
     <Picker.Item label='3km' value ={'3000'} />
+    <Picker.Item label='3.5km' value ={'3500'} />
+    <Picker.Item label='4km' value ={'4000'} />
+    <Picker.Item label='4.5km' value ={'4500'} />
+    <Picker.Item label='5km' value ={'5000'} />
     </Picker>
     )}
 </View> 
@@ -156,6 +156,17 @@ const MapScreen = ({}) => {
         justifyContent:"center",
         alignItems:"center",
     },
+    messageContainer: {
+        backgroundColor: 'rgba(7, 39, 14, 0.8)',
+        padding: 10, // Add some padding to make it look less cramped
+        alignItems: 'center', // Center the text
+        justifyContent: 'center',
+        position: 'absolute', // Position it over the screen if needed
+        top: 0, // Position it at the top or adjust based on your layout
+        left: 0,
+        right: 0,
+        zIndex: 10, // Ensure it sits above other elements
+      },
     inputLable: {
         fontSize: 22,
         color:"white",
@@ -188,11 +199,9 @@ const MapScreen = ({}) => {
     startText: {
         fontSize: 22,
         color:"white",
-        marginBottom: 50,
-        marginTop: 80,
-        marginLeft: 20,
-        
-
+        marginBottom: 10,
+        marginTop: 20,
+        marginLeft: 0,
     },
   });
   

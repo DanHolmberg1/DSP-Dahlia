@@ -38,8 +38,7 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
                         points: p // Number of points for the round trip
                     }
                 }
-            }),
-            
+            }),  
         });
      
         const data = await response.json();
