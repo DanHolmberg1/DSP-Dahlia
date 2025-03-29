@@ -19,6 +19,7 @@ const ORS_API_KEY = '';
  */
 export const getRoundTripRoute = async (start: {latitude: number, longitude:number} | null, len: number, seed: number, p: number) => {
     if (start == null) {
+        console.error("Something went wrong with the coordinates.");
         return;
     }
     try {

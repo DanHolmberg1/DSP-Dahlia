@@ -10,7 +10,11 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 
+
 const MapScreen = ({}) => {
+    
+   
+    
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
     const [distance, setDistance] = useState('500');
     const [menuExpand, setMenuExpand] = useState<boolean>(false);
@@ -20,6 +24,7 @@ const MapScreen = ({}) => {
     const pickerRef = useRef<Picker<string> | null>(null); 
     const [showStartText, setShowStartText] = useState<boolean>(true);
 
+   // const map = () => props.navigation.navigate("home")
     const fetchRoute = async () => {
         //const start = { latitude: 59.8586, longitude: 17.6450}; // Example starting point (Berlin)
         const randomFactor = Math.random() + 1;

@@ -8,6 +8,11 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import MapScreen from '@/components/MapScreen';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import HomeScreen from '@/components/HomeScreen';
+import AppNavigator from './app.navigator';
+import { createStackNavigator } from "@react-navigation/stack";
+import { NavigationContainer } from "@react-navigation/native";
+
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -17,7 +22,11 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <MapScreen />
+      
+      {/* <MapScreen /> */}
+      {/* <HomeScreen/> */}
+      <AppNavigator/>
+      
     </GestureHandlerRootView>
   );
 }
