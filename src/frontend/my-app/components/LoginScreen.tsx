@@ -60,7 +60,6 @@ const LoginScreen = (props: LoginProps) => {
        </TouchableWithoutFeedback>
 
     )
-
 }; 
 
 const styles = StyleSheet.create({
@@ -139,9 +138,4 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginTop: 10,
       },
-  });
-
-
-
-
-export default LoginScreen;
+  }); export default LoginScreen;

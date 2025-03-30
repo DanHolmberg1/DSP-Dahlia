@@ -9,6 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 
 const MapScreen = ({}) => {
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
@@ -22,12 +23,11 @@ const MapScreen = ({}) => {
 
    // const map = () => props.navigation.navigate("home")
     const fetchRoute = async () => {
-        //const start = { latitude: 59.8586, longitude: 17.6450}; // Example starting point (Berlin)
         const randomFactor = Math.random() + 1;
         const randomPoints = Math.floor(Math.random()* pointValues.length);
         const randomSeed = Math.floor(Math.random()* 1000);
         const distanceNum = Number(distance);
-        //setDistance('');
+        
         const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
 
         const resultGeometry = result.geometry;
@@ -45,11 +45,30 @@ const MapScreen = ({}) => {
       };
 
       const toggleMenuExpander = () => setMenuExpand(prev => !prev);
-    
-    // useEffect(() => {
-    //   fetchRoute();
-    // }, [startLocation, distance]); 
-  
+
+
+      const TestStartEnd = async () => {
+
+        const start: {latitude: number; longitude: number} = {latitude: 59.8586 , longitude: 17.6450 }; 
+        const end: {latitude: number; longitude: number} = {latitude: 59.8580 , longitude: 17.6326 }; 
+
+        const result = await getStartEndTrip(start, end, 42, 3 );
+
+        const resultGeometry = result.geometry;
+        console.log("distance", result.summary.distance);
+
+        console.log("result", resultGeometry);
+            const decodegeom = polyline.decode(resultGeometry);
+            console.log("decode", decodegeom);
+            const formattedRoute = decodegeom.map((coord: number[]) => ({
+                latitude: coord[0],
+                longitude: coord[1],
+              }));
+
+            console.log("here again", formattedRoute);
+            setRoute(formattedRoute);
+      };
+     
     return (
 
       <View style={styles.container}>
@@ -79,6 +98,8 @@ const MapScreen = ({}) => {
             
 <View style={{alignItems: 'center', width: "100%" , backgroundColor: 'rgba(7, 39, 14, 0.8)',   justifyContent: "center", flexDirection: "column", position: "absolute", bottom: 0}}>
 
+
+<Button title = "start end route" onPress={TestStartEnd}/>
 <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", position: "relative"}}> 
 <Text style={[styles.inputLable, {marginBottom: menuExpand ? 20 : 40}]}> Choose route length</Text>
 
@@ -111,28 +132,6 @@ const MapScreen = ({}) => {
     </Picker>
     )}
 </View> 
-
-
-        {/* <View style={styles.controls}/>
-        <Text style={styles.inputLable}> Enter route length (meters) </Text>
-
-        <TextInput
-        
-        style = {styles.input}
-        keyboardType="numeric"
-        value={distance.toString()}
-        onChangeText={(text) =>  {
-            const validNum = Number(text);
-            if(validNum > 0 && validNum < 1000000) {
-                setDistance(text);
-                console.log(validNum);
-            } else {
-                console.log('Invalid number');
-            }
-        }}
-            
-        placeholder="Enter distance (meters) "
-        /> */}
 
         {menuExpand && (
     <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 

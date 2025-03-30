@@ -43,13 +43,12 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
      
         const data = await response.json();
         if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-        return data.routes[0];
-    }   else {
-        console.error("route data is invalid")
-    }
-
+            return data.routes[0];
+        }else {
+            console.error("route data is invalid")
+        }
     } catch (error) {
-    console.error("API error:", error);
+        console.error("API error:", error);
     }
 };
 
