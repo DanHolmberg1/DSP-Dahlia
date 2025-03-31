@@ -4,49 +4,42 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 
 import axios from 'axios';
 
-const ORS_API_KEY = 'DIN_API_NYCKEL_HÄR';
-const ORS_URL = 'https://api.openrouteservice.org/v2/directions/foot-walking';
+const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
+
 
 type Coordinate = [number, number]; // [lon, lat]
 
-async function getRouteWithStops(start: Coordinate, stops: Coordinate[]): Promise<void> {
+export const getRouteWithStops = async (start: {latitude: number, longitude:number}, stops:{latitude:number, longitude:number}[]) => {
   // Bygg koordinatlistan: start → stopp1 → ... → stoppN → tillbaka till start
-  const coordinates: Coordinate[] = [start, ...stops, start];
+ // const coordinates: Coordinate[] = [start, ...stops, start];
+ const coordinates = [[start.longitude, start.latitude], ...stops.map(stop => [stop.longitude, stop.latitude])];
 
   try {
-    const response = await axios.post(ORS_URL, {
-      coordinates: coordinates
-    }, {
-      headers: {
-        Authorization: ORS_API_KEY,
-        'Content-Type': 'application/json'
-      }
+    const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
+        method: "POST",
+        headers: {
+            Authorization: ORS_API_KEY,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            coordinates: coordinates, // Start/end coordinate
+            // options: { 
+            //     round_trip: { // Round-trip: start and end points are the same
+            //         length: len,  // Length of the route (in meters)
+            //         seed: seed,   // Random seed for the route calculation
+            //         points: p // Number of points for the round trip
+            //     }
+            // }
+        }),  
     });
-
-    const data = response.data;
-
-    if (!data.routes || data.routes.length === 0) {
-      console.error("❌ Ingen rutt hittades.");
-      return;
+ 
+    const data = await response.json();
+     if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
+        return data.routes[0];
+   }else {
+     console.error("route data is invalid")
     }
-
-    const route = data.routes[0];
-    console.log("✅ Rutt hittad!");
-    console.log("📏 Distans (meter):", route.summary.distance);
-    console.log("⏱️ Varaktighet (sek):", route.summary.duration);
-    console.log("📍 Antal steg:", route.segments[0].steps.length);
-    console.log("🧭 Första instruktionen:", route.segments[0].steps[0].instruction);
-
-    // Logga alla steg
-    console.log("\n=== 🧭 Steg-för-steg-instruktioner ===");
-    route.segments[0].steps.forEach((step: any, index: number) => {
-      console.log(`${index + 1}. ${step.instruction} (${step.distance.toFixed(1)} m)`);
-    });
-
-    // Om du vill se rå GeoJSON/polyline
-    // console.log("📦 GeoJSON geometry:", route.geometry);
-
-  } catch (error: any) {
-    console.error("💥 API-fel:", error.response?.data || error.message);
-  }
+} catch (error) {
+    console.error("API error:", error);
 }
+};

@@ -10,6 +10,7 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
+import{getRouteWithStops} from "./RoundTripLocations";
 
 const MapScreen = ({}) => {
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
@@ -22,7 +23,7 @@ const MapScreen = ({}) => {
     const [showStartText, setShowStartText] = useState<boolean>(true);
 
    // const map = () => props.navigation.navigate("home")
-    const fetchRoute = async () => {
+    const fetchRoundTripRoute = async () => {
         const randomFactor = Math.random() + 1;
         const randomPoints = Math.floor(Math.random()* pointValues.length);
         const randomSeed = Math.floor(Math.random()* 1000);
@@ -68,6 +69,27 @@ const MapScreen = ({}) => {
             console.log("here again", formattedRoute);
             setRoute(formattedRoute);
       };
+
+      const TestRoundtripLocations = async () => {
+
+        const start: {latitude: number; longitude: number} = {latitude: 59.8586 , longitude: 17.6450 }; 
+        const stops: {latitude: number; longitude: number}[] = [{latitude: 17.6340, longitude: 59.8570}, {latitude:17.6300,longitude: 59.8595} ];
+        const result = await getRouteWithStops(start, stops );
+
+        const resultGeometry = result.geometry;
+        console.log("distance", result.summary.distance);
+
+        console.log("result", resultGeometry);
+            const decodegeom = polyline.decode(resultGeometry);
+            console.log("decode", decodegeom);
+            const formattedRoute = decodegeom.map((coord: number[]) => ({
+                latitude: coord[0],
+                longitude: coord[1],
+              }));
+
+            console.log("here again", formattedRoute);
+            setRoute(formattedRoute);
+      }
      
     return (
 
@@ -100,6 +122,8 @@ const MapScreen = ({}) => {
 
 
 <Button title = "start end route" onPress={TestStartEnd}/>
+
+<Button title = "route with stops" onPress={TestRoundtripLocations}/>
 <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", position: "relative"}}> 
 <Text style={[styles.inputLable, {marginBottom: menuExpand ? 20 : 40}]}> Choose route length</Text>
 
@@ -136,7 +160,7 @@ const MapScreen = ({}) => {
         {menuExpand && (
     <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
      <View style={styles.buttoncontainer}>
-        <Button    title="Generate Route" onPress={fetchRoute} />
+        <Button    title="Generate Route" onPress={fetchRoundTripRoute} />
         </View> 
         </View>
               )}
