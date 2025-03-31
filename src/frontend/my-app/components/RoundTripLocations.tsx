@@ -4,8 +4,6 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 
 import axios from 'axios';
 
-const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
-
 
 type Coordinate = [number, number]; // [lon, lat]
 
