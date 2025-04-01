@@ -4,12 +4,12 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 
 import axios from 'axios';
 
-const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
+const ORS_API_KEY = '';
 
 
 type Coordinate = [number, number]; // [lon, lat]
 
-export const getRouteWithStops = async (start: {latitude: number, longitude:number}, stops:{latitude:number, longitude:number}[]) => {
+export const getRouteWithStops = async (start: {latitude: number, longitude:number}, stops:{latitude:number, longitude:number}[], radius: number) => {
   // Bygg koordinatlistan: start → stopp1 → ... → stoppN → tillbaka till start
  // const coordinates: Coordinate[] = [start, ...stops, start];
  const coordinates = [[start.longitude, start.latitude], ...stops.map(stop => [stop.longitude, stop.latitude])];
@@ -23,7 +23,7 @@ export const getRouteWithStops = async (start: {latitude: number, longitude:numb
         },
         body: JSON.stringify({
             coordinates: coordinates,
-            radiuses: Array(coordinates.length).fill(100000000)  // Start/end coordinate
+            radiuses: Array(coordinates.length).fill(radius)  // Start/end coordinate
             // options: { 
             //     round_trip: { // Round-trip: start and end points are the same
             //         length: len,  // Length of the route (in meters)

@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = '5b3ce3597851110001cf6248c932f24e6e9e4ac58186a327506210a4';
+const ORS_API_KEY = '';
 
 
-export const getStartEndTrip = async(start: {latitude: number, longitude:number} | null, end: {latitude: number, longitude:number} | null, seed: number, p: number) => {
+export const getStartEndTrip = async(start: {latitude: number, longitude:number} | null, end: {latitude: number, longitude:number} | null, seed: number, p: number, radius:number) => {
     if (start == null || end == null) {
         console.log("something went wrong with start/end coordinates");
         return;
     }
+    const coordinates = [[start.longitude, start.latitude], [end.longitude, end.latitude]];
 
     try {
         const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
@@ -19,7 +20,8 @@ export const getStartEndTrip = async(start: {latitude: number, longitude:number}
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                coordinates: [[start.longitude, start.latitude], [end.longitude, end.latitude]], // Start/end coordinate
+                coordinates: [[start.longitude, start.latitude], [end.longitude, end.latitude]],
+                radiuses: Array(coordinates.length).fill(radius) // Start/end coordinate
             }),  
         });
      
