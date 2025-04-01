@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json", // Ärver från den gemensamma tsconfig.json
+  "compilerOptions": {
+    "baseUrl": ".", // Basen för alias i klienten
+    "paths": {
+      "@/*": ["./*"] // Alias för klientens filer
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}
