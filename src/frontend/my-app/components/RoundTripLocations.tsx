@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
-import MapView, { Polyline, Marker } from "react-native-maps";
+// components/RouteMap.tsx
 
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import MapView, { Polyline, Marker } from "react-native-maps";
 
 const ORS_API_KEY = '';
 
