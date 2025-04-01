@@ -1,43 +1,93 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+// components/RouteMap.tsx
+
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
+import polyline from "@mapbox/polyline";
 
-import axios from 'axios';
+const ORS_API_KEY = 'DIN_API_NYCKEL';
 
+type Coordinate = {
+  latitude: number;
+  longitude: number;
+};
 
-type Coordinate = [number, number]; // [lon, lat]
+export default function RouteMap() {
+  const [routeCoords, setRouteCoords] = useState<Coordinate[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const getRouteWithStops = async (start: {latitude: number, longitude:number}, stops:{latitude:number, longitude:number}[]) => {
-  // Bygg koordinatlistan: start → stopp1 → ... → stoppN → tillbaka till start
- // const coordinates: Coordinate[] = [start, ...stops, start];
- const coordinates = [[start.longitude, start.latitude], ...stops.map(stop => [stop.longitude, stop.latitude])];
+  const start = { latitude: 59.8586, longitude: 17.6389 };
+  const stops = [
+    { latitude: 59.8570, longitude: 17.6340 },
+    { latitude: 59.8595, longitude: 17.6300 }
+  ];
 
-  try {
-    const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
-        method: "POST",
-        headers: {
+  useEffect(() => {
+    const getRoute = async () => {
+      try {
+        const coordinates = [
+          [start.longitude, start.latitude],
+          ...stops.map((s) => [s.longitude, s.latitude]),
+          [start.longitude, start.latitude], // rundtur
+        ];
+
+        const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
+          method: "POST",
+          headers: {
             Authorization: ORS_API_KEY,
             "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            coordinates: coordinates, // Start/end coordinate
-            // options: { 
-            //     round_trip: { // Round-trip: start and end points are the same
-            //         length: len,  // Length of the route (in meters)
-            //         seed: seed,   // Random seed for the route calculation
-            //         points: p // Number of points for the round trip
-            //     }
-            // }
-        }),  
-    });
- 
-    const data = await response.json();
-     if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-        return data.routes[0];
-   }else {
-     console.error("route data is invalid")
-    }
-} catch (error) {
-    console.error("API error:", error);
+          },
+          body: JSON.stringify({ coordinates }),
+        });
+
+        const data = await response.json();
+        const encoded = data.routes[0].geometry;
+
+        const decoded = polyline.decode(encoded).map(([lat, lng]: number[]) => ({
+          latitude: lat,
+          longitude: lng,
+        }));
+
+        setRouteCoords(decoded);
+        setLoading(false);
+      } catch (error) {
+        console.error("API-fel:", error);
+      }
+    };
+
+    getRoute();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: start.latitude,
+          longitude: start.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      >
+        <Polyline
+          coordinates={routeCoords}
+          strokeColor="#ff6600"
+          strokeWidth={4}
+        />
+        <Marker coordinate={start} title="Start / Slut" />
+        {stops.map((stop, i) => (
+          <Marker key={i} coordinate={stop} title={`Stopp ${i + 1}`} pinColor="green" />
+        ))}
+      </MapView>
+    </View>
+  );
 }
-};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  map: { flex: 1 },
+});
