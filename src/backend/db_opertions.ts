@@ -1,6 +1,6 @@
-import sqlite3 from 'sqlite3';
+import * as sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
-import path from 'path';
+import * as path from 'path';
 
 export interface Coordinate {
   latitude: number;
@@ -184,14 +184,34 @@ export async function getUser(db: Database, id: number): Promise<DBResponse<User
 }
 
 // Updates a user record by ID.
-export async function updateUser(
-  db: Database,
-  id: number,
-  name: string,
-  email: string,
-  age: number | null,
-  sex: number
-): Promise<DBResponse<boolean>> {
+export async function updateUser(db: Database, id: number, name: string, 
+  email: string, age: number, sex: number): Promise<DBResponse<boolean>> {
+
+    // Validate email. ska man kunna uppdatera email?? 
+    const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
+    if (!validEmailRegExp.test(email)) {
+      console.error("Invalid email:", email);
+      return { success: false, error: "Invalid email." };
+    }
+  
+    // Validate name.
+    if (!name.trim()) {
+      console.error("Invalid name");
+      return { success: false, error: "Invalid name." };
+    }
+  
+    // Validate age.
+    if (age <= 0 || age > 122) {
+      console.error("Invalid age:", age);
+      return { success: false, error: "Invalid age." };
+    }
+  
+    // Validate sex. (Assuming 1 = female, 2 = male, 3 = other)
+    if (sex < 1 || sex > 3) {
+      console.error("Invalid sex:", sex);
+      return { success: false, error: "Invalid sex." };
+    }
+  
   try {
     const res = await db.run(
       `UPDATE users SET name = ?, email = ?, age = ?, sex = ? WHERE id = ?`,
@@ -212,5 +232,16 @@ export async function deleteUser(db: Database, id: number): Promise<DBResponse<n
   } catch (err) {
     console.error("Error deleting user:", err);
     return { success: false, error: "Error deleting user." };
+  }
+}
+
+export async function clearUsers(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM users'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing table", err); 
+    return false; 
   }
 }
