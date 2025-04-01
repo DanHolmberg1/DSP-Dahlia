@@ -21,6 +21,7 @@ const MapScreen = ({}) => {
     const pointValues = [3, 4, 5];
     const pickerRef = useRef<Picker<string> | null>(null); 
     const [showStartText, setShowStartText] = useState<boolean>(true);
+    const [geometry, setGeometry] = useState('');
 
    // const map = () => props.navigation.navigate("home")
     const fetchRoundTripRoute = async () => {
@@ -32,6 +33,7 @@ const MapScreen = ({}) => {
         const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
 
         const resultGeometry = result.geometry;
+
 
         console.log("result", resultGeometry);
             const decodegeom = polyline.decode(resultGeometry);
@@ -72,8 +74,11 @@ const MapScreen = ({}) => {
 
       const TestRoundtripLocations = async () => {
 
-        const start: {latitude: number; longitude: number} = {latitude: 59.8586 , longitude: 17.6450 }; 
-        const stops: {latitude: number; longitude: number}[] = [{latitude: 17.6340, longitude: 59.8570}, {latitude:17.6300,longitude: 59.8595} ];
+        const start: {latitude: number; longitude: number} = {latitude: 59.858582, longitude: 17.645741 }; 
+
+        const stops: {latitude: number; longitude: number}[] = [{latitude: 59.8398, longitude:17.6225}, {latitude: 59.8416,longitude: 17.6440}, 
+        {latitude: 59.858582, longitude: 17.645741 }];
+
         const result = await getRouteWithStops(start, stops );
 
         const resultGeometry = result.geometry;

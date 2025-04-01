@@ -22,7 +22,8 @@ export const getRouteWithStops = async (start: {latitude: number, longitude:numb
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            coordinates: coordinates, // Start/end coordinate
+            coordinates: coordinates,
+            radiuses: Array(coordinates.length).fill(100000000)  // Start/end coordinate
             // options: { 
             //     round_trip: { // Round-trip: start and end points are the same
             //         length: len,  // Length of the route (in meters)
@@ -34,6 +35,7 @@ export const getRouteWithStops = async (start: {latitude: number, longitude:numb
     });
  
     const data = await response.json();
+    console.log("API Response:", JSON.stringify(data, null, 2));
      if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
         return data.routes[0];
    }else {
