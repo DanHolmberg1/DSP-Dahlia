@@ -141,9 +141,10 @@ const MapScreen = ({}) => {
         </MapView>
 
     {ShowOptions && (
-      
-    <View style={styles.OptionContainer}>
-
+    <View style={[styles.OptionContainer, {height: optionExpand ? '15%': '9%'}]}>
+      {!optionExpand && (
+        <Text style = {styles.OptionStartText}> Desing your walk</Text>
+      )}
       <View style={{ 
       flexDirection: "row", 
       width: "100%", 
@@ -157,7 +158,8 @@ const MapScreen = ({}) => {
         marginRight: 20, 
         zIndex: 20, 
         position: "absolute", 
-        right: 0}}  
+        right: 0,
+        paddingBottom: optionExpand ? 5 : 135,}}  
         onPress={toggleOptionExpander} >
       <Arrow width={36} height={36} angle={optionExpand}/>
       </Pressable>
@@ -314,8 +316,7 @@ const MapScreen = ({}) => {
       zIndex: 10,
       position: 'absolute', // Keeps it positioned relative to the screen
       top: 0,  // Move to the top instead of bottom
-      width: '100%',
-      height: '15%', // Takes up half the screen height
+      width: '100%', 
       marginBottom: 0, // Remove margin to avoid gaps
     },
 
@@ -368,6 +369,7 @@ const MapScreen = ({}) => {
       alignItems: "center",
     },
 
+  
 
   
 
