@@ -11,30 +11,18 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 
 interface BookingProps {
-    navigation: any
+    navigate: any; 
 }
 
-const BookWalkScreen = (props: BookingProps) => {
-    const [bookSpot, setbookSpot] = useState<boolean>(false);
-
+const FamilyWalk = ({}) => {
+    
     return (
-    <View> 
-        <Text style = {styles.HeaderText}> Book a walk with others!</Text>
-        <Text style = {styles.StartText}> Share a walk with others!</Text>
+    <View>
 
-        <View style = {styles.BookContainer}> 
-            <Button title = 'Family walk' onPress={() => props.navigation.navigate("Family walk")}/>
-            {/* <Text style = {styles.FamilyWalkText}> Family walk</Text> */}
-
-        </View>
-
-
+        
     </View>
     )
-
-    
-
-}; 
+};
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -50,11 +38,11 @@ const styles = StyleSheet.create({
     },
     BookContainer: {
         backgroundColor: 'rgb(5, 6, 58)',
-        padding: 0, // Add some padding to make it look less cramped
+        padding: 70, // Add some padding to make it look less cramped
         alignItems: 'center', // Center the text
         justifyContent: 'center',
         position: 'absolute', // Position it over the screen if needed
-        top: 160, // Position it at the top or adjust based on your layout
+        top: 120, // Position it at the top or adjust based on your layout
         left: 15,
         right: 0,
         zIndex: 10, // Ensure it sits above other elements
@@ -63,13 +51,11 @@ const styles = StyleSheet.create({
         height: 170, // Adjust height
         
     },
-    StartText: {
-        fontSize: 20,
+    inputLable: {
+        fontSize: 22,
         color:"black",
         marginBottom: 50,
         marginTop: 20,
-        left: 10,
-        fontFamily: 'inter',
     
     },
     input: {
@@ -92,13 +78,13 @@ const styles = StyleSheet.create({
         borderColor: "black",
         color: "black"
     },
-    HeaderText: {
-        fontSize: 32,
+    startText: {
+        fontSize: 37,
         color:'rgb(5, 6, 58)',
         marginBottom: 10,
         marginTop: 20,
         marginLeft: 0,
-        fontFamily: 'inter',
+        fontFamily: 'bold',
         
     },
     OptionContainer: {
@@ -120,7 +106,6 @@ const styles = StyleSheet.create({
       marginTop: 0,  // Remove any margin from the top
       marginBottom: 0,  // Remove margin at the bottom if you want to keep it tight
       textAlign: 'left',  // Align the text to the left
-      fontFamily: 'inter',
     },
     
     buttoncontainerRoundTrip: {
@@ -173,4 +158,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default BookWalkScreen;
+export default FamilyWalk; 
