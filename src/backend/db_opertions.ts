@@ -67,6 +67,8 @@ export async function DBInit(): Promise<Database> {
   return db;
 }
 
+
+
 // Inserts a new route and returns its ID.
 export async function routeAdd(db: Database, data: Coordinate[]): Promise<DBResponse<number>> {
   try {
@@ -111,7 +113,7 @@ export async function routeGet(db: Database, id: number): Promise<DBResponse<Rou
 
 // Creates a new group (stub implementation)
 // id = userID of the creator of the group
-export async function createGroup(db: Database, routeID: number, distance: number): Promise<DBResponse<number>> {
+export async function groupCreate(db: Database, routeID: number, distance: number): Promise<DBResponse<number>> {
   try {
     const res = await db.run("INSERT INTO groups (routeID, distance) VALUES (?, ?)", [routeID, distance]);
     if (res.changes && res.lastID) {
@@ -121,6 +123,18 @@ export async function createGroup(db: Database, routeID: number, distance: numbe
   } catch (err) {
     console.error("Error creating group:", err);
     return { success: false, error: "Error creating group." };
+  }
+}
+
+export async function groupAdd(db: Database, userID: number, groupID: number): Promise<DBResponse<void>> {
+  try {
+    const res = await db.run(`UPDATE groups SET users = ? WHERE id = ?`, [userID, groupID]);
+    if (res.changes) {
+      return { success: true };
+    }
+    return { success: false, error: "Failed to update group, please report" };
+  } catch (err) {
+    return { success: false, error: "Error adding user to group" };
   }
 }
 
