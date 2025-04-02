@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = '';
+const ORS_API_KEY = '5b3ce3597851110001cf6248b1f7555fe5853475313cd0743d282c959806e66bce50ba0c6b28aa69';
 /**
  * Function that makes an API call to OpenRouteService to get the desired route.
  * 
@@ -42,7 +42,7 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
      
         const data = await response.json();
         if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-            console.log("data:", data.routes);
+            console.log("data:", data);
             return data.routes[0];
         }else {
             console.error("route data is invalid")

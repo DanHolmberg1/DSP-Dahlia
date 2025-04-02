@@ -11,6 +11,7 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
+import { WebSocket } from "ws";
 
 const MapScreen = ({}) => {
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
@@ -18,7 +19,7 @@ const MapScreen = ({}) => {
     const [menuExpand, setMenuExpand] = useState<boolean>(false);
     const [optionExpand, setOptionExpand] = useState<boolean>(true);
     const [startLocation, setStartLocation] = useState<{latitude: number; longitude: number} | null> (null);
-    const distanceOptions = ['500', '700', '1000', '1500', '2000', '2500']
+    const distanceOptions = ['500', '700', '1000', '1500', '2000', '2500'];
     const pointValues = [3, 4, 5];
     const pickerRef = useRef<Picker<string> | null>(null); 
     const [showStartText, setShowStartText] = useState<boolean>(true);
@@ -28,8 +29,8 @@ const MapScreen = ({}) => {
     const [ShowtripWitStops, setShowTripWihStops] = useState<boolean>(false);
     const [ShowOptions, setShowOptions] = useState<boolean>(false);
     const [HasShowOptions, setHasShowOptions] = useState<boolean>(false);
-    const [SavedWalk, setSavedWalk]= useState<string>('');
-    const [currentWalk, setCurrentWalk] = useState<string>('');
+    const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
+    const [currentWalkData, setCurrentWalkData] = useState<string>('');
 
     const toggleMenuExpander = () => setMenuExpand(prev => !prev);
     const toggleOptionExpander = () => setOptionExpand(prev => !prev);
@@ -52,15 +53,15 @@ const MapScreen = ({}) => {
 
             console.log("here again", formattedRoute);
             setRoute(formattedRoute);
-            setCurrentWalk(result);
+            setCurrentWalkData(result);
       };
 
       const TestStartEnd = async () => {
 
         const start: {latitude: number; longitude: number} = {latitude: 59.8586 , longitude: 17.6450 }; 
-        const end: {latitude: number; longitude: number} = {latitude: 59.8580 , longitude: 17.6326 }; 
+        const end: {latitude: number; longitude: number} = {latitude: 32.742468, longitude:  -96.791761 }; 
 
-        const result = await getStartEndTrip(start, end, 42, 3, 20000);
+        const result = await getStartEndTrip(start, end, 42, 3, 600);
 
         const resultGeometry = result.geometry;
         console.log("distance", result.summary.distance);
@@ -104,14 +105,25 @@ const MapScreen = ({}) => {
       useEffect(()=> {
         console.log('showoption is:', ShowOptions);
       },[ShowOptions]);
+
+      const sendRouteToBackend = async () => {
+
+        
+        
+
+      }
      
     return (
+
+      
 
 <View style={styles.container}>
 
 {/* Test buttons */}
-{/* <Button title = "start end route" onPress={TestStartEnd}/>
-<Button title = "route with stops" onPress={TestRoundtripLocations}/> */}
+{/* <View style={styles.centerButtonContainer}>
+  <Button title="Start End Route" onPress={TestStartEnd} />
+</View> */}
+{/* <Button title = "route with stops" onPress={TestRoundtripLocations}/>  */}
 
 {showStartText && (
     <View style={styles.messageContainer}> 
@@ -120,7 +132,7 @@ const MapScreen = ({}) => {
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: 59.8586, // Example center (Uppsala) TODO: is it possible to change the start screen based on user location?
+            latitude: 59.8586, //Example center (Uppsala) TODO: is it possible to change the start screen based on user location?
             longitude: 17.6450,
             latitudeDelta: 0.05, // Zoom level
             longitudeDelta: 0.05,
@@ -193,10 +205,14 @@ const MapScreen = ({}) => {
       </View>
         
     )}
-
-
     </View>
   )}
+
+{WalkGenerated && (
+    <View style = {styles.buttoncontainer}>
+    <Button title = "Save route" onPress={sendRouteToBackend}/>
+  </View>
+)}
 
 {/* Round trip */}
 {ShowRoundTrip && (
@@ -238,15 +254,17 @@ const MapScreen = ({}) => {
     {menuExpand && (
     <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
      <View style={styles.buttoncontainer}>
-        <Button    title="Generate Route" onPress={fetchRoundTripRoute} />
+        <Button title="Generate Route" onPress={(e)=> {
+          fetchRoundTripRoute
+          setWalkGenerated(true)
+        }}
+         />
+
         </View> 
         </View>
       )}
          
       </View>
-
-  
-
 )}
   
   const styles = StyleSheet.create({
@@ -368,6 +386,14 @@ const MapScreen = ({}) => {
       width: "100%",
       alignItems: "center",
     },
+    centerButtonContainer: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginTop: 150,
+      zIndex: 10,
+  },
+  
 
   
 
