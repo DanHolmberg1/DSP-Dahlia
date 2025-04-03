@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 
+const ORS_API_KEY = '';
 const ORS_URL = 'https://api.openrouteservice.org/v2/directions/foot-walking';
 
 type Coordinate = [number, number]; // [lon, lat]

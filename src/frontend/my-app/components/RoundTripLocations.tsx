@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+// components/RouteMap.tsx
+
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-import axios from 'axios';
 
 
 type Coordinate = [number, number]; // [lon, lat]
 
-export const getRouteWithStops = async (start: {latitude: number, longitude:number}, stops:{latitude:number, longitude:number}[]) => {
+export const getRouteWithStops = async (start: {latitude: number, longitude:number}, stops:{latitude:number, longitude:number}[], radius: number) => {
   // Bygg koordinatlistan: start → stopp1 → ... → stoppN → tillbaka till start
  // const coordinates: Coordinate[] = [start, ...stops, start];
  const coordinates = [[start.longitude, start.latitude], ...stops.map(stop => [stop.longitude, stop.latitude])];
@@ -20,7 +21,8 @@ export const getRouteWithStops = async (start: {latitude: number, longitude:numb
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            coordinates: coordinates, // Start/end coordinate
+            coordinates: coordinates,
+            radiuses: Array(coordinates.length).fill(radius)  // Start/end coordinate
             // options: { 
             //     round_trip: { // Round-trip: start and end points are the same
             //         length: len,  // Length of the route (in meters)
@@ -32,6 +34,7 @@ export const getRouteWithStops = async (start: {latitude: number, longitude:numb
     });
  
     const data = await response.json();
+    console.log("API Response:", JSON.stringify(data, null, 2));
      if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
         return data.routes[0];
    }else {
