@@ -11,7 +11,36 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
-import { WebSocket } from "ws";
+
+const port = 3000;
+//const ws = new WebSocket("ws://0.0.0.0:3000"); //LÄGG IN DIN DATORS IP ADDRESS HÄR 
+
+ws.onopen = () => {
+  console.log('[Client] Connected');
+  ws.send('Hi, this is a client');
+};
+
+ws.onmessage = (event) => {
+  console.log(`Message from server: ${event.data}`);
+  ws.send("Cool data");
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket Error:", error);
+};
+
+function sendToBackend(currentWalkData: JSON) {
+  if (ws.readyState === WebSocket.OPEN) {
+    console.log("Message sent to server");
+    console.log("\n\n\nWalk data: " + JSON.stringify(currentWalkData));
+    ws.send(JSON.stringify(currentWalkData));
+    ws.send("hej");
+    ws.send("");
+    console.log("Message sent to server");
+  } else {
+    console.log("WebSocket is not open");
+  }
+}
 
 const MapScreen = ({}) => {
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
@@ -30,19 +59,20 @@ const MapScreen = ({}) => {
     const [ShowOptions, setShowOptions] = useState<boolean>(false);
     const [HasShowOptions, setHasShowOptions] = useState<boolean>(false);
     const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
-    const [currentWalkData, setCurrentWalkData] = useState<string>('');
+    const [currentWalkData, setCurrentWalkData] = useState<JSON>();
 
     const toggleMenuExpander = () => setMenuExpand(prev => !prev);
     const toggleOptionExpander = () => setOptionExpand(prev => !prev);
 
     const fetchRoundTripRoute = async () => {
+      setWalkGenerated(true);
         const randomFactor = Math.random() + 1;
         const randomPoints = Math.floor(Math.random()* pointValues.length);
         const randomSeed = Math.floor(Math.random()* 1000);
         const distanceNum = Number(distance);
         
         const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-        const resultGeometry = result.geometry;
+        const resultGeometry = result.routes[0].geometry;
         console.log("result", resultGeometry);
             const decodegeom = polyline.decode(resultGeometry);
             console.log("decode", decodegeom);
@@ -53,6 +83,7 @@ const MapScreen = ({}) => {
 
             console.log("here again", formattedRoute);
             setRoute(formattedRoute);
+            
             setCurrentWalkData(result);
       };
 
@@ -102,15 +133,11 @@ const MapScreen = ({}) => {
             setRoute(formattedRoute);
       }
 
-      useEffect(()=> {
-        console.log('showoption is:', ShowOptions);
-      },[ShowOptions]);
 
       const sendRouteToBackend = async () => {
-
-        
-        
-
+        if(currentWalkData) {
+        sendToBackend(currentWalkData); 
+        }
       }
      
     return (
@@ -209,7 +236,7 @@ const MapScreen = ({}) => {
   )}
 
 {WalkGenerated && (
-    <View style = {styles.buttoncontainer}>
+    <View style = {styles.savebuttoncontainer}>
     <Button title = "Save route" onPress={sendRouteToBackend}/>
   </View>
 )}
@@ -254,10 +281,7 @@ const MapScreen = ({}) => {
     {menuExpand && (
     <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
      <View style={styles.buttoncontainer}>
-        <Button title="Generate Route" onPress={(e)=> {
-          fetchRoundTripRoute
-          setWalkGenerated(true)
-        }}
+        <Button title="Generate Route" onPress={fetchRoundTripRoute}
          />
 
         </View> 
@@ -318,6 +342,18 @@ const MapScreen = ({}) => {
         borderColor: "black",
         color: "black"
     },
+
+    savebuttoncontainer: {
+      width: "50%",
+      marginBottom: 90,
+      backgroundColor: 'white',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 30,
+      borderColor: "black",
+      color: "black"
+    },
+
     startText: {
         fontSize: 22,
         color:"white",
@@ -380,7 +416,7 @@ const MapScreen = ({}) => {
       color: "black",
       left: -5,
     },
-    
+
     OptionsMenu: {
       marginTop: 80, // Ensures buttons are not cut off
       width: "100%",
