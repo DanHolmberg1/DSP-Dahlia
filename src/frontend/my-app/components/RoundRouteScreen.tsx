@@ -11,10 +11,13 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
+import { ws, sendToBackend } from "./webSocketsClient";
+
 
 interface MapProps {
     navigation:any
 }
+
 
 export const RoundRouteScreen = (props:MapProps) => {
 
@@ -65,10 +68,15 @@ export const RoundRouteScreen = (props:MapProps) => {
                 setCurrentWalkData(result);
           };
 
+          const sendRouteToBackend = async () => {
+            if(currentWalkData) {
+            sendToBackend(ws, currentWalkData, 1); 
+            }
+          }
+
     return (
 
         
-
     <View style={styles.container}>
 
         {showStartText && (
@@ -152,7 +160,7 @@ export const RoundRouteScreen = (props:MapProps) => {
         
     )}
     </View>
-  )}
+)}
 
 
 
@@ -213,10 +221,14 @@ export const RoundRouteScreen = (props:MapProps) => {
         </View>
       )}
 
+{WalkGenerated && (
+    <View style = {styles.savebuttoncontainer}>
+    <Button title = "Save route" onPress={sendRouteToBackend}/>
+  </View>
+)}
 
-        </View>
-
-        
+</View>
+     
 )}
 
 const styles = StyleSheet.create({
