@@ -13,35 +13,35 @@ import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { RoundRouteScreen } from "./RoundRouteScreen";
 
-const port = 3000;
-// const ws = new WebSocket("ws://0.0.0.0:3000"); //LÄGG IN DIN DATORS IP ADDRESS HÄR 
+// const port = 3000;
+// // const ws = new WebSocket("ws://0.0.0.0:3000"); //LÄGG IN DIN DATORS IP ADDRESS HÄR 
 
-ws.onopen = () => {
-  console.log('[Client] Connected');
-  ws.send('Hi, this is a client');
-};
+// ws.onopen = () => {
+//   console.log('[Client] Connected');
+//   ws.send('Hi, this is a client');
+// };
 
-ws.onmessage = (event) => {
-  console.log(`Message from server: ${event.data}`);
-  ws.send("Cool data");
-};
+// ws.onmessage = (event) => {
+//   console.log(`Message from server: ${event.data}`);
+//   ws.send("Cool data");
+// };
 
-ws.onerror = (error) => {
-  console.error("WebSocket Error:", error);
-};
+// ws.onerror = (error) => {
+//   console.error("WebSocket Error:", error);
+// };
 
-function sendToBackend(currentWalkData: JSON) {
-  if (ws.readyState === WebSocket.OPEN) {
-    console.log("Message sent to server");
-    console.log("\n\n\nWalk data: " + JSON.stringify(currentWalkData));
-    ws.send(JSON.stringify(currentWalkData));
-    ws.send("hej");
-    ws.send("");
-    console.log("Message sent to server");
-  } else {
-    console.log("WebSocket is not open");
-  }
-}
+// function sendToBackend(currentWalkData: JSON) {
+//   if (ws.readyState === WebSocket.OPEN) {
+//     console.log("Message sent to server");
+//     console.log("\n\n\nWalk data: " + JSON.stringify(currentWalkData));
+//     ws.send(JSON.stringify(currentWalkData));
+//     ws.send("hej");
+//     ws.send("");
+//     console.log("Message sent to server");
+//   } else {
+//     console.log("WebSocket is not open");
+//   }
+// }
 
 interface MapProps {
   navigation: any

@@ -40,6 +40,10 @@ export const RoutewithDesScreen = (props:MapProps) => {
     const [SettingLocation, setSettingLocation] = useState(false);
     const [startChosen, setStartChosen] = useState(false);
     const [endChosen, setEndChosen] = useState(false);
+    const [buttontext, setButtontext] = useState(false);
+    const [reset, setReset] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
+    const [containerColor, setContainerColor] = useState('rgba(106, 191, 112, 0.8)');
     
    
     const toggleOptionExpander = () => setOptionExpand(prev => !prev);
@@ -68,19 +72,8 @@ export const RoutewithDesScreen = (props:MapProps) => {
         console.log("here again", formattedRoute);
         setRoute(formattedRoute);
         setCurrentWalkData(result);
+        setShowInfo(true);
     };
-
-    //delete this???
-    useEffect(() => {
-        const handlePress = (e: any) => {
-            if (isSelectingLocation) {  // Only allow selecting location if button has been pressed
-              const coordinate = e.nativeEvent.coordinate;
-              setStartLocation(coordinate);  // Save the coordinates as the start location
-              setIsSelectingLocation(false); // Disable map press after location is set
-            }
-          }
-    }, [isSelectingLocation]);
-
 
     // Function to handle the map press event
     const handlePress = (e: any) => {
@@ -90,6 +83,8 @@ export const RoutewithDesScreen = (props:MapProps) => {
         setIsSelectingLocation(false);// Disable map press after location is set
         setStartButtonText(false);
         setStartChosen(true);
+        setButtontext(true);
+        handlePressColorContainer();
       }
 
       if(isSelectingLocationEnd) {
@@ -97,18 +92,15 @@ export const RoutewithDesScreen = (props:MapProps) => {
         setEndLocation(coordinate);
         setIsSelectingLocationEnd(false);
         setEndButtonText(false);
-        setEndChosen(true)
+        setEndChosen(true);
+        setReset(true);
       }
     }
-//delete this???
-    const handleEndPress = (e: any) => {
-        if (isSelectingLocation) {  // Only allow selecting location if button has been pressed
-          const coordinate = e.nativeEvent.coordinate;
-          setStartLocation(coordinate);  // Save the coordinates as the start location
-          setIsSelectingLocation(false);// Disable map press after location is set
-          setStartButtonText(false);
-        }
-      }
+
+    const handlePressColorContainer = () => {
+      setContainerColor(containerColor === "rgba(106, 191, 112, 0.8)" ? "rgba(224, 151, 151, 0.8)" : "rgba(106, 191, 112, 0.8)"); // Toggle between white and light blue
+    };
+
 
     const handleSetStartLocation = () => {
     setIsSelectingLocation(true);  // Allow map press to select a location
@@ -200,25 +192,54 @@ export const RoutewithDesScreen = (props:MapProps) => {
 
 {isSelectingLocation &&(
   <View style= {styles.messageContainer}>
-    <Text style= {styles.startText}> Choose start point </Text>
+    <Text style= {styles.startText}> Choose start point by clicking on the map </Text>
   </View>
 )}
 
 {isSelectingLocationEnd &&(
   <View style= {styles.messageContainer}>
-    <Text style= {styles.startText}> Choose end point </Text>
+    <Text style= {styles.startText}> Choose end point by clicking on the map </Text>
   </View>
 )}
 
 <View style= {styles.OptionsMenu}>
 
     <View style={styles.locationContainer}>
-        <View style={styles.buttoncontainerStart}>
-            <Button title= {StartButtontext ? "Set start location" : 'New start location'} onPress={handleSetStartLocation} />
+        <View style={[styles.buttoncontainerStart, {backgroundColor: containerColor}]}>
+            <Button title= {buttontext ? "Press to choose end point" : 'Press to choose start point'} onPress={() => {
+              
+              if(!startChosen) {
+                handleSetStartLocation();
+                
+                
+              }
+              else {
+                handleSetEndLocation();
+              }
+            }} />
         </View>
-        <View style={styles.buttoncontainerEnd}>
-            <Button title= {EndButtontext ? "Set end location" : "New end location"} onPress={handleSetEndLocation} />
-        </View>
+
+        {reset && (
+                <View style={styles.buttoncontainerReset}>
+                <Button title= "reset" onPress={() => {
+                  setButtontext(false);
+                  setStartLocation(null),
+                  setEndLocation(null);
+                  setStartChosen(false);
+                  setEndChosen(false);
+                  setIsSelectingLocation(false),
+                  setIsSelectingLocationEnd(false);
+                  setRoute([]);
+                  setShowInfo(false);
+                  setContainerColor("rgba(106, 191, 112, 0.8)")
+                  //setReset(false);
+                  
+                }} />
+            </View>
+        )}
+
+
+  
     </View>
 
     <View style = {styles.buttoncontainer}>
@@ -231,6 +252,14 @@ export const RoutewithDesScreen = (props:MapProps) => {
             }  
         }}/>
     </View>
+
+    {showInfo && (
+
+      <View style = {styles.buttoncontainerInfo}>
+        <Button title="Show info"/>
+
+      </View>
+    )}
 
 </View>  
 
@@ -279,10 +308,10 @@ export const RoutewithDesScreen = (props:MapProps) => {
             width: "100%", // Make input take the full width
         },
         buttoncontainerStart: {
-            width: "120%",           // The width of the button container
+            width: "200%",           // The width of the button container
             backgroundColor: 'white',  // Background color of the container
             position: "absolute",   // Position the container absolutely
-            top: 10,                 // Align the container to the top of the screen
+            top: 30,                 // Align the container to the top of the screen
             left: 10,                // Align the container to the left side of the screen
             borderRadius: 20,       // Rounded corners for the button container
             borderColor: "black",   // Border color for the button container
@@ -293,7 +322,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
 
           buttoncontainer: {
             width: "60%",
-            marginBottom: 40,
+            marginBottom: 35,
             backgroundColor: 'rgba(3, 11, 54, 0.96)',
             position: "absolute",
             bottom: 15,
@@ -303,17 +332,31 @@ export const RoutewithDesScreen = (props:MapProps) => {
             color: "black"
         },
 
-          buttoncontainerEnd: {
-            width: "100%",           // The width of the button container
+          buttoncontainerReset: {
+            width: "90%",           // The width of the button container
             backgroundColor: 'white',  // Background color of the container
             position: "absolute",   // Position the container absolutely
             top: 130,                 // Align the container to the top of the screen
-            left: 10,                // Align the container to the left side of the screen
+            left: 15,                // Align the container to the left side of the screen
             borderRadius: 20,       // Rounded corners for the button container
             borderColor: "black",   // Border color for the button container
             borderWidth: 1,         // Set border width if needed
-            padding: 10,            // Padding for better visual appearance
-            color: "black",         // Text color (though the button text color will be separate)
+            padding:0,            // Padding for better visual appearance
+            color: "black", 
+            height: 40,        // Text color (though the button text color will be separate)
+          },
+          buttoncontainerInfo: {
+            width: "40%",           // The width of the button container
+            backgroundColor: 'white',  // Background color of the container
+            position: "absolute",   // Position the container absolutely
+            top: 180,                 // Align the container to the top of the screen
+            left: 210,                // Align the container to the left side of the screen
+            borderRadius: 20,       // Rounded corners for the button container
+            borderColor: "black",   // Border color for the button container
+            borderWidth: 1,         // Set border width if needed
+            padding:0,            // Padding for better visual appearance
+            color: "black", 
+            height: 40,        // Text color (though the button text color will be separate)
           },
     
         savebuttoncontainer: {
@@ -328,7 +371,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
         },
     
         startText: {
-            fontSize: 22,
+            fontSize: 20,
             color:"white",
             marginBottom: 10,
             marginTop: 20,
@@ -360,7 +403,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
             elevation: 5, // Android shadow
           },
         OptionStartText: {
-          fontSize: 22,
+          fontSize: 10,
           color: "white",
           marginTop: 0,  // Remove any margin from the top
           marginBottom: 0,  // Remove margin at the bottom if you want to keep it tight
@@ -410,7 +453,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
             backgroundColor: 'white',  // Background color for visibility
             justifyContent: 'center', // Center the content vertically
             alignItems: 'center', // Center the content horizontally
-            padding: 20,          // Add some padding for the content
+            padding: 0,          // Add some padding for the content
         },
         centerButtonContainer: {
           position: 'absolute',
