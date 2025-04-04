@@ -10,6 +10,8 @@ import LoginScreen from "../components/LoginScreen";
 import CreateAccountScreen from "../components/CreateAccountScreen";
 import StartScreen from "../components/StartScreen";
 import FamilyWalk from "@/components/FamilyWalk";
+import { RoutewithDesScreen } from "@/components/RouteWithDesScreen";
+import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 
 const {Navigator, Screen} = createStackNavigator();
 
@@ -24,8 +26,8 @@ const AppNavigator = () => (
             <Screen name = "Book walk" component={BookWalkScreen}/>
             <Screen name = "Walk Buddy" component={WalkBuddyScreen}/>
             <Screen name = "Family walk" component={FamilyWalk}/>
-
-
+            <Screen name = "Walk with destination" component={RoutewithDesScreen}/>
+            <Screen name = "Round walk" component={RoundRouteScreen}/>
     </Navigator>
         
 ); export default AppNavigator;

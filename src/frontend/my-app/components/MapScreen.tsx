@@ -11,9 +11,10 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
+import { RoundRouteScreen } from "./RoundRouteScreen";
 
 const port = 3000;
-//const ws = new WebSocket("ws://0.0.0.0:3000"); //LÄGG IN DIN DATORS IP ADDRESS HÄR 
+// const ws = new WebSocket("ws://0.0.0.0:3000"); //LÄGG IN DIN DATORS IP ADDRESS HÄR 
 
 ws.onopen = () => {
   console.log('[Client] Connected');
@@ -42,7 +43,11 @@ function sendToBackend(currentWalkData: JSON) {
   }
 }
 
-const MapScreen = ({}) => {
+interface MapProps {
+  navigation: any
+}
+
+const MapScreen = (props: MapProps) => {
     const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
     const [distance, setDistance] = useState('500');
     const [menuExpand, setMenuExpand] = useState<boolean>(false);
@@ -56,10 +61,12 @@ const MapScreen = ({}) => {
     const [ShowRoundTrip, setShowRoundTrip] = useState<boolean>(false);
     const [ShowtripWithDes, setShowTripWitDes] = useState<boolean>(false);
     const [ShowtripWitStops, setShowTripWihStops] = useState<boolean>(false);
-    const [ShowOptions, setShowOptions] = useState<boolean>(false);
+    const [ShowOptions, setShowOptions] = useState<boolean>(true);
     const [HasShowOptions, setHasShowOptions] = useState<boolean>(false);
     const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
     const [currentWalkData, setCurrentWalkData] = useState<JSON>();
+    const [endLocation, setEndLocation] = useState<{latitude: number; longitude: number} | null> (null);
+    const [ShowStartEndTrip, setShowStartEnTrip] = useState<boolean>(false);
 
     const toggleMenuExpander = () => setMenuExpand(prev => !prev);
     const toggleOptionExpander = () => setOptionExpand(prev => !prev);
@@ -89,24 +96,29 @@ const MapScreen = ({}) => {
 
       const TestStartEnd = async () => {
 
-        const start: {latitude: number; longitude: number} = {latitude: 59.8586 , longitude: 17.6450 }; 
-        const end: {latitude: number; longitude: number} = {latitude: 32.742468, longitude:  -96.791761 }; 
+         const start: {latitude: number; longitude: number} = {latitude: 59.8586 , longitude: 17.6450 }; 
+         const end: {latitude: number; longitude: number} = {latitude: 59.861231, longitude: 17.627068}; 
 
-        const result = await getStartEndTrip(start, end, 42, 3, 600);
 
-        const resultGeometry = result.geometry;
-        console.log("distance", result.summary.distance);
+        const result = await getStartEndTrip(startLocation, endLocation, 42, 3, 600);
+        console.log("data is here:", result.routes[0]);
 
+        const resultGeometry = result.routes[0].geometry;
+
+        console.log("geo", result.routes[0].geometry);
+        console.log("distance", result.routes[0].summary.distance);
         console.log("result", resultGeometry);
-            const decodegeom = polyline.decode(resultGeometry);
-            console.log("decode", decodegeom);
-            const formattedRoute = decodegeom.map((coord: number[]) => ({
-                latitude: coord[0],
-                longitude: coord[1],
-              }));
 
-            console.log("here again", formattedRoute);
-            setRoute(formattedRoute);
+        const decodegeom = polyline.decode(resultGeometry);
+        console.log("decode", decodegeom);
+        const formattedRoute = decodegeom.map((coord: number[]) => ({
+            latitude: coord[0],
+            longitude: coord[1],
+          }));
+
+        console.log("here again", formattedRoute);
+        setRoute(formattedRoute);
+        setCurrentWalkData(result);
       };
 
       const TestRoundtripLocations = async () => {
@@ -142,8 +154,6 @@ const MapScreen = ({}) => {
      
     return (
 
-      
-
 <View style={styles.container}>
 
 {/* Test buttons */}
@@ -154,7 +164,7 @@ const MapScreen = ({}) => {
 
 {showStartText && (
     <View style={styles.messageContainer}> 
-        <Text style={styles.startText}> Click on screen to choose start point </Text>
+        {/* <Text style={styles.startText}> Click on screen to choose start point </Text> */}
     </View>  )} 
         <MapView
           style={styles.map}
@@ -178,6 +188,7 @@ const MapScreen = ({}) => {
           {/* Render the route on the map */}
           {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
         </MapView>
+
 
     {ShowOptions && (
     <View style={[styles.OptionContainer, {height: optionExpand ? '15%': '9%'}]}>
@@ -207,20 +218,18 @@ const MapScreen = ({}) => {
       {optionExpand && (
       <View>
       <View style= {[styles.buttoncontainerRoundTrip]}>
-      <Button title="Round walk" onPress={() => {
-      setShowRoundTrip(true);
-      setShowTripWitDes(false);
-      setShowTripWihStops(false);
-      }}/>
+      <Button title="Round walk" onPress={() => props.navigation.navigate("Round walk")
+      }/> 
       </View> 
 
       <View style= {[styles.buttoncontainerTripWithDes]}>
-      <Button title="Walk with destination" onPress={() => {
-      setShowTripWitDes(true);
-      setShowRoundTrip(false);
-      setShowTripWihStops(false);
-      }}/>
+      <Button title="Walk with destination" onPress={() => props.navigation.navigate("Walk with destination")
+      }/>
       </View> 
+
+      {/* setShowTripWitDes(true);
+      setShowRoundTrip(false);
+      setShowTripWihStops(false); */}
 
       <View style= {[styles.buttoncontainerTripWithStops]}>
       <Button title="Walk with stops" onPress={() => {
@@ -281,11 +290,23 @@ const MapScreen = ({}) => {
     {menuExpand && (
     <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
      <View style={styles.buttoncontainer}>
-        <Button title="Generate Route" onPress={fetchRoundTripRoute}
-         />
-
+        <Button title="Generate Route" onPress={fetchRoundTripRoute}/>
         </View> 
         </View>
+      )}
+
+      {ShowtripWithDes && (     
+        <View>
+
+          <View style={styles.buttoncontainer} >
+
+          <Button title="Generate Route" onPress={() => props.navigation.navigate("Family walk")}
+         />
+
+          </View>
+
+        </View>
+
       )}
          
       </View>
