@@ -11,6 +11,7 @@ import LoginScreen from "../components/LoginScreen";
 import CreateAccountScreen from "../components/CreateAccountScreen";
 import StartScreen from "../components/StartScreen";
 import FamilyWalk from "@/components/FamilyWalk";
+import ProfileScreen from "@/components/ProfileScreen";
 
 const {Navigator, Screen} = createStackNavigator();
 
@@ -25,6 +26,7 @@ const AppNavigator = () => (
             <Screen name = "Book walk" component={BookWalkScreen}/>
             <Screen name = "Walk Buddy" component={WalkBuddyScreen}/>
             <Screen name = "Family walk" component={FamilyWalk}/>
+            <Screen name="Profile" component={ProfileScreen}/>
 
 
     </Navigator>
