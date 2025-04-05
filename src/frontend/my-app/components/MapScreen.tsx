@@ -1,3 +1,4 @@
+//mapscreen.tsx
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
@@ -42,7 +43,7 @@ const MapScreen = ({}) => {
         const distanceNum = Number(distance);
         
         const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-        const resultGeometry = result.geometry;
+        const resultGeometry = result.routes[0].geometry;
         console.log("result", resultGeometry);
             const decodegeom = polyline.decode(resultGeometry);
             console.log("decode", decodegeom);
@@ -254,10 +255,7 @@ const MapScreen = ({}) => {
     {menuExpand && (
     <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
      <View style={styles.buttoncontainer}>
-        <Button title="Generate Route" onPress={(e)=> {
-          fetchRoundTripRoute
-          setWalkGenerated(true)
-        }}
+        <Button title="Generate Route" onPress={fetchRoundTripRoute}
          />
 
         </View> 

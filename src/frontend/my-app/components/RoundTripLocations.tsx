@@ -17,7 +17,7 @@ export const getRouteWithStops = async (start: {latitude: number, longitude:numb
     const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
         method: "POST",
         headers: {
-            Authorization: ORS_API_KEY,
+            Authorization: process.env.ORS_API_KEY || "5b3ce3597851110001cf6248ada064c2831b4ee5b5d4165c1ccaf9b3",
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
