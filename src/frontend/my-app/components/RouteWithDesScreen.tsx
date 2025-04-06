@@ -75,12 +75,11 @@ export const RoutewithDesScreen = (props:MapProps) => {
         setShowInfo(true);
     };
 
-    // Function to handle the map press event
     const handlePress = (e: any) => {
-      if(isSelectingLocation) {  // Only allow selecting location if button has been pressed
+      if(isSelectingLocation) {  
         const coordinate = e.nativeEvent.coordinate;
-        setStartLocation(coordinate);  // Save the coordinates as the start location
-        setIsSelectingLocation(false);// Disable map press after location is set
+        setStartLocation(coordinate);  
+        setIsSelectingLocation(false);
         setStartButtonText(false);
         setStartChosen(true);
         setButtontext(true);
@@ -123,72 +122,13 @@ export const RoutewithDesScreen = (props:MapProps) => {
             longitudeDelta: 0.05,
             }}
 
-            onPress={handlePress}
+            onPress={handlePress}>
 
-            // onPress={(e) => {setStartLocation(e.nativeEvent.coordinate)
-            // setShowStartText(false);
-            // if(!HasShowOptions) {
-            // setShowOptions(true);
-            // setHasShowOptions(true);
-            // }
-            // console.log('ShowOptions:', ShowOptions);
-            // }}
-        >
             {startLocation && <Marker coordinate={startLocation} title="Start" pinColor="green"/>}
             {endLocation && <Marker coordinate={endLocation} title="End" pinColor="red"/>}
             {/* Render the route on the map */}
             {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
         </MapView> 
-
-    {ShowOptions && (
-        <View style={[styles.OptionContainer, {height: optionExpand ? '15%': '9%'}]}>
-        {!optionExpand && (
-            <Text style = {styles.OptionStartText}> Desing your walk</Text>
-        )}
-      <View style={{ 
-      flexDirection: "row", 
-      width: "100%", 
-      alignItems: "center", 
-      justifyContent: "center", 
-      position: "relative",
-      marginTop: 60
-    }}> 
-      <Pressable style={{
-        marginLeft: "auto", 
-        marginRight: 20, 
-        zIndex: 20, 
-        position: "absolute", 
-        right: 0,
-        paddingBottom: optionExpand ? 5 : 135,}}  
-        onPress={toggleOptionExpander} >
-      <Arrow width={36} height={36} angle={optionExpand}/>
-      </Pressable>
-      </View>
-
-      {optionExpand && (
-      <View>
-      <View style= {[styles.buttoncontainerRoundTrip]}>
-      <Button title="Round walk" onPress={() => props.navigation.navigate("Round walk")
-      }/> 
-      </View> 
-
-      <View style= {[styles.buttoncontainerTripWithDes]}>
-      <Button title="Walk with destination" onPress={() => props.navigation.navigate("Walk with destination")
-      }/>
-      </View> 
-
-      <View style= {[styles.buttoncontainerTripWithStops]}>
-      <Button title="Walk with stops" onPress={() => {
-      setShowTripWihStops(true);
-      setShowRoundTrip(false);
-      setShowTripWitDes(false);
-      }}/>
-      </View> 
-      </View>
-        
-    )}
-    </View>
-  )}
 
 {isSelectingLocation &&(
   <View style= {styles.messageContainer}>
@@ -210,7 +150,6 @@ export const RoutewithDesScreen = (props:MapProps) => {
               
               if(!startChosen) {
                 handleSetStartLocation();
-                
                 
               }
               else {
@@ -269,16 +208,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
     const styles = StyleSheet.create({
         container: { flex: 1 },
         map: { flex: 1 },
-        controls: {
-            position: "absolute",
-            bottom: 0,
-            width:"100%",
-            height:"30%",
-            backgroundColor: 'rgba(52, 52, 52, 0.8)',
-            padding: 20,
-            justifyContent:"center",
-            alignItems:"center",
-        },
+
         messageContainer: {
             backgroundColor: 'rgba(6, 18, 87, 0.8)',
             padding: 10, // Add some padding to make it look less cramped
@@ -290,23 +220,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
             right: 0,
             zIndex: 10, // Ensure it sits above other elements
         },
-        inputLable: {
-            fontSize: 22,
-            color:"white",
-            marginBottom: 50,
-            marginTop: 20,
-        
-        },
-        input: {
-            height: 40,
-            borderColor: "gray",
-            borderWidth: 1,
-            marginBottom: 20,
-            paddingLeft: 8,
-            backgroundColor: "white", // Set background color for the input field
-            color: "black",
-            width: "100%", // Make input take the full width
-        },
+
         buttoncontainerStart: {
             width: "200%",           // The width of the button container
             backgroundColor: 'white',  // Background color of the container
@@ -377,18 +291,6 @@ export const RoutewithDesScreen = (props:MapProps) => {
             marginTop: 20,
             marginLeft: 0,
         },
-        OptionContainer: {
-          flex: 1,
-          backgroundColor: 'rgba(6, 18, 87, 0.8)',
-          padding: 20,
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
-          zIndex: 10,
-          position: 'absolute', // Keeps it positioned relative to the screen
-          top: 0,  // Move to the top instead of bottom
-          width: '100%', 
-          marginBottom: 0, // Remove margin to avoid gaps
-        },
 
         innerContainer: {
             width: '80%', // 80% of parent width
@@ -402,25 +304,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
             shadowOffset: { width: 2, height: 2 },
             elevation: 5, // Android shadow
           },
-        OptionStartText: {
-          fontSize: 10,
-          color: "white",
-          marginTop: 0,  // Remove any margin from the top
-          marginBottom: 0,  // Remove margin at the bottom if you want to keep it tight
-          textAlign: 'left',  // Align the text to the left
-        },
-        
-        buttoncontainerRoundTrip: {
-          width: "40%",
-          marginBottom: 30,
-          backgroundColor: 'white',
-          position: "absolute",
-          bottom: 0,
-          borderRadius: 30,
-          borderColor: "white",
-          color: "black",
-          left: -5,
-        },
+
         buttoncontainerTripWithDes: {
           width: "60%",
           marginBottom: -20,
@@ -432,19 +316,6 @@ export const RoutewithDesScreen = (props:MapProps) => {
           color: "black",
           left: -5,
         },
-        buttoncontainerTripWithStops: {
-          width: "60%",
-          marginBottom: 30,
-          marginLeft: 150,
-          backgroundColor: 'white',
-          position: "absolute",
-          bottom: 0,
-          borderRadius: 30,
-          borderColor: "white",
-          color: "black",
-          left: -5,
-        },
-    
         OptionsMenu: {
             position: 'absolute',  // Position container absolutely relative to the screen
             bottom: 0,             // Align it to the bottom of the screen
@@ -455,13 +326,6 @@ export const RoutewithDesScreen = (props:MapProps) => {
             alignItems: 'center', // Center the content horizontally
             padding: 0,          // Add some padding for the content
         },
-        centerButtonContainer: {
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          marginTop: 150,
-          zIndex: 10,
-      },
 
       locationContainer: {
         position: "absolute",

@@ -8,12 +8,17 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import MenuBar from "./menuBar";
 
+interface Props {
+    navigation: any
+}
 
-const WalkBuddyScreen = ({}) => {
+const WalkBuddyScreen = (props: Props) => {
     return (
-        <View>
+        <View style={{minHeight: '100%', backgroundColor: "white" }}>
             <Text> Find a walk buddy </Text>
+            <MenuBar navigation={props.navigation} />
         </View>
     )
 }; export default WalkBuddyScreen;

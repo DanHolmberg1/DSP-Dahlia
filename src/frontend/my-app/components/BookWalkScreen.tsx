@@ -9,6 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import MenuBar from "./menuBar";
 
 interface BookingProps {
     navigation: any
@@ -18,16 +19,17 @@ const BookWalkScreen = (props: BookingProps) => {
     const [bookSpot, setbookSpot] = useState<boolean>(false);
 
     return (
-    <View> 
+    <View style={{minHeight: '100%', backgroundColor: "white" }}> 
         <Text style = {styles.HeaderText}> Book a walk with others!</Text>
         <Text style = {styles.StartText}> Share a walk with others!</Text>
 
         <View style = {styles.BookContainer}> 
             <Button title = 'Family walk' onPress={() => props.navigation.navigate("Family walk")}/>
             {/* <Text style = {styles.FamilyWalkText}> Family walk</Text> */}
+           
 
         </View>
-
+        <MenuBar navigation={props.navigation}/>
 
     </View>
     )
