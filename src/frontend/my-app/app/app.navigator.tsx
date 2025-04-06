@@ -12,7 +12,7 @@ import CreateAccountScreen from "../components/CreateAccountScreen";
 import StartScreen from "../components/StartScreen";
 import FamilyWalk from "@/components/FamilyWalk";
 import ProfileScreen from "@/components/ProfileScreen";
-
+import TestSocketScreen from '../components/TestSocketScreen';
 const {Navigator, Screen} = createStackNavigator();
 
 const AppNavigator = () => (
@@ -27,7 +27,7 @@ const AppNavigator = () => (
             <Screen name = "Walk Buddy" component={WalkBuddyScreen}/>
             <Screen name = "Family walk" component={FamilyWalk}/>
             <Screen name="Profile" component={ProfileScreen}/>
-
+            <Screen name="SocketTest" component={TestSocketScreen} />
 
     </Navigator>
         

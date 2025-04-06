@@ -40,6 +40,9 @@ const HomeScreen = (props: HomeScreenProps) => {
         <View>
             <Button title="Profile" onPress={() => props.navigation.navigate('Profile')}/>
         </View>
+        <View>
+            <Button title="Socket test" onPress={() => props.navigation.navigate('SocketTest')}/>
+        </View>
     </View>
 
 )};
