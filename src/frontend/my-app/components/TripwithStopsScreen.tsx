@@ -12,6 +12,8 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import { Picker } from "@react-native-picker/picker";
 import polyline from "polyline";
 import { getRouteWithStops } from "./RoundTripLocations";
+import { getClosestLocation } from "./FindClosestLocation";
+
 
 const categories = ["Café", "Library", "Restaurant", "Museum", "Toilet", "Store", "Other"];
 
@@ -25,6 +27,7 @@ export default function TripWithStopsScreen() {
   const [showAddressInput, setShowAddressInput] = useState(false);
   const [showPickStop, setPickStop] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
+  const [isSelectingLocation, setIsSelectingLocation] = useState(false);
 
 
   return (
@@ -117,12 +120,28 @@ export default function TripWithStopsScreen() {
           </Picker>
           <Button
             title="Confirm stop"
-            onPress={() => {
-                console.log("Stop added", selectedCategory);
-                //Logik för stop
-                setPickStop(false);
+            onPress={async () => {
+              if (!startLocation) {
+                alert("Choose a start location first");
+                return;
+              }
+
+              {/**TODO: Fixa så att valda location läggs till i listan bredvid & så att den inte är invalid */}
+              const nearest = await getClosestLocation(startLocation, selectedCategory);
+              if (nearest && nearest.lat != null && nearest.lon != null) {
+                const latlng: LatLng = {
+                  latitude: nearest.lat,
+                  longitude: nearest.lon
+                };
+                setStops(prev => [...prev, latlng]);
+              } else {
+                alert("No valid location found.");
+              }
+
+              setPickStop(false);
             }}
-            />
+          />
+
           </View>
           
         )}
