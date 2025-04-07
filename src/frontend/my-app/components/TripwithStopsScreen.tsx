@@ -28,21 +28,50 @@ export default function TripWithStopsScreen() {
   const [showPickStop, setPickStop] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+  const [showMultipleChoice, setShowMultipleChoice] = useState(false);
+  const [StartButtontext, setStartButtonText] = useState(true);
+  const [startChosen, setStartChosen] = useState(false);
+  const [buttontext, setButtontext] = useState(false);
+  const [containerColor, setContainerColor] = useState('rgba(106, 191, 112, 0.8)');
+  const [isAddingStop, setIsAddingStop] = useState(false);
+
+  
+  const handlePressColorContainer = () => {
+    setContainerColor(containerColor === "rgba(106, 191, 112, 0.8)" ? "rgba(224, 151, 151, 0.8)" : "rgba(106, 191, 112, 0.8)"); // Toggle between white and light blue
+  };
+
+  const handlePress = (e: any) => {
+    const coordinate = e.nativeEvent.coordinate;
+    if(isSelectingLocation) {  
+      setStartLocation(coordinate);  
+      setIsSelectingLocation(false);
+      setStartButtonText(false);
+      setStartChosen(true);
+      setButtontext(true);
+      handlePressColorContainer();
+      setShowMultipleChoice(true);
+    } else if (isAddingStop) {
+      setStops(prev => [...prev, coordinate]);
+      setIsAddingStop(false); // om du bara vill lägga till ett i taget
+    }
+  }
+
+  const handleSetStartLocation = () => {
+  setIsSelectingLocation(true);  // Allow map press to select a location
+  }
+
+  const handleSetMiddleLocation = () => {
+    setIsAddingStop(true);
+  }
 
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
         style={{ flex: 1 }}
-        onPress={(e) => {
-          const coord = e.nativeEvent.coordinate;
-          if (!startLocation) {
-            setStartLocation(coord);
-          } else {
-            setStops((prev) => [...prev, coord]);
-          }
-        }}
-      >
+
+        onPress={handlePress}>
+
         {startLocation && <Marker coordinate={startLocation} title="Start" />}
         {stops.map((stop, index) => (
           <Marker key={index} coordinate={stop} title={`Stop ${index + 1}`} />
@@ -50,42 +79,65 @@ export default function TripWithStopsScreen() {
         {route.length > 0 && <Polyline coordinates={route} strokeWidth={3} strokeColor="blue" />}
       </MapView>
 
+      {isSelectingLocation &&(
+        <View style= {styles.messageContainer}>
+          <Text style= {styles.startText}> Choose start point by clicking on the map </Text>
+        </View>
+      )}
+
       <View style={styles.card}>
         <Text style={styles.title}>Trip with stops</Text>
-        <Text>
-          Starting point: <Text style={{ fontWeight: "bold" }}>Press on map</Text>
-        </Text>
+
+        {!startChosen && (
+          <Button
+            title="Choose start location"
+            onPress={handleSetStartLocation}
+          />
+        )}
+
+
+      {showMultipleChoice && (
         <View style ={styles.row}>
-            <View style={styles.column}>
-            <TouchableOpacity style={styles.button} onPress={() => alert("Tap on the map to add next stop")}> 
-                <Text style={styles.buttonText}>Add stop on map</Text>
-            </TouchableOpacity>
+          <View style={styles.column}>
+          <TouchableOpacity style={styles.button} 
+            onPress={() => {
+              alert("Tap on the map to add next stop");
+              setIsAddingStop(true);
+            }}
+            
+          >
+            <Text style={styles.buttonText}>Add stop on map</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => setShowAddressInput(true)}
-                    >
-                    <Text style={styles.buttonText}>Add address</Text>
-                </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setShowAddressInput(true)}
+            >
+            <Text style={styles.buttonText}>Add address</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} 
-                onPress={() => setPickStop(true)}>
-                <Text style={styles.buttonText}>Pick stop</Text>
-            </TouchableOpacity>
-            </View>
+          <TouchableOpacity style={styles.button} 
+            onPress={() => setPickStop(true)}>
+            <Text style={styles.buttonText}>Pick stop</Text>
+          </TouchableOpacity>
+          </View>
 
-            <View style={{flex: 1,
-                        flexDirection: "column",
-                        }}>
-            <Text style={{marginLeft: 40, marginTop: 5}}>Route stops:</Text>
-            <View style={styles.routeStops}>
-                <Text style={{ color: "black" }}>1. First stop</Text>
-                <Text style={{ color: "black" }}>2. Second stop</Text>
-                <Text style={{ color: "black" }}>3. Third stop</Text>
-                <Text style={{ color: "black" }}>4. Fourth stop</Text>
-            </View>
-            </View>
+          <View style={{flex: 1,
+                    flexDirection: "column",
+                    }}>
+          <Text style={{marginLeft: 40, marginTop: 5}}>Route stops:</Text>
+          <View style={styles.routeStops}>
+            <Text style={{ color: "black" }}>1. First stop</Text>
+            <Text style={{ color: "black" }}>2. Second stop</Text>
+            <Text style={{ color: "black" }}>3. Third stop</Text>
+            <Text style={{ color: "black" }}>4. Fourth stop</Text>
+          </View>
+          </View>
         </View>
+      )}
+
+        {/**TODO: Lägg till så man kan lägga till stop genom klick på kartan */}
+        
 
         {showAddressInput && (
         <>
@@ -216,5 +268,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 5,
     marginLeft: 40
-  }
+  },
+  messageContainer: {
+    backgroundColor: 'rgba(6, 18, 87, 0.8)',
+    padding: 10, // Add some padding to make it look less cramped
+    alignItems: 'center', // Center the text
+    justifyContent: 'center',
+    position: 'absolute', // Position it over the screen if needed
+    top: 0, // Position it at the top or adjust based on your layout
+    left: 0,
+    right: 0,
+    zIndex: 10, // Ensure it sits above other elements
+  },
+  startText: {
+    fontSize: 20,
+    color:"white",
+    marginBottom: 10,
+    marginTop: 20,
+    marginLeft: 0,
+},
 });
