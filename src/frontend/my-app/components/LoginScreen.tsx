@@ -9,6 +9,12 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import { useAuthRequest } from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
+
 
 interface LoginProps {
     navigation: any;
@@ -19,47 +25,66 @@ const LoginScreen = (props: LoginProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    return (
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        androidClientId: '955694188383-it4f8l0uoglb96bf3f4rhctaoo5abh87.apps.googleusercontent.com',
+      });
 
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}> 
+    
+    useEffect(() => {
+    if (response?.type === 'success') {
+        const { authentication } = response;
+        console.log("Inloggad med Google:", authentication);
+      
+        props.navigation.navigate("Home");
+    }
+    }, [response]);
+      
+      
 
-        <View style = {styles.container}>
-            <Text style = {styles.startText}>
-                Log in to your account
-            </Text>
-
-            {/* <Text style = {styles.inputEmail}> 
+      return (
+        <>
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <KeyboardAvoidingView
+              style={styles.container}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <View style={styles.container}>
+                <Text style={styles.startText}>Log in to your account</Text>
+      
+                <TextInput
+                  style={styles.inputEmail}
+                  placeholderTextColor="#888"
+                  placeholder="Email"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+      
+                <TextInput
+                  style={styles.inputPassword}
+                  placeholderTextColor="#888"
+                  placeholder="Password"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                />
+      
+                <Button title="Login" onPress={() => props.navigation.navigate("Home")} />
+      
                 
-            </Text> */}
-
-        <TextInput
-          style={styles.inputEmail}
-          placeholderTextColor="#888"
-          placeholder="Email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-    <TextInput
-          style={styles.inputPassword}
-          placeholderTextColor="#888"
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <Button title="Login" onPress={() => props.navigation.navigate("Home")} />
-
-        </View>
-        </KeyboardAvoidingView>
-       </TouchableWithoutFeedback>
-
-    )
+                <View style={{ marginTop: 20 }}>
+                  <Button
+                    disabled={!request}
+                    title="Logga in med Google"
+                    onPress={() => promptAsync()}
+                  />
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </>
+      )
+      
 }; 
 
 const styles = StyleSheet.create({

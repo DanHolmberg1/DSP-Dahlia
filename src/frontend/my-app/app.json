@@ -38,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra" :{
+      "googleAuth": {
+        "expoClientId": "955694188383-chv871v0gi6aksgj6t8gsphcockauok2.apps.googleusercontent.com",
+        "androidClientId": "955694188383-it4f8l0uoglb96bf3f4rhctaoo5abh87.apps.googleusercontent.com"
+      }
     }
   }
 }
