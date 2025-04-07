@@ -1,64 +1,114 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
-import polyline, { decode } from "polyline";
-import { start } from "repl";
-import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker"; 
-import { StatusBar } from "expo-status-bar";
-import { abort } from "process";
-import Arrow from "@/icons/arrow";
+import React, { useState } from "react";
+import { 
+  StyleSheet, 
+  View, 
+  Text, 
+  Button, 
+  KeyboardAvoidingView, 
+  Platform, 
+  TouchableWithoutFeedback, 
+  Keyboard, 
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator
+} from "react-native";
+import { socketService } from '@/socket/socketService';
 
 interface LoginProps {
     navigation: any;
 }
 
 const LoginScreen = (props: LoginProps) => {
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleLogin = async () => {
+        setLoading(true);
+        setError('');
+
+        // Basic validation
+        if (!email || !password) {
+            setError('Please enter both email and password');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const result = await socketService.login({ email, password });
+            
+            if (result.success) {
+                // Navigate to Home on successful login
+                props.navigation.navigate("Home", { userId: result.userId });
+            } else {
+                setError(result.error || 'Login failed');
+            }
+        } catch (err) {
+            setError('Network error. Please try again.');
+            console.error('Login error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}> 
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            > 
+                <View style={styles.container}>
+                    <Text style={styles.startText}>
+                        Log in to your account
+                    </Text>
 
-        <View style = {styles.container}>
-            <Text style = {styles.startText}>
-                Log in to your account
-            </Text>
+                    {error ? (
+                        <Text style={styles.errorText}>{error}</Text>
+                    ) : null}
 
-            {/* <Text style = {styles.inputEmail}> 
-                
-            </Text> */}
+                    <TextInput
+                        style={styles.inputEmail}
+                        placeholderTextColor="#888"
+                        placeholder="Email"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
 
-        <TextInput
-          style={styles.inputEmail}
-          placeholderTextColor="#888"
-          placeholder="Email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+                    <TextInput
+                        style={styles.inputPassword}
+                        placeholderTextColor="#888"
+                        placeholder="Password"
+                        secureTextEntry
+                        autoCapitalize="none"
+                        value={password}
+                        onChangeText={setPassword}
+                    />
 
-    <TextInput
-          style={styles.inputPassword}
-          placeholderTextColor="#888"
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#0000ff" />
+                    ) : (
+                        <TouchableOpacity 
+                            style={styles.loginButton}
+                            onPress={handleLogin}
+                            disabled={loading}
+                        >
+                            <Text style={styles.buttonText}>Login</Text>
+                        </TouchableOpacity>
+                    )}
 
-        <Button title="Login" onPress={() => props.navigation.navigate("Home")} />
-
-        </View>
-        </KeyboardAvoidingView>
-       </TouchableWithoutFeedback>
-
+                    <TouchableOpacity 
+                        style={styles.createAccountButton}
+                        onPress={() => props.navigation.navigate("Create account")}
+                    >
+                        <Text style={styles.createAccountText}>Don't have an account? Create one</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
     )
 }; 
 
@@ -66,58 +116,15 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1,
         backgroundColor: "white",
-        padding: 10,
-    },
-
-    controls: {
-        position: "absolute",
-        bottom: 0,
-        width:"100%",
-        height:"30%",
-        backgroundColor: 'rgba(52, 52, 52, 0.8)',
         padding: 20,
-        justifyContent:"center",
-        alignItems:"center",
     },
-    messageContainer: {
-        backgroundColor: 'rgba(7, 39, 14, 0.8)',
-        padding: 10, // Add some padding to make it look less cramped
-        alignItems: 'center', // Center the text
-        justifyContent: 'center',
-        position: 'absolute', // Position it over the screen if needed
-        top: 0, // Position it at the top or adjust based on your layout
-        left: 0,
-        right: 0,
-        zIndex: 10, // Ensure it sits above other elements
-      },
-    inputLable: {
-        fontSize: 22,
-        color:"white",
-        marginBottom: 50,
-        marginTop: 20,
-    
-    },
-
-    buttoncontainer: {
-        width: "50%",
-        marginBottom: 40,
-        backgroundColor: 'white',
-        position: "absolute",
-        bottom: 0,
-        borderRadius: 30,
-        borderColor: "black",
-        color: "black"
-    },
-
     startText: {
-        fontSize: 30,
-        color:"black",
-        marginBottom: 10,
+        fontSize: 24,
+        color: "black",
+        marginBottom: 30,
         marginTop: 85,
-        marginLeft: 55,
-        position: "absolute",
+        textAlign: 'center',
     },
-
     inputEmail: {
         height: 50,
         borderColor: 'black',
@@ -125,17 +132,39 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         paddingHorizontal: 10,
         borderRadius: 10,
-        marginTop: 250,
-      },
-
-      
+    },
     inputPassword: {
         height: 50,
         borderColor: 'black',
         borderWidth: 1,
-        marginBottom: 15,
+        marginBottom: 25,
         paddingHorizontal: 10,
         borderRadius: 10,
-        marginTop: 10,
-      },
-  }); export default LoginScreen;
+    },
+    loginButton: {
+        backgroundColor: '#007AFF',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    createAccountButton: {
+        alignItems: 'center',
+    },
+    createAccountText: {
+        color: '#007AFF',
+        fontSize: 14,
+    },
+    errorText: {
+        color: 'red',
+        textAlign: 'center',
+        marginBottom: 15,
+    },
+});
+
+export default LoginScreen;

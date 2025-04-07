@@ -12,8 +12,10 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  password: string;
   age: number;
   sex: number;
+  interests: string[]; // Stored as a JSON string.
 }
 
 export interface Route {
@@ -44,8 +46,10 @@ export async function DBInit(): Promise<Database> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
       age INTEGER NOT NULL CHECK(age < 122 AND age > 0),
-      sex INTEGER NOT NULL CHECK(sex > 0 AND sex < 4)
+      sex INTEGER NOT NULL CHECK(sex >= 0 AND sex <= 2),
+      interests TEXT NOT NULL DEFAULT '[]'
     )
   `);
 
@@ -142,7 +146,7 @@ export async function groupAdd(db: Database, userID: number, groupID: number): P
 
 
 // Creates a new user record.
-export async function createUser(db: Database, name: string, email: string, age: number, sex: number): Promise<DBResponse<number>> {
+export async function createUser(db: Database, name: string, email: string, password: string, age: number, sex: number, interests: string[] = []): Promise<DBResponse<number>> {
   // Validate email.
   const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
   if (!validEmailRegExp.test(email)) {
@@ -155,23 +159,46 @@ export async function createUser(db: Database, name: string, email: string, age:
     console.error("Invalid name");
     return { success: false, error: "Invalid name." };
   }
-
+  // Validate password.
+  if (!password || password.length < 8) {
+    console.error("Invalid password");
+    return { success: false, error: "Password must be at least 8 characters." };
+  }
   // Validate age.
   if (age <= 0 || age > 122) {
     console.error("Invalid age:", age);
     return { success: false, error: "Invalid age." };
   }
 
-  // Validate sex. (Assuming 1 = female, 2 = male, 3 = other)
-  if (sex < 1 || sex > 3) {
+  // Validate sex. 0-2
+  if (sex < 0 || sex > 2) {
     console.error("Invalid sex:", sex);
-    return { success: false, error: "Invalid sex." };
+    return { success: false, error: "Invalid gender." };
   }
+ // Validate interests
+ if (!Array.isArray(interests)) {
+  console.error("Invalid interests format");
+  return { success: false, error: "Invalid interests format." };
+}
+//check if user already exists
+try {
+  const existingUser = await db.get(
+    `SELECT email FROM users WHERE email = ?`, 
+    [email]
+  );
+  
+  if (existingUser) {
+    return { success: false, error: "Email already exists." };
+  }
+} catch (err) {
+  console.error("Error checking email:", err);
+  return { success: false, error: "Error checking email availability." };
+}
 
   try {
     const result = await db.run(
-      `INSERT INTO users (name, email, age, sex) VALUES (?, ?, ?, ?)`,
-      [name, email, age, sex]
+      `INSERT INTO users (name, email, password, age, sex, interests) VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, email, password, age, sex, JSON.stringify(interests)]
     );
 
     if (result.lastID) {
@@ -180,6 +207,11 @@ export async function createUser(db: Database, name: string, email: string, age:
     return { success: false, error: "Failed to create user." };
   } catch (err) {
     console.error("Error creating user:", err);
+      // if email already exists
+    if (err instanceof Error && err.message.includes('UNIQUE constraint failed')) {
+      return { success: false, error: "Email already exists." };
+    }
+
     return { success: false, error: "Error creating user." };
   }
 }
@@ -198,39 +230,48 @@ export async function getUser(db: Database, id: number): Promise<DBResponse<User
   }
 }
 
-// Updates a user record by ID.
-export async function updateUser(db: Database, id: number, name: string, 
-  email: string, age: number, sex: number): Promise<DBResponse<boolean>> {
+export async function updateUser(
+  db: Database,
+  id: number,
+  name: string,
+  email: string,
+  age: number,
+  sex: number,
+  interests: string[] = [] // Ny parameter med default-värde
+): Promise<DBResponse<boolean>> {
 
-    // Validate email. ska man kunna uppdatera email?? 
-    const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
-    if (!validEmailRegExp.test(email)) {
-      console.error("Invalid email:", email);
-      return { success: false, error: "Invalid email." };
-    }
-  
-    // Validate name.
-    if (!name.trim()) {
-      console.error("Invalid name");
-      return { success: false, error: "Invalid name." };
-    }
-  
-    // Validate age.
-    if (age <= 0 || age > 122) {
-      console.error("Invalid age:", age);
-      return { success: false, error: "Invalid age." };
-    }
-  
-    // Validate sex. (Assuming 1 = female, 2 = male, 3 = other)
-    if (sex < 1 || sex > 3) {
-      console.error("Invalid sex:", sex);
-      return { success: false, error: "Invalid sex." };
-    }
-  
+  // Validera email
+  const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
+  if (!validEmailRegExp.test(email)) {
+    console.error("Invalid email:", email);
+    return { success: false, error: "Invalid email." };
+  }
+
+  if (!name.trim()) {
+    console.error("Invalid name");
+    return { success: false, error: "Invalid name." };
+  }
+
+  if (age <= 0 || age > 122) {
+    console.error("Invalid age:", age);
+    return { success: false, error: "Invalid age." };
+  }
+
+  if (sex < 0 || sex > 2) {
+    console.error("Invalid sex:", sex);
+    return { success: false, error: "Invalid sex." };
+  }
+
+  // Validera intressen
+  if (!Array.isArray(interests)) {
+    console.error("Invalid interests format");
+    return { success: false, error: "Invalid interests format." };
+  }
+
   try {
     const res = await db.run(
-      `UPDATE users SET name = ?, email = ?, age = ?, sex = ? WHERE id = ?`,
-      [name, email, age, sex, id]
+      `UPDATE users SET name = ?, email = ?, age = ?, sex = ?, interests = ? WHERE id = ?`,
+      [name, email, age, sex, JSON.stringify(interests), id] // Lägg till interests
     );
     return { success: true, data: (res.changes && res.changes > 0) || false };
   } catch (err) {
@@ -252,11 +293,11 @@ export async function deleteUser(db: Database, id: number): Promise<DBResponse<n
 
 export async function clearUsers(db: Database): Promise<boolean> {
   try {
-    await db.run('DELETE FROM users'); 
-    await db.run('VACUUM'); 
-    return true; 
+    await db.run('DELETE FROM users');
+    await db.run('VACUUM');
+    return true;
   } catch (err) {
-    console.error("Error clearing table", err); 
-    return false; 
+    console.error("Error clearing table", err);
+    return false;
   }
 }

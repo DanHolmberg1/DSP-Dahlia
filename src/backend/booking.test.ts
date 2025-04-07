@@ -1,5 +1,5 @@
 import { DBInit, routeAdd, routeDelete, routeGet, createGroup, createUser, 
-    getUser, updateUser, deleteUser, clearUsers } from "./db_opertions";
+    getUser, updateUser, deleteUser, clearUsers } from "./db_operations";
 import { open, Database } from 'sqlite';
 
 const name1 = "Anna"; 
