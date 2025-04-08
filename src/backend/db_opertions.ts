@@ -70,10 +70,10 @@ export async function DBInit(): Promise<Database> {
 
 
 // Inserts a new route and returns its ID.
-export async function routeAdd(db: Database, data: Coordinate[]): Promise<DBResponse<number>> {
+export async function routeAdd(db: Database, data: string): Promise<DBResponse<number>> {
   try {
-    const jsonData = JSON.stringify(data);
-    const result = await db.run("INSERT INTO routes (data) VALUES (?)", [jsonData]);
+    //const jsonData = JSON.stringify(data);
+    const result = await db.run("INSERT INTO routes (data) VALUES (?)", data);
 
     if (result.changes && result.lastID) {
       return { success: true, data: result.lastID };
@@ -255,7 +255,29 @@ export async function clearUsers(db: Database): Promise<boolean> {
     await db.run('VACUUM'); 
     return true; 
   } catch (err) {
-    console.error("Error clearing table", err); 
+    console.error("Error clearing users table", err); 
+    return false; 
+  }
+}
+
+export async function clearRoutes(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM routes'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing routes table", err); 
+    return false; 
+  }
+}
+
+export async function clearGroups(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM groups'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing routes table", err); 
     return false; 
   }
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = '';
+const ORS_API_KEY = '5b3ce3597851110001cf6248b1f7555fe5853475313cd0743d282c959806e66bce50ba0c6b28aa69';
 
 
 export const getStartEndTrip = async(start: {latitude: number, longitude:number} | null, end: {latitude: number, longitude:number} | null, seed: number, p: number, radius:number) => {
@@ -21,14 +21,14 @@ export const getStartEndTrip = async(start: {latitude: number, longitude:number}
             },
             body: JSON.stringify({
                 coordinates: [[start.longitude, start.latitude], [end.longitude, end.latitude]],
-                radiuses: Array(coordinates.length).fill(radius) // Start/end coordinate
+                radiuses: Array(coordinates.length).fill(radius) 
             }),  
         });
      
         const data = await response.json();
         console.log("stop data:", data);
         if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-        return data.routes[0];
+        return data;
         } else {
         console.error("route data is invalid here")
        }

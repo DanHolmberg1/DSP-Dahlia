@@ -9,6 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import MenuBar from "./menuBar";
 
 interface HomeScreenProps {
     navigation: any;
@@ -26,7 +27,7 @@ const HomeScreen = (props: HomeScreenProps) => {
         </Text>
 
         <View>
-            <Button title="Map" onPress={() => props.navigation.navigate('Map')}/>
+            <Button title="Generate routes" onPress={() => props.navigation.navigate('Generate routes')}/>
         </View>
 
         <View>
@@ -36,6 +37,7 @@ const HomeScreen = (props: HomeScreenProps) => {
         <View>
             <Button title="Find Walk Buddy" onPress={() => props.navigation.navigate('Walk Buddy')}/>
         </View>
+        <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
     </View>
 
 )};

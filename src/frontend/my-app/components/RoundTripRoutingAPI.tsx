@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
-const ORS_API_KEY = '';
+const ORS_API_KEY = '5b3ce3597851110001cf6248b1f7555fe5853475313cd0743d282c959806e66bce50ba0c6b28aa69';
 /**
  * Function that makes an API call to OpenRouteService to get the desired route.
  * 
@@ -17,6 +17,7 @@ const ORS_API_KEY = '';
  * This data is typically used to render a route on a map.
  */
 export const getRoundTripRoute = async (start: {latitude: number, longitude:number} | null, len: number, seed: number, p: number) => {
+    console.log("hereeee");
     if (start == null) {
         console.error("Something went wrong with the coordinates.");
         return;
@@ -34,7 +35,7 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
                     round_trip: { // Round-trip: start and end points are the same
                         length: len,  // Length of the route (in meters)
                         seed: seed,   // Random seed for the route calculation
-                        points: p // Number of points for the round trip
+                        points: 6 // Number of points for the round trip
                     }
                 }
             }),  
@@ -42,8 +43,9 @@ export const getRoundTripRoute = async (start: {latitude: number, longitude:numb
      
         const data = await response.json();
         if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
+            console.log("here");
             console.log("data:", data);
-            return data.routes[0];
+            return data;
         }else {
             console.error("route data is invalid")
         }

@@ -9,17 +9,17 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import MenuBar from "./menuBar";
 
 interface BookingProps {
-    navigate: any; 
+    navigation: any; 
 }
 
-const FamilyWalk = ({}) => {
+const FamilyWalk = (props: BookingProps) => {
     
     return (
     <View>
-
-        
+      <MenuBar navigation={props.navigation}/>
     </View>
     )
 };
