@@ -43,7 +43,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
     const [buttontext, setButtontext] = useState(false);
     const [reset, setReset] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
-    const [containerColor, setContainerColor] = useState('rgba(106, 191, 112, 0.8)');
+    const [containerColor, setContainerColor] = useState('rgba(7, 67, 11, 0.8)');
     
    
     const toggleOptionExpander = () => setOptionExpand(prev => !prev);
@@ -97,7 +97,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
     }
 
     const handlePressColorContainer = () => {
-      setContainerColor(containerColor === "rgba(106, 191, 112, 0.8)" ? "rgba(224, 151, 151, 0.8)" : "rgba(106, 191, 112, 0.8)"); // Toggle between white and light blue
+      setContainerColor(containerColor === 'rgba(7, 67, 11, 0.8)'? "rgba(107, 21, 21, 0.8)" : 'rgba(7, 67, 11, 0.8)'); // Toggle between white and light blue
     };
 
 
@@ -145,7 +145,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
 <View style= {styles.OptionsMenu}>
 
     <View style={styles.locationContainer}>
-        <View style={[styles.buttoncontainerStart, {backgroundColor: containerColor}]}>
+        {/* <View style={[styles.buttoncontainerStart, {backgroundColor: containerColor}]}>
             <Button title= {buttontext ? "Press to choose end point" : 'Press to choose start point'} onPress={() => {
               
               if(!startChosen) {
@@ -156,7 +156,23 @@ export const RoutewithDesScreen = (props:MapProps) => {
                 handleSetEndLocation();
               }
             }} />
-        </View>
+        </View> */}
+
+
+      <TouchableOpacity 
+        style={[styles.buttoncontainerStart, { backgroundColor: containerColor }]} 
+        onPress={() => {
+          if (!startChosen) {
+            handleSetStartLocation();
+          } else {
+            handleSetEndLocation();
+          }
+        }}
+      >
+        <Text style={styles.buttonTextWhite}>
+          {buttontext ? "Press to choose end point" : "Press to choose start point"}
+        </Text>
+      </TouchableOpacity>
 
         {reset && (
                 <View style={styles.buttoncontainerReset}>
@@ -170,7 +186,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
                   setIsSelectingLocationEnd(false);
                   setRoute([]);
                   setShowInfo(false);
-                  setContainerColor("rgba(106, 191, 112, 0.8)")
+                  setContainerColor('rgba(7, 67, 11, 0.8)')
                   //setReset(false);
                   
                 }} />
@@ -181,21 +197,22 @@ export const RoutewithDesScreen = (props:MapProps) => {
   
     </View>
 
-    <View style = {styles.buttoncontainer}>
-        <Button title="Generate route" onPress={() => {
+    <TouchableOpacity style={styles.buttonRoute}onPress={() => {
             if(startChosen && endChosen) {
                 fetchRouteStartDes();
             }
             else {
                 alert("Please choose a start and end point.")
             }  
-        }}/>
-    </View>
+        }}>
+    <Text style={styles.buttonTextWhite}>Generate route</Text>
+    </TouchableOpacity>
 
     {showInfo && (
-
       <View style = {styles.buttoncontainerInfo}>
-        <Button title="Show info"/>
+        <TouchableOpacity style={styles.buttoncontainerInfo}>
+          <Text style={styles.buttonTextBlue}>Show info</Text>
+        </TouchableOpacity>
 
       </View>
     )}
@@ -344,6 +361,33 @@ export const RoutewithDesScreen = (props:MapProps) => {
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 5, // For Android shadow
+      },
+      buttonRoute: {
+        width: "60%",
+        marginBottom: 35,
+        backgroundColor: 'rgba(3, 11, 54, 0.96)',
+        position: "absolute",
+        bottom: 15,
+        padding: 10,
+        borderRadius: 30,
+        borderColor: "black",
+        color: "black",
+        height: 50,
+      },
+      
+      buttonTextWhite: {
+        color: "#fff",
+        fontSize: 22,
+        left: 35,
+       marginTop: 2,
+
+      },
+
+      buttonTextBlue: {
+        color: 'rgba(3, 11, 54, 0.96)',
+        fontSize: 15,
+        left: 15,
+        marginTop: 3,
       },
     });
       

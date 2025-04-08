@@ -61,7 +61,6 @@ export const RoundRouteScreen = (props:MapProps) => {
             }));
 
           setRoute(formattedRoute);
-          
           setCurrentWalkData(result);
     };
 
@@ -141,17 +140,19 @@ mode="dropdown"
 )}
 {menuExpand && (
 <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
-  <View style={styles.buttoncontainer}>
-
-    <Button title="Generate Route" onPress={ () => {
-        if(!startChosen) {
-            alert("Please choose a starting point.");
-        }
-        else {
-            fetchRoundTripRoute();
-        }
-    }}
-      />
+  <View>
+  <TouchableOpacity 
+  style={styles.buttoncontainer} 
+  onPress={() => {
+    if (!startChosen) {
+      alert("Please choose a starting point.");
+    } else {
+      fetchRoundTripRoute();
+    }
+  }}
+>
+  <Text style={styles.buttonTextWhite}>Generate Route</Text>
+  </TouchableOpacity>
 
     </View> 
     </View>
@@ -190,14 +191,16 @@ inputLable: {
 },
 
 buttoncontainer: {
-    width: "50%",
+    width: "70%",
     marginBottom: 40,
     backgroundColor: 'rgba(3, 11, 54, 0.96)',
     position: "absolute",
-    bottom: 0,
+    bottom: -8,
     borderRadius: 30,
     borderColor: "black",
-    color: "white"
+    color: "white",
+    right: -140,
+    height: 50,
 },
 
 savebuttoncontainer: {
@@ -229,6 +232,13 @@ buttoncontainerRoundTrip: {
   borderColor: "white",
   color: "black",
   left: -5,
+},
+buttonTextWhite: {
+  color: "#fff",
+  fontSize: 22,
+  left: 65,
+ marginTop: 10,
+
 },
 
 });
