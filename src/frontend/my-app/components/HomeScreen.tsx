@@ -5,7 +5,7 @@ import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker"; 
+import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
@@ -21,45 +21,49 @@ const HomeScreen = (props: HomeScreenProps) => {
 
     return (
 
-    <View style= {{backgroundColor: "white", flex : 1}}>
-        <Text style = {styles.startText}>
-            Hello
-        </Text>
+        <View style={{ backgroundColor: "white", flex: 1 }}>
+            <Text style={styles.startText}>
+                Hello
+            </Text>
 
-        <View>
-            <Button title="Generate routes" onPress={() => props.navigation.navigate('Generate routes')}/>
+            <View>
+                <Button title="Generate routes" onPress={() => props.navigation.navigate('Generate routes')} />
+            </View>
+
+            <View>
+                <Button title="Book walk" onPress={() => props.navigation.navigate('Book walk')} />
+            </View>
+
+            <View>
+                <Button title="Find Walk Buddy" onPress={() => props.navigation.navigate('Walk Buddy')} />
+            </View>
+            <View>
+                <Button title="Find Walks" onPress={() => props.navigation.navigate('Find Walks')} />
+            </View>
+            <MenuBar navigation={props.navigation} iconFocus="HOME" />
         </View>
 
-        <View>
-            <Button title="Book walk" onPress={() => props.navigation.navigate('Book walk')}/>
-        </View>
-
-        <View>
-            <Button title="Find Walk Buddy" onPress={() => props.navigation.navigate('Walk Buddy')}/>
-        </View>
-        <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
-    </View>
-
-)};
+    )
+};
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
     controls: {
         position: "absolute",
         bottom: 0,
-        width:"100%",
-        height:"30%",
+        width: "100%",
+        height: "30%",
         backgroundColor: 'rgba(52, 52, 52, 0.8)',
         padding: 20,
-        justifyContent:"center",
-        alignItems:"center",
+        justifyContent: "center",
+        alignItems: "center",
     },
     inputLable: {
         fontSize: 22,
-        color:"white",
+        color: "white",
         marginBottom: 50,
         marginTop: 20,
-    
+
     },
     input: {
         height: 40,
@@ -85,11 +89,11 @@ const styles = StyleSheet.create({
 
     startText: {
         fontSize: 22,
-        color:"black",
+        color: "black",
         marginBottom: 50,
         marginTop: 80,
         marginLeft: 20,
-        
+
 
     },
-  }); export default HomeScreen;
+}); export default HomeScreen;

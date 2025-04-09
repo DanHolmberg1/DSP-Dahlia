@@ -61,12 +61,24 @@ type LatLng = {
       };
   
       // Lägg till distans till varje plats och sortera
+      interface OverpassElement {
+        lat?: number;
+        lon?: number;
+        center?: {
+          lat: number;
+          lon: number;
+        };
+        tags?: {
+          name?: string;
+        };
+      }
+
       const enriched: Place[] = data.elements
-      .map((el: any): Place | null => {
+      .map((el: OverpassElement): Place | null => {
         const lat = el.lat ?? el.center?.lat;
         const lon = el.lon ?? el.center?.lon;
         if (lat == null || lon == null) return null;
-    
+        
         return {
           name: el.tags?.name,
           lat,
@@ -74,7 +86,7 @@ type LatLng = {
           distance: getDistance(latitude, longitude, lat, lon),
         };
       })
-      .filter((p): p is Place => p !== null);
+      .filter((p: Place | null): p is Place => p !== null);
     
 
   

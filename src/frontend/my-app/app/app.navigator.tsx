@@ -13,7 +13,8 @@ import FamilyWalk from "@/components/FamilyWalk";
 import { RoutewithDesScreen } from "@/components/RouteWithDesScreen";
 import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
-import ProfileScreen from "../components/ProfileScreen";
+import ProfileScreen from "@/components/ProfileScreen";
+import FindWalks from "@/components/FindWalks";
 const { Navigator, Screen } = createStackNavigator();
 
 const AppNavigator = () => (
@@ -48,6 +49,9 @@ const AppNavigator = () => (
         <Screen options={{
             headerLeft: () => null,
         }} name="Profile" component={ProfileScreen}/>
+        <Screen options={{
+             headerLeft: () => null,
+        }} name="Find Walks" component={FindWalks}/>
         <Screen
             name="Walk with destination" component={RoutewithDesScreen} />
         <Screen name="Round walk" component={RoundRouteScreen} />
