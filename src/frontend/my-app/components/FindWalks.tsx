@@ -272,6 +272,7 @@ const FindWalks = (props: FindWalksProps) => {
           ref={mapRef}
           style={styles.map}
           initialRegion={region}
+          toolbarEnabled={false}    //tar bort google maps toolbar 
         >
           {filteredWalks.filter(walk => walk.title).map(walk => (
             <React.Fragment key={walk.id}>
