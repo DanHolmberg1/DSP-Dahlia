@@ -205,7 +205,7 @@ inputLable: {
 buttoncontainer: {
     width: "70%",
     marginBottom: 40,
-    backgroundColor: 'rgba(3, 11, 54, 0.96)',
+    backgroundColor: '#1B2D92',
     position: "absolute",
     bottom: -8,
     borderRadius: 30,

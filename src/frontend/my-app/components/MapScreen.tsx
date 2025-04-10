@@ -62,6 +62,17 @@ const MapScreen = (props: MapProps) => {
 
         </MapView>
 
+        <View>
+          <TouchableOpacity 
+            style={styles.saveButtonContainer} 
+            onPress={() => props.navigation.navigate("Saved routes")
+            }
+          >
+            <Text style={styles.savedRouteText}>Saved routes</Text>
+            </TouchableOpacity>
+
+        </View>
+
     {ShowOptions && (
     <View style={[styles.OptionContainer, {height: optionExpand ? '15%': '9%'}]}>
       {!optionExpand && (
@@ -127,6 +138,27 @@ const MapScreen = (props: MapProps) => {
         left: 0,
         right: 0,
         zIndex: 10, // Ensure it sits above other elements
+    },
+
+    saveButtonContainer: {
+      width: "45%",
+      marginBottom: 0,
+      backgroundColor: '#E15F18',
+      position: "absolute",
+      bottom: 140,
+      borderRadius: 30,
+      borderColor: "white",
+      color: "black",
+      left: 10,
+      padding: 10,
+
+    },
+
+    savedRouteText: {
+      color: "#fff",
+      fontSize: 22,
+      left: 20,
+      marginTop: 0,
     },
 
     OptionContainer: {

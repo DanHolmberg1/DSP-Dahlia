@@ -365,7 +365,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
       buttonRoute: {
         width: "60%",
         marginBottom: 35,
-        backgroundColor: 'rgba(3, 11, 54, 0.96)',
+        backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 15,
         padding: 10,
