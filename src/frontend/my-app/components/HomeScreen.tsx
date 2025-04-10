@@ -33,15 +33,21 @@ const HomeScreen = (props: HomeScreenProps) => {
             <View>
                 <Button title="Book walk" onPress={() => props.navigation.navigate('Book walk')} />
             </View>
-
+            <View>
+                <Button title="Messages" onPress={() => props.navigation.navigate('MessageMenu')} />
+            </View>
             <View>
                 <Button title="Find Walk Buddy" onPress={() => props.navigation.navigate('Walk Buddy')} />
             </View>
             <View>
                 <Button title="Find Walks" onPress={() => props.navigation.navigate('Find Walks')} />
             </View>
+            <View>
+  <Button title="Find Friends" onPress={() => props.navigation.navigate('Find Friends')} />
+</View>
             <MenuBar navigation={props.navigation} iconFocus="HOME" />
         </View>
+        
 
     )
 };

@@ -15,6 +15,9 @@ import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
 import ProfileScreen from "@/components/ProfileScreen";
 import FindWalks from "@/components/FindWalks";
+import FindFriend from "@/components/FindFriend";
+import Messages from "@/components/Messages";
+import MessageMenu from "@/components/MessageMenu";
 const { Navigator, Screen } = createStackNavigator();
 
 const AppNavigator = () => (
@@ -48,12 +51,14 @@ const AppNavigator = () => (
         }} name="Family walk" component={FamilyWalk} />
         <Screen options={{
             headerLeft: () => null,
-        }} name="Profile" component={ProfileScreen}/>
+        }} name="Profile" component={ProfileScreen} />
         <Screen options={{
-             headerLeft: () => null,
-        }} name="Find Walks" component={FindWalks}/>
-        <Screen
-            name="Walk with destination" component={RoutewithDesScreen} />
+            headerLeft: () => null,
+        }} name="Find Walks" component={FindWalks} />
+        <Screen name="Walk with destination" component={RoutewithDesScreen} />
+        <Screen options={{headerLeft: () => null,}} name="Find Friends" component={FindFriend} />
+        <Screen options={{headerLeft: () => null,}} name="Messages" component={Messages} />
+        <Screen options={{headerLeft: () => null,}} name="MessageMenu" component={MessageMenu} />
         <Screen name="Round walk" component={RoundRouteScreen} />
         <Screen name="Walk with stops" component={TripWithStopsScreen} />
     </Navigator>
