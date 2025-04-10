@@ -12,6 +12,7 @@ import Arrow from "@/icons/arrow";
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuthRequest } from 'expo-auth-session';
+import * as AuthSession from 'expo-auth-session';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,19 +26,29 @@ const LoginScreen = (props: LoginProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    // @ts-ignore
+    const redirectUri = AuthSession.makeRedirectUri({ useProxy: false });
+    console.log("Redirect URI:", redirectUri);
+
+    
     const [request, response, promptAsync] = Google.useAuthRequest({
-        androidClientId: '955694188383-it4f8l0uoglb96bf3f4rhctaoo5abh87.apps.googleusercontent.com',
+        clientId: '955694188383-chv871v0gi6aksgj6t8gsphcockauok2.apps.googleusercontent.com',
+        //androidClientId: '955694188383-it4f8l0uoglb96bf3f4rhctaoo5abh87.apps.googleusercontent.com',
+        scopes: ['profile', 'email'],
+        redirectUri,
       });
+    
 
     
     useEffect(() => {
     if (response?.type === 'success') {
         const { authentication } = response;
-        console.log("Inloggad med Google:", authentication);
+        console.log("Logged in with Google:", authentication);
       
         props.navigation.navigate("Home");
     }
     }, [response]);
+    
       
       
 
@@ -75,7 +86,7 @@ const LoginScreen = (props: LoginProps) => {
                 <View style={{ marginTop: 20 }}>
                   <Button
                     disabled={!request}
-                    title="Logga in med Google"
+                    title="Log in with Google"
                     onPress={() => promptAsync()}
                   />
                 </View>

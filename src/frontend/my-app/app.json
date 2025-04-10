@@ -2,11 +2,12 @@
   "expo": {
     "name": "my-app",
     "slug": "my-app",
+    "owner": "g162477",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android"],
+    "platforms": ["ios", "android", "web"],
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "com.anonymous.myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

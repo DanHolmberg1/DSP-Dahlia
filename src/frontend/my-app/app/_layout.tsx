@@ -12,6 +12,9 @@ import HomeScreen from '@/components/HomeScreen';
 import AppNavigator from './app.navigator';
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 
 
