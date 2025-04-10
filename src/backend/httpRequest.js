@@ -79,3 +79,20 @@ app.post('/routesAdd', function (req, res) { return __awaiter(void 0, void 0, vo
 app.listen(port, function () {
     console.log("API is live at http://localhost:".concat(port));
 });
+//Under construction:
+// app.get('/routeGet', async( req: Request, res: Response) => {
+//   try {
+//     const {userID} = req.query;  
+//     if(!userID)
+//       return;
+//     var parseduserId = Number.parseInt(userID.toString());
+//     const db = await DBInit();
+//     const response = await routeGet(db, parseduserId);
+//     res.json(response.data);
+//   }
+//   catch(error){
+//     console.log(error);
+//     res.status(500);
+//     res.json();
+//   }
+// })

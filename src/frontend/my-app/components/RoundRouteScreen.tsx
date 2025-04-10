@@ -13,6 +13,8 @@ import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
 import sendRouteDataHttpRequest from "./httpRequestClient";
+import { RoundRouting, calulateCircle } from "./RoundRoutingAlgortihm";
+import { all } from "axios";
 
 
 interface MapProps {
@@ -22,7 +24,7 @@ interface MapProps {
 
 export const RoundRouteScreen = (props:MapProps) => {
 
-  const [route, setRoute] = useState<{latitude: number, longitude: number }[]>([]);
+  const [route, setRoute] = useState<{longitude: number, latitude: number }[]>([]);
   const [distance, setDistance] = useState('500');
   const [menuExpand, setMenuExpand] = useState<boolean>(false);
   const [optionExpand, setOptionExpand] = useState<boolean>(false);
@@ -44,16 +46,26 @@ export const RoundRouteScreen = (props:MapProps) => {
   const toggleMenuExpander = () => setMenuExpand(prev => !prev);
 
   const fetchRoundTripRoute = async () => {
+    console.log("herre");
     setWalkGenerated(true);
       const randomFactor = Math.random() + 1;
       const randomPoints = Math.floor(Math.random()* pointValues.length);
       const randomSeed = Math.floor(Math.random()* 1000);
       const distanceNum = Number(distance);
+
+      const Allpoints = calulateCircle(startLocation, Number(distance), 36);
+
+      console.log('hereeee');
+
+      console.log("points", Allpoints);
       
       const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
       const resultGeometry = result.routes[0].geometry;
+      console.log("geo: ", resultGeometry);
      
           const decodegeom = polyline.decode(resultGeometry);
+
+          console.log("decode geo ", decodegeom);
         
           const formattedRoute = decodegeom.map((coord: number[]) => ({
               latitude: coord[0],
@@ -118,7 +130,7 @@ return (
 <Picker
 ref = {pickerRef}
 selectedValue= {distance}
-onValueChange={(distanceValue)=>{
+onValueChange={(distanceValue)=> {
     setDistance(distanceValue)
 }}
 style = {{width:'50%', backgroundColor: "#007bff",  borderRadius: 30, height: 200, marginBottom: 90}}
