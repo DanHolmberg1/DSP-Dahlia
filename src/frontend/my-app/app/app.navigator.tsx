@@ -13,7 +13,8 @@ import FamilyWalk from "@/components/FamilyWalk";
 import { RoutewithDesScreen } from "@/components/RouteWithDesScreen";
 import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
-import { savedRoute } from "@/components/savedRouteScree";
+import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
+import { Help, help } from "@/components/HelpScreen";
 
 
 const { Navigator, Screen } = createStackNavigator();
@@ -35,15 +36,9 @@ const AppNavigator = () => (
         <Screen options={{
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Generate routes" component={MapScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Book walk" component={BookWalkScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Walk Buddy" component={WalkBuddyScreen} />
+        <Screen name="Generate routes" component={MapScreen} />
+        <Screen name="Book walk" component={BookWalkScreen} />
+        <Screen name="Walk Buddy" component={WalkBuddyScreen} />
         <Screen options={{
             headerLeft: () => null,
         }} name="Family walk" component={FamilyWalk} />
@@ -51,7 +46,8 @@ const AppNavigator = () => (
         name="Walk with destination" component={RoutewithDesScreen} />
         <Screen  name="Round walk" component={RoundRouteScreen} />
         <Screen  name="Walk with stops" component={TripWithStopsScreen} />
-        <Screen  name = "Saved routes" component= {savedRoute}/>
+        <Screen  name = "Saved routes" component= {SavedRoute}/>
+        <Screen  name = "Help" component= {Help}/>
     </Navigator>
 
 ); export default AppNavigator;

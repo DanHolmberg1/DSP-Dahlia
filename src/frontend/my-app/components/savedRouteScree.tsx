@@ -14,7 +14,7 @@ import{getRouteWithStops} from "./RoundTripLocations";
 import { RoundRouteScreen } from "./RoundRouteScreen";
 import MenuBar from "./menuBar";
 
-export const savedRoute = () => {
+export const SavedRoute = () => {
 
     return (
         <View>
