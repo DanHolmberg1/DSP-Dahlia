@@ -61,22 +61,19 @@ const MapScreen = (props: MapProps) => {
           {startLocation && <Marker coordinate={startLocation} title="Start"/>}
 
         </MapView>
-
-        <View>
-          <TouchableOpacity 
-            style={styles.saveButtonContainer} 
-            onPress={() => props.navigation.navigate("Saved routes")
-            }
-          >
-            <Text style={styles.savedRouteText}>Saved routes</Text>
-            </TouchableOpacity>
-
-        </View>
+        <View style={{ marginRight: Platform.OS === 'android' ? -30: 0 }}>
+  <TouchableOpacity 
+    style={styles.saveButtonContainer} 
+    onPress={() => props.navigation.navigate("Saved routes")}
+  >
+    <Text style={styles.savedRouteText}>Saved routes</Text>
+  </TouchableOpacity>
+</View>
 
     {ShowOptions && (
-    <View style={[styles.OptionContainer, {height: optionExpand ? '15%': '9%'}]}>
+    <View style={[styles.OptionContainer, {paddingTop: Platform.OS === 'android' ? 10: 20}, {height: optionExpand ? '15%': '9%'}]}>
       {!optionExpand && (
-        <Text style = {styles.OptionStartText}> Desing your walk</Text>
+        <Text style = {[styles.OptionStartText, { marginBlockStart: Platform.OS === 'android' ? 20 : 0 }]}> Desing your walk</Text>
       )}
       <View style={{ 
       flexDirection: "row", 
@@ -163,7 +160,7 @@ const MapScreen = (props: MapProps) => {
 
     OptionContainer: {
       flex: 1,
-      backgroundColor: 'rgba(6, 18, 87, 0.8)',
+      backgroundColor:'#1B2D92',
       padding: 20,
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
@@ -178,8 +175,10 @@ const MapScreen = (props: MapProps) => {
       fontSize: 22,
       color: "white",
       marginTop: 0,  // Remove any margin from the top
-      marginBottom: 0,  // Remove margin at the bottom if you want to keep it tight
+      //marginBottom: 0,  // Remove margin at the bottom if you want to keep it tight
       textAlign: 'left',  // Align the text to the left
+      overflow: 'visible',
+      justifyContent: 'center',
     },
     
     buttoncontainerRoundTrip: {

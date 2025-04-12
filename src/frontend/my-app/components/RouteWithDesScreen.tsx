@@ -174,24 +174,28 @@ export const RoutewithDesScreen = (props:MapProps) => {
         </Text>
       </TouchableOpacity>
 
-        {reset && (
-                <View style={styles.buttoncontainerReset}>
-                <Button title= "reset" onPress={() => {
-                  setButtontext(false);
-                  setStartLocation(null),
-                  setEndLocation(null);
-                  setStartChosen(false);
-                  setEndChosen(false);
-                  setIsSelectingLocation(false),
-                  setIsSelectingLocationEnd(false);
-                  setRoute([]);
-                  setShowInfo(false);
-                  setContainerColor('rgba(7, 67, 11, 0.8)')
-                  //setReset(false);
-                  
-                }} />
-            </View>
-        )}
+      {reset && (
+  <View style={styles.buttoncontainerReset}>
+    <TouchableOpacity
+      // add some styling!
+      onPress={() => {
+        setButtontext(false);
+        setStartLocation(null);
+        setEndLocation(null);
+        setStartChosen(false);
+        setEndChosen(false);
+        setIsSelectingLocation(false);
+        setIsSelectingLocationEnd(false);
+        setRoute([]);
+        setShowInfo(false);
+        setContainerColor('rgba(7, 67, 11, 0.8)');
+        // setReset(false);
+      }}
+    >
+      <Text style={styles.buttonTextBlueReset}>Reset</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
 
   
@@ -227,7 +231,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
         map: { flex: 1 },
 
         messageContainer: {
-            backgroundColor: 'rgba(6, 18, 87, 0.8)',
+            backgroundColor: '#1B2D92',
             padding: 10, // Add some padding to make it look less cramped
             alignItems: 'center', // Center the text
             justifyContent: 'center',
@@ -387,6 +391,13 @@ export const RoutewithDesScreen = (props:MapProps) => {
         color: 'rgba(3, 11, 54, 0.96)',
         fontSize: 15,
         left: 15,
+        marginTop: 3,
+      },
+
+      buttonTextBlueReset: {
+        color: '#1B2D92',
+        fontSize: 25,
+        left: 45,
         marginTop: 3,
       },
     });

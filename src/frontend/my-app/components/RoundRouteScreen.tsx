@@ -160,7 +160,7 @@ mode="dropdown"
 <View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
   <View>
   <TouchableOpacity 
-  style={styles.buttoncontainer} 
+  style={[styles.buttoncontainer, {marginRight: Platform.OS === 'android' ? 15 : 0}]} 
   onPress={() => {
     if (!startChosen) {
       alert("Please choose a starting point.");
@@ -169,7 +169,7 @@ mode="dropdown"
     }
   }}
 >
-  <Text style={styles.buttonTextWhite}>Generate Route</Text>
+  <Text style={[styles.buttonTextWhite, {marginLeft: Platform.OS === 'android' ? -13: 0}]}>Generate Route</Text>
   </TouchableOpacity>
 
     </View> 
@@ -191,7 +191,7 @@ container: { flex: 1 },
 map: { flex: 1 },
 
 messageContainer: {
-    backgroundColor: 'rgba(6, 18, 87, 0.8)',
+    backgroundColor: '#1B2D92',
     padding: 10, // Add some padding to make it look less cramped
     alignItems: 'center', // Center the text
     justifyContent: 'center',
