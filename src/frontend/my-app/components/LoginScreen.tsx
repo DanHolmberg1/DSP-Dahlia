@@ -27,18 +27,15 @@ const LoginScreen = (props: LoginProps) => {
     const [password, setPassword] = useState('');
 
     // @ts-ignore
-    const redirectUri = AuthSession.makeRedirectUri({ useProxy: false });
+    const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
     console.log("Redirect URI:", redirectUri);
 
-    
     const [request, response, promptAsync] = Google.useAuthRequest({
         clientId: '955694188383-chv871v0gi6aksgj6t8gsphcockauok2.apps.googleusercontent.com',
         //androidClientId: '955694188383-it4f8l0uoglb96bf3f4rhctaoo5abh87.apps.googleusercontent.com',
         scopes: ['profile', 'email'],
-        redirectUri,
+        redirectUri:'https://auth.expo.io/@g162477/my-app'
       });
-    
-
     
     useEffect(() => {
     if (response?.type === 'success') {
@@ -50,8 +47,6 @@ const LoginScreen = (props: LoginProps) => {
     }, [response]);
     
       
-      
-
       return (
         <>
           <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
