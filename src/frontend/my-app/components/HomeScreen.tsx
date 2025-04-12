@@ -41,16 +41,16 @@ const HomeScreen = (props: HomeScreenProps) => {
           style={styles.buttoncontainerRoute} 
           onPress={() => props.navigation.navigate('Generate routes')}
         >
-          <Text style={styles.buttonTextRoute}>Generate routes</Text>
+          <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
         </TouchableOpacity>
       </View>
 
       <View>
         <TouchableOpacity 
-          style={styles.buttoncontainerBook} 
+          style={[styles.buttoncontainerBook ]} 
           onPress={() => props.navigation.navigate('Book walk')}
         >
-          <Text style={styles.buttonTextBook}>Book walk</Text>
+          <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
         </TouchableOpacity>
       </View>
 
@@ -64,9 +64,9 @@ const HomeScreen = (props: HomeScreenProps) => {
       </View> 
 
       <View>
-        <TouchableOpacity style = {styles.helpButton}
+        <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
         onPress={() => props.navigation.navigate('Help')}>
-            <Text style = {styles.helpText}> Help</Text>
+            <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
 
         </TouchableOpacity>
       </View>

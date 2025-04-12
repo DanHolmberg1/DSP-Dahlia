@@ -160,7 +160,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
 
 
       <TouchableOpacity 
-        style={[styles.buttoncontainerStart, { backgroundColor: containerColor }]} 
+        style={[styles.buttoncontainerStart, { backgroundColor: containerColor }, {width: Platform.OS === 'android' ? '220%': '200%'}]} 
         onPress={() => {
           if (!startChosen) {
             handleSetStartLocation();
@@ -169,7 +169,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
           }
         }}
       >
-        <Text style={styles.buttonTextWhite}>
+        <Text style={[styles.buttonTextWhite, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>
           {buttontext ? "Press to choose end point" : "Press to choose start point"}
         </Text>
       </TouchableOpacity>
@@ -192,7 +192,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
         // setReset(false);
       }}
     >
-      <Text style={styles.buttonTextBlueReset}>Reset</Text>
+      <Text style={[styles.buttonTextBlueReset, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>Reset</Text>
     </TouchableOpacity>
   </View>
 )}
@@ -201,7 +201,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
   
     </View>
 
-    <TouchableOpacity style={styles.buttonRoute}onPress={() => {
+    <TouchableOpacity style={[styles.buttonRoute, {marginBottom: Platform.OS === 'android' ? 10: 40}]}onPress={() => {
             if(startChosen && endChosen) {
                 fetchRouteStartDes();
             }
@@ -209,7 +209,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
                 alert("Please choose a start and end point.")
             }  
         }}>
-    <Text style={styles.buttonTextWhite}>Generate route</Text>
+    <Text style={[styles.buttonTextWhite, {marginTop: Platform.OS === 'android' ? -2: 0}]}>Generate route</Text>
     </TouchableOpacity>
 
     {showInfo && (
