@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
+import { getRoundTripRoute, getRoundTripRouteCircle } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -13,14 +13,13 @@ import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
 import sendRouteDataHttpRequest from "./httpRequestClient";
-import { RoundRouting, calulateCircle } from "./RoundRoutingAlgortihm";
+import { RemoveDuplicates, RoundRouting, calculateSquare, calulateCircle } from "./RoundRoutingAlgortihm";
 import { all } from "axios";
 
 
 interface MapProps {
     navigation:any
 }
-
 
 export const RoundRouteScreen = (props:MapProps) => {
 
@@ -53,17 +52,24 @@ export const RoundRouteScreen = (props:MapProps) => {
       const randomSeed = Math.floor(Math.random()* 1000);
       const distanceNum = Number(distance);
 
-      const Allpoints = calulateCircle(startLocation, Number(distance), 36);
+      //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
+      //const Allpoints = calculateSquare(startLocation, Number(distance));
 
       console.log('hereeee');
 
-      console.log("points", Allpoints);
+     // console.log("points", Allpoints);
       
+      //const result = await getRoundTripRouteCircle(Allpoints, distanceNum, randomSeed, 3);
+
       const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
       const resultGeometry = result.routes[0].geometry;
       console.log("geo: ", resultGeometry);
      
           const decodegeom = polyline.decode(resultGeometry);
+
+          const test = RemoveDuplicates(decodegeom);
+
+          console.log("test coord", test);
 
           console.log("decode geo ", decodegeom);
         
