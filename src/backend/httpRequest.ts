@@ -1,4 +1,4 @@
-import { DBInit, routeAdd, routeGet } from "./db_opertions";
+import { DBInit, getAllRoutes, pairUserAndRoute, routeAdd, routeGet } from "./db_opertions";
 import { Request, Response } from 'express';
 
 const express = require('express');
@@ -13,17 +13,21 @@ app.use(express.json());
 app.post('/routesAdd', async (req:Request, res: Response) => {
   try {
     const db = await DBInit(); //Placeholder 
-    const result = await routeAdd(db, JSON.stringify(req.body)); 
-    console.log(req.body);
-    res.status(201);
-    res.json();
-    console.log("id", result);
+    const routeId = await routeAdd(db, req.body);
+    if (!routeId.data) {
+      console.error("route id invalid");
+      return;
+    }
 
-//check if route is in db
-      if(result.data) {
-        const valid = await routeGet(db, result.data);
-        console.log("route is valid ", valid);
-      }
+    console.log(req.body);
+    console.log("id", routeId);
+    const userId = Number(req.headers['UserId']);
+
+  await pairUserAndRoute(db, userId, routeId?.data);
+
+  res.status(201);
+  res.json();
+
   }
   catch (err) {
     console.log(err);
@@ -36,26 +40,24 @@ app.listen(port, () => {
   console.log(`API is live at http://localhost:${port}`);
 });
 
-
-//Under construction:
-
-// app.get('/routeGet', async( req: Request, res: Response) => {
-//   try {
-//     const {userID} = req.query;  
+app.get('/routeGet', async(req: Request, res: Response) => {
+  try {
+    const {userID} = req.query;  
      
-//     if(!userID)
-//       return;
+    if(!userID)
+      return;
 
-//     var parseduserId = Number.parseInt(userID.toString());
-//     const db = await DBInit();
-//     const response = await routeGet(db, parseduserId);
-//     res.json(response.data);
-//   }
-//   catch(error){
-//     console.log(error);
-//     res.status(500);
-//     res.json();
-//   }
+    var parseduserId = Number.parseInt(userID.toString());
+    const db = await DBInit();
+    const allRoutes = await getAllRoutes(db, parseduserId);
 
-// })
+    res.json(allRoutes.data);
+
+  }
+  catch(error){
+    console.log(error);
+    res.status(500);
+    res.json();
+  }
+});
  
