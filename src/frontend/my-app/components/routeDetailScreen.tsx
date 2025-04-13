@@ -20,8 +20,7 @@ export const showRoute = () => {
 
     useEffect(() => {
 
-
-
+        //get one route and display it
 
     }, []);
 
