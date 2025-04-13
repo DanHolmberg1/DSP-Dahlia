@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 
+//import api_key from '../secrets.env'
+
 const ORS_API_KEY = '';
 /**
  * Function that makes an API call to OpenRouteService to get the desired route.
