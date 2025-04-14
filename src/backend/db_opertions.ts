@@ -56,6 +56,8 @@ export async function DBInit(): Promise<Database> {
       users TEXT
       )
     `); // Store users as json
+    //Borde kanske uppdatera så att vi sorterar baserat på route ID 
+    //Lägga till mer data? ta bort users? 
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS routes (
@@ -69,14 +71,18 @@ export async function DBInit(): Promise<Database> {
       userID INTEGER,
       routeID INTEGER,
       PRIMARY KEY (userID, routeID),
-      FOREIGN KEY (userID) REFERENCES users(id),
-      FOREIGN KEY (routeID) REFERENCES routes(id)
+      FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (routeID) REFERENCES routes(id) ON DELETE CASCADE
     )
-
   `); //maps users to routes, ID must exist in users and routes, the pairing must be unique 
+
+  //Creates search trees based on userID and routeID 
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_userID ON mapRoutesToUsers(userID)`);
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_routeID ON mapRoutesToUsers(routeID)`);
-  //Skapar index-tree (binary search tror jag?) så att det går snabbt att plocka ut users som sparat en viss route och vice versa 
+
+  //Allows deletion happen automatically in the mapRoutesToUsers table 
+  //await db.exec("PRAGMA foreign_keys = ON");
+
 
   return db;
 }
@@ -116,7 +122,6 @@ export async function routeGet(db: Database, id: number): Promise<DBResponse<Rou
     if (!route) {
       return { success: false, error: "Route not found." };
     }
-    console.log(route);
     return { success: true, data: route };
   } catch (err) {
     console.error("Error retrieving route:", err);
@@ -262,6 +267,7 @@ export async function deleteUser(db: Database, id: number): Promise<DBResponse<n
   }
 }
 
+//pairs userID and routeID together in the mapRoutesToUsers table
 export async function pairUserAndRoute(db: Database, userID: number, routeID: number): Promise <DBResponse<void>> {
   try {
     await db.run(`INSERT INTO mapRoutesToUsers (userID, routeID) VALUES(?, ?)`, [userID, routeID]);
@@ -272,7 +278,8 @@ export async function pairUserAndRoute(db: Database, userID: number, routeID: nu
   }
 }
 
-export async function getAllRoutes(db: Database, userID: number): Promise <DBResponse<any>> {
+//Gets all routes belonging to a user on log(n) time
+export async function getAllRoutes(db: Database, userID: number): Promise <DBResponse<Array<any>>> {
   try {
     const rows = await db.all(`  
       SELECT r.*
@@ -281,7 +288,10 @@ export async function getAllRoutes(db: Database, userID: number): Promise <DBRes
       WHERE mr.userID = ?
       ORDER BY mr.routeID
     `, [userID]);
-    console.log(rows); 
+
+    if(rows[0] === undefined) {
+      return {success: false, error: "no pairs found"}
+    }
 
     return {success: true, data: rows};
   } catch (err) {
@@ -290,7 +300,76 @@ export async function getAllRoutes(db: Database, userID: number): Promise <DBRes
   }
 }
 
+//Gets all users that has saved a route 
+export async function getAllUsers(db: Database, routeID: number): Promise <DBResponse<Array<any>>> {
+  try {
+    const rows = await db.all(`  
+      SELECT r.*
+      FROM users r
+      JOIN mapRoutesToUsers mr ON r.id = mr.userID
+      WHERE mr.routeID = ?
+      ORDER BY mr.userID
+    `, [routeID]);
+    if(rows[0] === undefined) {
+      return {success: false, error: "no pairs found"}
+    }
 
+    return {success: true, data: rows};
+  } catch (err) {
+    console.error("Error getting all routes: ", err); 
+    return { success: false, error: "Error getting all routes"}; 
+  }
+}
+
+//Removes one pairing of userID and routeID in the mapRoutesToUsers table 
+export async function removeUserRoutePair(db: Database, routeID: number, userID: number): Promise <DBResponse<void>> {
+  try {
+    await db.run(`
+      DELETE FROM mapRoutesToUsers
+      WHERE userID = ? AND routeID = ?
+    `, [userID, routeID]);
+
+    return {success: true};
+
+  } catch (err) {
+    console.error("Error deleting pair:", err);
+    return {success: false, error: "Error deleting pair"};
+  }
+}
+
+//Removes all user-route pairings based on routeID, so removes a route from the mapRoutersToUsers table
+export async function removeAllUsersFromPairs(db: Database, routeID: number): Promise<DBResponse<void>> {
+  try {
+    await db.run(`
+      DELETE FROM mapRoutesToUsers
+      WHERE routeID = ?
+    `, [routeID]);
+
+    return {success: true};
+
+  } catch (err) {
+    console.error("Error deleting all users:", err);
+    return {success: false, error: "Error deleting all users"};
+  }
+}
+
+//Removes all user-route pairings based on userID, so removes a user from the mapRoutersToUsers table
+export async function removeAllRoutesFromPairs(db: Database, userID: number): Promise <DBResponse<void>> {
+  try {
+    await db.run(`
+      DELETE FROM mapRoutesToUsers
+      WHERE userID = ?
+    `, [userID]);
+
+    return {success: true};
+    
+  } catch (err) {
+    console.error("Error deleting all routes:", err);
+    return {success: false, error: "Error deleting all routes"};
+  }
+}
+
+//clears the user table 
 export async function clearUsers(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM users'); 
@@ -302,6 +381,7 @@ export async function clearUsers(db: Database): Promise<boolean> {
   }
 }
 
+//clears the routes table
 export async function clearRoutes(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM routes'); 
@@ -313,6 +393,7 @@ export async function clearRoutes(db: Database): Promise<boolean> {
   }
 }
 
+//clears the routes table 
 export async function clearGroups(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM groups'); 
@@ -324,6 +405,7 @@ export async function clearGroups(db: Database): Promise<boolean> {
   }
 }
 
+//Clears the routes table 
 export async function clearUsersRoutes(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM mapRoutesToUsers'); 
@@ -338,3 +420,25 @@ export async function clearUsersRoutes(db: Database): Promise<boolean> {
 
 
 
+///OBS OBS TEMPORÄRT!!!!!!!
+async function main(): Promise<void> {
+  try {
+  const db = await DBInit();
+  await clearGroups(db);
+  await clearRoutes(db);
+  await clearUsers(db);
+  await clearUsersRoutes(db);
+  const userID = await createUser(db, "ellen", "ellen@email.com", 20, 1);
+  const routeID = await routeAdd(db, JSON.parse('{"name":"John", "age":30, "car":null}')); 
+  const routeID2 = await routeAdd(db, JSON.parse('{"name":"John", "age":31, "car":null}')); 
+  await pairUserAndRoute(db, userID.data!, routeID.data!);
+  await pairUserAndRoute(db, userID.data!, routeID2.data!);
+  await getAllRoutes(db, userID.data!);
+  await getAllUsers(db, routeID.data!);
+
+  } catch (err) {
+    console.error("FELLLLLL:", err);
+  }
+}
+
+//main();
