@@ -20,16 +20,29 @@ type LatLng = {
   ): Promise<Place | null> => {
     const { latitude, longitude } = center;
   
-    // Overpass Query
+    const tagMapping: Record<string, { key: string, value?: string }> = {
+      "Café": { key: "amenity", value: "cafe" },
+      "Toilet": { key: "amenity", value: "toilets" },
+      "Museum": { key: "tourism", value: "museum" },
+      "Store": { key: "shop" }, // Alla typer av shop
+    };
+    
+    const { key, value } = tagMapping[placeType];
+    
+    const filter = value 
+      ? `["${key}"="${value}"]` 
+      : `["${key}"]`; // Om bara key finns (typ shop)
+    
     const query = `
-  [out:json];
-  (
-    node["amenity"="${placeType.toLowerCase()}"](around:${radius},${center.latitude},${center.longitude});
-    way["amenity"="${placeType.toLowerCase()}"](around:${radius},${center.latitude},${center.longitude});
-    relation["amenity"="${placeType.toLowerCase()}"](around:${radius},${center.latitude},${center.longitude});
-  );
-  out center;
-`;
+    [out:json];
+    (
+      node${filter}(around:${radius},${center.latitude},${center.longitude});
+      way${filter}(around:${radius},${center.latitude},${center.longitude});
+      relation${filter}(around:${radius},${center.latitude},${center.longitude});
+    );
+    out center;
+    `;
+    
 
   
     try {
@@ -66,7 +79,7 @@ type LatLng = {
         const lat = el.lat ?? el.center?.lat;
         const lon = el.lon ?? el.center?.lon;
         if (lat == null || lon == null) return null;
-    
+
         return {
           name: el.tags?.name,
           lat,
@@ -75,13 +88,19 @@ type LatLng = {
         };
       })
       .filter((p): p is Place => p !== null);
-    
 
-  
-      // Returnera närmaste
-      const nearest = enriched.sort((a, b) => a.distance - b.distance)[0];
+      //Filtrera platser mellan ett visst avstånd
+      const filtered = enriched.filter(p => p.distance >= 300 && p.distance <= 2000);
 
-        return nearest ?? null;
+      if(filtered.length === 0) {
+        console.warn("No suitable places found in distance range");
+        return null;
+      }
+
+      // Returnera slumpat ställe
+      const randomPlace = filtered[Math.floor(Math.random() * filtered.length)];
+      return randomPlace ?? null;
+
   
     } catch (error) {
       console.error("Overpass API error:", error);

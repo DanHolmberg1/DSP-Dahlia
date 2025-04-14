@@ -34,6 +34,8 @@ export default function TripWithStopsScreen() {
   const [buttontext, setButtontext] = useState(false);
   const [containerColor, setContainerColor] = useState('rgba(106, 191, 112, 0.8)');
   const [isAddingStop, setIsAddingStop] = useState(false);
+  const [reset, setReset] = useState(false);
+  
 
   
   const handlePressColorContainer = () => {
@@ -58,10 +60,12 @@ export default function TripWithStopsScreen() {
 
   const handleSetStartLocation = () => {
   setIsSelectingLocation(true);  // Allow map press to select a location
+  setReset(true);
   }
 
   const handleSetMiddleLocation = () => {
     setIsAddingStop(true);
+    setReset(true);
   }
 
 

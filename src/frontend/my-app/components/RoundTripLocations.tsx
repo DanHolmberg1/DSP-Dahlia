@@ -1,19 +1,26 @@
-// components/RouteMap.tsx
 
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
-import MapView, { Polyline, Marker } from "react-native-maps";
-import api_key from '../secrets.env'
+//import api_key from '../secrets.env'
+
+import { sortAngleSmallToBig } from "./LocationAlgorithm";
 
 const ORS_API_KEY =''
 
 type Coordinate = [number, number]; // [lon, lat]
+type LatLng = {
+  latitude: number;
+  longitude: number;
+};
 
-export const getRouteWithStops = async (start: { latitude: number, longitude: number }, stops: { latitude: number, longitude: number }[], radius: number) => {
-  // Bygg koordinatlistan: start → stopp1 → ... → stoppN → tillbaka till start
-  // const coordinates: Coordinate[] = [start, ...stops, start];
-  const coordinates = [[start.longitude, start.latitude], ...stops.map(stop => [stop.longitude, stop.latitude])];
+export const getRouteWithStops = async (
+  start: LatLng, 
+  stops: LatLng[], 
+  radius: number
+) => {
 
+  const orderedStops: LatLng[] = sortAngleSmallToBig([start, ...stops, start]);
+
+  const coordinates: Coordinate[] = orderedStops.map(stop => [stop.longitude, stop.latitude]);
+  
   try {
     const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
       method: "POST",
@@ -24,13 +31,7 @@ export const getRouteWithStops = async (start: { latitude: number, longitude: nu
       body: JSON.stringify({
         coordinates: coordinates,
         radiuses: Array(coordinates.length).fill(radius)  // Start/end coordinate
-        // options: { 
-        //     round_trip: { // Round-trip: start and end points are the same
-        //         length: len,  // Length of the route (in meters)
-        //         seed: seed,   // Random seed for the route calculation
-        //         points: p // Number of points for the round trip
-        //     }
-        // }
+        
       }),
     });
 
