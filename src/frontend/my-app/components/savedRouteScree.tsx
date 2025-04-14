@@ -9,73 +9,38 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import { getStartEndTrip } from "./StartEndTripRoutingAPI";
+import{getRouteWithStops} from "./RoundTripLocations";
+import { RoundRouteScreen } from "./RoundRouteScreen";
 import MenuBar from "./menuBar";
 
-interface HomeScreenProps {
-    navigation: any;
-}
+interface savedRouteProps {
+    navigation: any
+  }
+  
+export const SavedRoute = (props: savedRouteProps) => {
 
-const HomeScreen = (props: HomeScreenProps) => {
+    const [allRoutes, setAllRoutes] = useState<any[]>([]);
 
-    //const Map = () => props.navigation.navigate("Map");
+    useEffect(() => {
+
+        const getAllRoutes = async() => {
+            const routeData: any = await fetch(`http://0.0.0.0:3000/routesGet&UserId=${123}`); // need to add userid
+            setAllRoutes(routeData.data);
+        }
+    },[]);
 
     return (
-
-    <View style= {{backgroundColor: "white", flex : 1}}>
-
-
-
-
         <View>
-        <Text style = {styles.startText}>
-            Choose your 
-        </Text>
-
-        <Text style = {styles.startTextActivity}>
-        activity
-        </Text>
+            <View>
+                {allRoutes.map((route, index) => (
+                               <TouchableOpacity onPress={props.navigation.navigate(`/route/${route.id}`)} style={styles.buttoncontainerRoute}>
+                               <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>{index}</Text>
+                           </TouchableOpacity>
+                ))}
+            </View>
         </View>
-
-        <View>
-        <TouchableOpacity 
-          style={styles.buttoncontainerRoute} 
-          onPress={() => props.navigation.navigate('Generate routes')}
-        >
-          <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View>
-        <TouchableOpacity 
-          style={[styles.buttoncontainerBook ]} 
-          onPress={() => props.navigation.navigate('Book walk')}
-        >
-          <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View>
-        <TouchableOpacity 
-          style={styles.buttoncontainerFindBuddy} 
-          onPress={() => props.navigation.navigate('Walk Buddy')}
-        >
-          <Text style={styles.buttonTextFindBuddy}>Find Walk Buddy</Text>
-        </TouchableOpacity>
-      </View> 
-
-      <View>
-        <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
-        onPress={() => props.navigation.navigate('Help')}>
-            <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
-
-        </TouchableOpacity>
-      </View>
-
-        
-        <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
-    </View>
-
-)};
+)}
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -137,14 +102,14 @@ const styles = StyleSheet.create({
 
     buttoncontainerRoute: {
         width: "80%",
-        marginBottom: -120,
-        backgroundColor: '#1B2D92',
+        marginBottom: -150,
+        backgroundColor: '#E25E17',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
         marginLeft: 40,
-        height: 80,
+        height: 100,
     },
 
     buttoncontainerBook: {
@@ -215,4 +180,4 @@ const styles = StyleSheet.create({
         marginTop: 5,
 
     }
-  }); export default HomeScreen;
+  });

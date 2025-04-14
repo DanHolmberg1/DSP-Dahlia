@@ -43,7 +43,7 @@ export async function DBInit(): Promise<Database> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
-      age INTEGER NOT NULL CHECK(age < 122 AND age > 0),
+      age INTEGER NOT NULL CHECK(age < 122 AND age > 17),
       sex INTEGER NOT NULL CHECK(sex > 0 AND sex < 4)
     )
   `);
@@ -64,16 +64,29 @@ export async function DBInit(): Promise<Database> {
     )
   `); // data = routes i json
 
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS mapRoutesToUsers (
+      userID INTEGER,
+      routeID INTEGER,
+      PRIMARY KEY (userID, routeID),
+      FOREIGN KEY (userID) REFERENCES users(id),
+      FOREIGN KEY (routeID) REFERENCES routes(id)
+    )
+
+  `); //maps users to routes, ID must exist in users and routes, the pairing must be unique 
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_userID ON mapRoutesToUsers(userID)`);
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_routeID ON mapRoutesToUsers(routeID)`);
+  //Skapar index-tree (binary search tror jag?) så att det går snabbt att plocka ut users som sparat en viss route och vice versa 
+
   return db;
 }
 
 
 
 // Inserts a new route and returns its ID.
-export async function routeAdd(db: Database, data: Coordinate[]): Promise<DBResponse<number>> {
+export async function routeAdd(db: Database, data: JSON): Promise<DBResponse<number>> {
   try {
-    const jsonData = JSON.stringify(data);
-    const result = await db.run("INSERT INTO routes (data) VALUES (?)", [jsonData]);
+    const result = await db.run("INSERT INTO routes (data) VALUES (?)", JSON.stringify(data));
 
     if (result.changes && result.lastID) {
       return { success: true, data: result.lastID };
@@ -156,7 +169,7 @@ export async function createUser(db: Database, name: string, email: string, age:
   }
 
   // Validate age.
-  if (age <= 0 || age > 122) {
+  if (age <= 17 || age > 122) {
     console.error("Invalid age:", age);
     return { success: false, error: "Invalid age." };
   }
@@ -215,7 +228,7 @@ export async function updateUser(db: Database, id: number, name: string,
     }
   
     // Validate age.
-    if (age <= 0 || age > 122) {
+    if (age <= 17 || age > 122) {
       console.error("Invalid age:", age);
       return { success: false, error: "Invalid age." };
     }
@@ -249,13 +262,79 @@ export async function deleteUser(db: Database, id: number): Promise<DBResponse<n
   }
 }
 
+export async function pairUserAndRoute(db: Database, userID: number, routeID: number): Promise <DBResponse<void>> {
+  try {
+    await db.run(`INSERT INTO mapRoutesToUsers (userID, routeID) VALUES(?, ?)`, [userID, routeID]);
+    return { success: true };
+  } catch (err) {
+    console.error("Error inserting pair:", err);
+    return { success: false, error: "Error inserting user/route pair"};
+  }
+}
+
+export async function getAllRoutes(db: Database, userID: number): Promise <DBResponse<any>> {
+  try {
+    const rows = await db.all(`  
+      SELECT r.*
+      FROM routes r
+      JOIN mapRoutesToUsers mr ON r.id = mr.routeID
+      WHERE mr.userID = ?
+      ORDER BY mr.routeID
+    `, [userID]);
+    console.log(rows); 
+
+    return {success: true, data: rows};
+  } catch (err) {
+    console.error("Error getting all routes: ", err); 
+    return { success: false, error: "Error getting all routes"}; 
+  }
+}
+
+
 export async function clearUsers(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM users'); 
     await db.run('VACUUM'); 
     return true; 
   } catch (err) {
-    console.error("Error clearing table", err); 
+    console.error("Error clearing users table", err); 
     return false; 
   }
 }
+
+export async function clearRoutes(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM routes'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing routes table", err); 
+    return false; 
+  }
+}
+
+export async function clearGroups(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM groups'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing routes table", err); 
+    return false; 
+  }
+}
+
+export async function clearUsersRoutes(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM mapRoutesToUsers'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing mapping table", err); 
+    return false; 
+  }
+}
+
+
+
+

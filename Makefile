@@ -93,3 +93,12 @@ clean:
 	rm -rf obj/*
 	rm -f ./test/unit_tests
 	rm -rf cov_files/*
+
+
+frontend: 
+	cd src/frontend/my-app && npx expo start
+
+backend: 
+	cd src/backend && tsc httpRequest.ts && node httpRequest.js
+
+
