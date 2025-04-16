@@ -1,7 +1,7 @@
 
 //import api_key from '../secrets.env'
 
-import { sortAngleSmallToBig } from "./LocationAlgorithm";
+import { addGridPointsToRoute, sortAngleSmallToBig } from "./LocationAlgorithm";
 
 const ORS_API_KEY =''
 
@@ -18,6 +18,7 @@ export const getRouteWithStops = async (
 ) => {
 
   const orderedStops: LatLng[] = sortAngleSmallToBig([start, ...stops, start]);
+  const gridLocations: LatLng[] = addGridPointsToRoute(orderedStops);
 
   const coordinates: Coordinate[] = orderedStops.map(stop => [stop.longitude, stop.latitude]);
   

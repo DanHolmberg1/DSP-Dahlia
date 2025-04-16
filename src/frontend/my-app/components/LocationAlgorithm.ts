@@ -29,3 +29,32 @@ export function sortAngleSmallToBig(stops: LatLng[]){
 
     return [start, ...sortedStops, start];
 } 
+
+
+/**
+ * Create grid-routing style path: A → via middle → B
+ */
+export function addGridPointsToRoute(stops: LatLng[]): LatLng[] {
+    if (stops.length < 2) return stops;
+  
+    const result: LatLng[] = [];
+  
+    for (let i = 0; i < stops.length - 1; i++) {
+      const current = stops[i];
+      const next = stops[i + 1];
+  
+      // Första delen: gå rakt i latitud
+      const middlePoint: LatLng = {
+        latitude: next.latitude,
+        longitude: current.longitude,
+      };
+  
+      result.push(current);
+      result.push(middlePoint);
+    }
+  
+    // Lägg till sista stoppet
+    result.push(stops[stops.length - 1]);
+  
+    return result;
+  }
