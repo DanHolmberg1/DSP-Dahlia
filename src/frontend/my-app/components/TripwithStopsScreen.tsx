@@ -8,6 +8,7 @@ import { getClosestLocation } from "./FindClosestLocation";
 import { StyleSheet, TextInput, View, Text, Button, 
         KeyboardAvoidingView, Platform, TouchableWithoutFeedback, 
         Keyboard, TouchableOpacity,  } from "react-native";
+import { translatedAdress } from "./TranslateAdressToCoordinare";
 
 
 
@@ -61,12 +62,18 @@ export default function TripWithStopsScreen() {
   setIsSelectingLocation(true);  // Allow map press to select a location
   }
 
-  // Hantering av extra adderade stopp
-  const handleSetMiddleLocation = () => {
-    setIsAddingStop(true);
-    setReset(true);
-  }
 
+  const handleAddressConfirm = async () => {
+    const result = await translatedAdress(address);
+    if (result) {
+      setStops(prev => [...prev, result]); // Lägg till i stops
+      setShowAddressInput(false); // Stäng inputrutan
+      setAddress(""); // Rensa inputfält
+    } else {
+      alert("No location found for this address.");
+    }
+  };
+  
 
   return (
     <View style={{ flex: 1 }}>
@@ -195,25 +202,21 @@ export default function TripWithStopsScreen() {
 
       )}
         
-        {/** Funktionalitet - skriva adress */}
         {showAddressInput && (
-        <>
-            <TextInput
-            placeholder="Write an address..."
-            style={styles.inputRoute}
-            value={address}
-            onChangeText={setAddress}
-            />
-            <Button
-            title="Confirm address"
-            onPress={() => {
-                console.log("Address added:", address);
-                // Här kan du lägga till logik för geokodning etc.
-                setShowAddressInput(false); // göm rutan efteråt
-            }}
-            />
-        </>
-        )}
+  <>
+    <TextInput
+      placeholder="Write an address..."
+      style={styles.inputRoute}
+      value={address}
+      onChangeText={setAddress}
+    />
+    <Button
+      title="Confirm address"
+      onPress={handleAddressConfirm}
+    />
+  </>
+)}
+
 
         {/** Funktionalitet - stopp via flervalsalternativ */}
         {showPickStop && (
