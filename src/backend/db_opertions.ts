@@ -81,8 +81,7 @@ export async function DBInit(): Promise<Database> {
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_routeID ON mapRoutesToUsers(routeID)`);
 
   //Allows deletion happen automatically in the mapRoutesToUsers table 
-  //await db.exec("PRAGMA foreign_keys = ON");
-
+  await db.exec("PRAGMA foreign_keys = ON");
 
   return db;
 }
@@ -259,8 +258,14 @@ export async function updateUser(db: Database, id: number, name: string,
 // Deletes a user record by ID.
 export async function deleteUser(db: Database, id: number): Promise<DBResponse<null>> {
   try {
-    await db.run(`DELETE FROM users WHERE id = ?`, [id]);
-    return { success: true, data: null };
+    const status = await db.run(`DELETE FROM users WHERE id = ?`, [id]);
+
+    if(status.changes === 0) {
+      console.error("Error no user to delete"); 
+      return { success: false, error: "No user to delete" };
+    } else {
+      return { success: true, data: null };
+    }
   } catch (err) {
     console.error("Error deleting user:", err);
     return { success: false, error: "Error deleting user." };
@@ -324,12 +329,16 @@ export async function getAllUsers(db: Database, routeID: number): Promise <DBRes
 //Removes one pairing of userID and routeID in the mapRoutesToUsers table 
 export async function removeUserRoutePair(db: Database, routeID: number, userID: number): Promise <DBResponse<void>> {
   try {
-    await db.run(`
+    const removed = await db.run(`
       DELETE FROM mapRoutesToUsers
       WHERE userID = ? AND routeID = ?
     `, [userID, routeID]);
-
-    return {success: true};
+    
+    if (removed.changes === 0) {
+      return { success: false, error: "No pair found to delete." };
+    } else {
+      return { success: true };
+    }
 
   } catch (err) {
     console.error("Error deleting pair:", err);
@@ -417,28 +426,3 @@ export async function clearUsersRoutes(db: Database): Promise<boolean> {
   }
 }
 
-
-
-
-///OBS OBS TEMPORÄRT!!!!!!!
-async function main(): Promise<void> {
-  try {
-  const db = await DBInit();
-  await clearGroups(db);
-  await clearRoutes(db);
-  await clearUsers(db);
-  await clearUsersRoutes(db);
-  const userID = await createUser(db, "ellen", "ellen@email.com", 20, 1);
-  const routeID = await routeAdd(db, JSON.parse('{"name":"John", "age":30, "car":null}')); 
-  const routeID2 = await routeAdd(db, JSON.parse('{"name":"John", "age":31, "car":null}')); 
-  await pairUserAndRoute(db, userID.data!, routeID.data!);
-  await pairUserAndRoute(db, userID.data!, routeID2.data!);
-  await getAllRoutes(db, userID.data!);
-  await getAllUsers(db, routeID.data!);
-
-  } catch (err) {
-    console.error("FELLLLLL:", err);
-  }
-}
-
-//main();

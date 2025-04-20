@@ -1,13 +1,7 @@
 import { DBInit, routeAdd, routeDelete, routeGet, createUser, 
     getUser, updateUser, deleteUser, clearUsers, removeAllRoutesFromPairs,
-    removeUserRoutePair,
-    getAllUsers,
-    getAllRoutes,
-    pairUserAndRoute,
-    DBResponse, 
-    clearGroups,
-    clearUsersRoutes,
-    clearRoutes, 
+    removeUserRoutePair, getAllUsers, getAllRoutes, pairUserAndRoute, 
+    clearGroups, clearUsersRoutes, clearRoutes, 
     removeAllUsersFromPairs} from "./db_opertions";
 import { Database } from 'sqlite';
 
@@ -20,11 +14,6 @@ const name2 = "Åke";
 const email2 = "ake@email.com"; 
 const age2 = 60; 
 const sex2 = 2; 
-
-const name3 = "Alex"; 
-const email3 = "alex@email.com"; 
-const age3 = 20; 
-const sex3 = 3; 
 
 const invalidEmail = "inteBra.com"; 
 const invalidAge = -1; 
@@ -56,15 +45,15 @@ afterAll( async () => {
     await db.close();
 })
 
+//Testing user table functions 
 //testign to insert a user into a database 
 test('Insert user into users database', async () => {
     const id = await createUser(db, name1, email1, age1, sex1); 
     expect(id.success).toBe(true); 
-    expect(id.data).toBeGreaterThanOrEqual(0); //börjar man på 0 eller 1?
+    expect(id.data).toBeGreaterThanOrEqual(0);
 });
 
 //test get user from database 
-
 test('Fetch user from users db', async () => {
     const id = await createUser(db, name1, email1, age1, sex1); 
     expect(id.success).toBe(true); 
@@ -87,6 +76,9 @@ test('Delete user from users db', async () => {
     expect(id.data).toBeGreaterThanOrEqual(0);     
     if(id.data){
         expect((await deleteUser(db, id.data)).success).toBe(true);
+
+        const check = await getUser(db, id.data);
+        expect(check.success).toBe(false);
     }
 });
 
@@ -128,6 +120,72 @@ test('Update user', async () => {
         } 
     }
 });
+
+test('Fetch non-existent user from db', async () => {
+    const user = await getUser(db, 99999); // ID does not exist, since db is cleared between each test
+    expect(user.success).toBe(false);
+    expect(user.data).toBeUndefined();
+});
+
+test('Delete non-existent user from db', async () => {
+    const result = await deleteUser(db, 99999);
+    expect(result.success).toBe(false);
+});
+
+test('Insert user with borderline valid data', async () => {
+    const borderlineName = "A"; 
+    const borderlineAge = 18;    
+    const borderlineSex = 1;  
+
+    const result = await createUser(db, borderlineName, "a@b.co", borderlineAge, borderlineSex);
+    expect(result.success).toBe(true);
+});
+
+test('Insert multiple users in sequence', async () => {
+    const users = [
+        { name: "A", email: "a@test.com" },
+        { name: "B", email: "b@test.com" },
+        { name: "C", email: "c@test.com" }
+    ];
+
+    for (const u of users) {
+        const res = await createUser(db, u.name, u.email, age1, sex1);
+        expect(res.success).toBe(true);
+    }
+});
+
+//Testing route table functions
+//routeAdd
+test('Insert route in routing table', async () => {
+    const routeID = await routeAdd(db, route1); 
+    expect(routeID.success).toBe(true); 
+    expect(routeID.data!).toBeDefined(); 
+})
+
+//routeGet 
+test('Fetch route from routing table', async () => {
+    const routeID = await routeAdd(db, route1); 
+    expect(routeID.success).toBe(true); 
+    expect(routeID.data!).toBeDefined(); 
+
+    const fetchedRoute = await routeGet(db, routeID.data!); 
+    expect(fetchedRoute.success).toBe(true); 
+    expect(JSON.parse(fetchedRoute.data!.data)).toEqual(route1); 
+})
+
+//routeDelete
+test('Delete route from routing table', async () => {
+    const routeID = await routeAdd(db, route1); 
+    expect(routeID.success).toBe(true); 
+    expect(routeID.data!).toBeDefined(); 
+
+    const status = await routeDelete(db, routeID.data!);
+    expect(status.success).toBe(true); 
+
+    const fetchedRoute = await routeGet(db, routeID.data!);
+    expect(fetchedRoute.success).toBe(false); 
+})
+
 
 
 
@@ -252,6 +310,49 @@ test("Delete user, then looking up in map table", async () => {
 
     const allRoutes = await getAllRoutes(db, userID.data!); 
     expect(allRoutes.success).toBe(false); 
+
+    const allUsers = await getAllUsers(db, routeID.data!);
+    expect(allUsers.success).toBe(false);
 });
+
+test("Fail to create duplicate pair of user and route", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true);
+    expect(routeID.success).toBe(true);
+
+    const firstPairing = await pairUserAndRoute(db, userID.data!, routeID.data!);
+    const secondPairing = await pairUserAndRoute(db, userID.data!, routeID.data!);
+    
+    expect(firstPairing.success).toBe(true);
+    expect(secondPairing.success).toBe(false); 
+});
+
+test("Attempt to remove non-existing pair", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true);
+    expect(routeID.success).toBe(true);
+
+    const deletePair = await removeUserRoutePair(db, routeID.data!, userID.data!);
+    expect(deletePair.success).toBe(false); 
+});
+
+test("Get all routes for user without any pairings", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    expect(userID.success).toBe(true);
+
+    const allRoutes = await getAllRoutes(db, userID.data!);
+    expect(allRoutes.success).toBe(false); 
+});
+
+test("Get all users for route without any pairings", async () => {
+    const routeID = await routeAdd(db, route1);
+    expect(routeID.success).toBe(true);
+
+    const allUsers = await getAllUsers(db, routeID.data!);
+    expect(allUsers.success).toBe(false); 
+});
+
 
 
