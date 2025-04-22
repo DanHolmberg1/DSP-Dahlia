@@ -1,9 +1,8 @@
 
 import axios from 'axios';
 
-import api_key from '../secrets.env'
 
-const ORS_API_KEY = api_key;
+const ORS_API_KEY = "";
 const ORS_URL = 'https://api.openrouteservice.org/v2/directions/foot-walking';
 
 type Coordinate = [number, number]; // [lon, lat]
