@@ -52,12 +52,10 @@ export async function DBInit(): Promise<Database> {
     CREATE TABLE IF NOT EXISTS groups (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       routeID INTEGER,
-      distance INTEGER,
-      users TEXT
+      description TEXT, 
+      groupName TEXT 
       )
-    `); // Store users as json
-    //Borde kanske uppdatera så att vi sorterar baserat på route ID 
-    //Lägga till mer data? ta bort users? 
+    `); 
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS routes (
@@ -76,9 +74,25 @@ export async function DBInit(): Promise<Database> {
     )
   `); //maps users to routes, ID must exist in users and routes, the pairing must be unique 
 
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS mapGroupsToUsers (
+      userID INTEGER,
+      groupID INTEGER,
+      PRIMARY KEY (userID, groupID),
+      FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (groupID) REFERENCES groups(id) ON DELETE CASCADE
+    )
+  `);
+
+
   //Creates search trees based on userID and routeID 
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_userID ON mapRoutesToUsers(userID)`);
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_routeID ON mapRoutesToUsers(routeID)`);
+
+
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_userID ON mapGroupsToUsers(userID)`);
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_groupID ON mapGroupsToUsers(groupID)`);
 
   //Allows deletion happen automatically in the mapRoutesToUsers table 
   await db.exec("PRAGMA foreign_keys = ON");

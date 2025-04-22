@@ -27,6 +27,10 @@ let db: Database;
 
 beforeEach(async () => {
     try{
+        await clearUsers(db); 
+    await clearGroups(db);
+    await clearRoutes(db); 
+    await clearUsersRoutes(db);
     db = await DBInit()
     } catch (err){
         console.error("Could not init db", err);
