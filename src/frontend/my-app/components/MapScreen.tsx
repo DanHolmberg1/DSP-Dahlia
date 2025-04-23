@@ -66,14 +66,14 @@ const MapScreen = (props: MapProps) => {
     style={styles.saveButtonContainer} 
     onPress={() => props.navigation.navigate("Saved routes")}
   >
-    <Text style={styles.savedRouteText}>Saved routes</Text>
+    <Text style={styles.savedRouteText}>Sparade rutter</Text>
   </TouchableOpacity>
 </View>
 
     {ShowOptions && (
     <View style={[styles.OptionContainer, {paddingTop: Platform.OS === 'android' ? 10: 20}, {height: optionExpand ? '15%': '9%'}]}>
       {!optionExpand && (
-        <Text style = {[styles.OptionStartText, { marginBlockStart: Platform.OS === 'android' ? 20 : 0 }]}> Desing your walk</Text>
+        <Text style = {[styles.OptionStartText, { marginBlockStart: Platform.OS === 'android' ? 20 : 0 }]}> Designa din promenad</Text>
       )}
       <View style={{ 
       flexDirection: "row", 

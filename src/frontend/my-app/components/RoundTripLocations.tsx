@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import api_key from '../secrets.env'
+//import api_key from '../secrets.env'
 
 const ORS_API_KEY =''
 

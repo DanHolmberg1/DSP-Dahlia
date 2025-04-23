@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute, getRoundTripRouteCircle } from "./RoundTripRoutingAPI";
+import { getRoundTripRoute, getRoundTripRouteTriangle } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -13,8 +13,9 @@ import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
 import sendRouteDataHttpRequest from "./httpRequestClient";
-import { RemoveDuplicates, RoundRouting, calculateSquare, calulateCircle } from "./RoundRoutingAlgortihm";
+import { RemoveDuplicates, RemoveDuplicatesSquare, RoundRouting, calculateSquare, calulateCircle } from "./RoundRoutingAlgortihm";
 import { all } from "axios";
+import { calculateSquareWalk, calculateTriangleAndCircleWalk, calculateTriangleeWalk, removeUTurn } from "./RoudWalkAlgorithm";
 
 
 interface MapProps {
@@ -52,34 +53,61 @@ export const RoundRouteScreen = (props:MapProps) => {
       const randomSeed = Math.floor(Math.random()* 1000);
       const distanceNum = Number(distance);
 
-      //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
-      //const Allpoints = calculateSquare(startLocation, Number(distance));
+    //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
+    //const Allpoints = calculateSquareWalk(startLocation, Number(distance));
 
-      console.log('hereeee');
+    const Allpoints = calculateTriangleeWalk(startLocation, Number(distance));
+    //const Allpoints = calculateTriangleAndCircleWalk(startLocation, Number(distance));
 
-     // console.log("points", Allpoints);
+    //   console.log('hereeee');
+
+    // console.log("points", Allpoints);
       
-      //const result = await getRoundTripRouteCircle(Allpoints, distanceNum, randomSeed, 3);
+    const result = await getRoundTripRouteTriangle(Allpoints);
 
-      const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-      const resultGeometry = result.routes[0].geometry;
-      console.log("geo: ", resultGeometry);
+    //const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
+    const resultGeometry = result.routes[0].geometry;
+      //console.log("geo: ", resultGeometry);
      
           const decodegeom = polyline.decode(resultGeometry);
+         
+          console.log("geo ", decodegeom);
 
-          const test = RemoveDuplicates(decodegeom);
+          //const test = RemoveDuplicates(decodegeom);
+          let newAllpoints: number[][] = [];
 
-          console.log("test coord", test);
+          let test: number[][] = [];
+          
+        if(Allpoints) {
+        //    // console.log("heyyy");
+        //   //const decodedGeomNew = decodegeom.map(([lat, lon]) => [lon, lat]);
+        const numberArray: number[][] = Allpoints.map(coord => [coord.latitude, coord.longitude]);
+        //newAllpoints = RemoveDuplicatesSquare(decodegeom, numberArray );
+        //newAllpoints = removeUTurn(decodegeom, numberArray);
 
-          console.log("decode geo ", decodegeom);
+        //test = removeUTurn(newAllpoints, numberArray);
+          
+        //   if (newAllpoints.length === 0) {
+        //     console.warn("No valid route points after duplicate removal!");
+         }
         
+        //   //console.log("hajahaj");
+        //   } {"latitude": 59.864001192200526, "longitude": 17.64345846823241}
+        
+          //console.log("test coord", test);
+
+          //console.log("decode geo ", decodegeom);
+
+console.log('here');
           const formattedRoute = decodegeom.map((coord: number[]) => ({
               latitude: coord[0],
               longitude: coord[1],
             }));
+            console.log("Final route coordinates:", formattedRoute);
 
           setRoute(formattedRoute);
           setCurrentWalkData(result);
+          console.log("distance", result.routes[0].summary.distance);
     };
 
     const sendRouteToBackend = async () => {
@@ -98,7 +126,7 @@ return (
 
     {showStartText && (
         <View style={styles.messageContainer}> 
-            <Text style={styles.startText}> Click on screen to choose start point </Text> 
+            <Text style={styles.startText}> Klicka på kartan för att välja en startpunkt </Text> 
         </View>  )} 
     <MapView
             style={styles.map}
@@ -125,7 +153,7 @@ return (
 <View style={{alignItems: 'center', width: "100%" , backgroundColor: 'white',   justifyContent: "center", flexDirection: "column", position: "absolute", bottom: 0}}>
 
 <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", position: "relative"}}> 
-<Text style={[styles.inputLable, {marginBottom: menuExpand ? 20 : 40}]}> Choose route length</Text>
+<Text style={[styles.inputLable, {marginBottom: menuExpand ? 20 : 40}]}> Välj promenad längd</Text>
 
 <Pressable style={{marginLeft: "auto", marginRight: 25, zIndex: 20, position: "absolute", right: 0, backgroundColor: "white"}}  onPress={toggleMenuExpander} >
 <Arrow width={36} height={36} angle={menuExpand}/>
@@ -169,7 +197,7 @@ mode="dropdown"
     }
   }}
 >
-  <Text style={[styles.buttonTextWhite, {marginLeft: Platform.OS === 'android' ? -13: 0}]}>Generate Route</Text>
+  <Text style={[styles.buttonTextWhite, {marginLeft: Platform.OS === 'android' ? -13: 0}]}>Generera</Text>
   </TouchableOpacity>
 
     </View> 
