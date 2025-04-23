@@ -9,14 +9,27 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import { useRoute, RouteProp } from '@react-navigation/native';
+
+
 
 interface HomeScreenProps {
     navigation: any;
 }
 
+/*type RootStackParamList = {
+    Home: { user: { name: string; email: string; picture: string } };
+  };
+  
+  type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;*/
+
 const HomeScreen = (props: HomeScreenProps) => {
 
     //const Map = () => props.navigation.navigate("Map");
+
+    //const route = useRoute<HomeScreenRouteProp>();
+    //const { user } = route.params;
+
 
     return (
 

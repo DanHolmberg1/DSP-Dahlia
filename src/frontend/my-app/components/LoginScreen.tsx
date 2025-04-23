@@ -28,7 +28,6 @@ const LoginScreen = (props: LoginProps) => {
 
     // @ts-ignore
     const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
-    console.log("Redirect URI:", redirectUri);
 
     const [request, response, promptAsync] = Google.useAuthRequest({
         clientId: '955694188383-chv871v0gi6aksgj6t8gsphcockauok2.apps.googleusercontent.com',
@@ -39,12 +38,24 @@ const LoginScreen = (props: LoginProps) => {
     
     useEffect(() => {
     if (response?.type === 'success') {
-        const { authentication } = response;
+      const { authentication } = response;
+        
+      const fetchUserInfo = async () => {
+        const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+          headers: { Authorization: `Bearer ${authentication?.accessToken}` },
+        });
+        const user = await userInfoResponse.json();
+        console.log("Google user info:", user);
+
         console.log("Logged in with Google:", authentication);
       
         props.navigation.navigate("Home");
-    }
+        };
+      fetchUserInfo();
+      }
     }, [response]);
+
+    
     
       
       return (
