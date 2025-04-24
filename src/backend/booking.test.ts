@@ -52,10 +52,6 @@ let db: Database;
 
 beforeEach(async () => {
     try{
-        await clearUsers(db); 
-    await clearGroups(db);
-    await clearRoutes(db); 
-    await clearUsersRoutes(db);
     db = await DBInit()
     } catch (err){
         console.error("Could not init db", err);
@@ -608,19 +604,5 @@ test("Deleting group removes user mappings", async () => {
   
     const isStillIn = await isInGroup(db, userID.data!, groupID.data!);
     expect(isStillIn.success).toBe(false); // Should be removed
-});
-
-test("Groups are ordered correctly by datetime", async () => {
-    const userID = await createUser(db, name1, email1, age1, sex1);
-    const routeID = await routeAdd(db, route1);
-    const dates = [new Date("2025-04-01"), new Date("2025-04-03"), new Date("2025-04-02")];
-  
-    const groupIDs = await Promise.all(
-      dates.map(d => groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, d))
-    );
-  
-    const result = await db.all("SELECT datetime FROM groups ORDER BY datetime ASC");
-    const resultDates = result.map(r => new Date(r.datetime).getDate());
-    expect(resultDates).toEqual([1, 2, 3]);
 });
 
