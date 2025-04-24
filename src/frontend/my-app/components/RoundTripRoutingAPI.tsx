@@ -127,7 +127,54 @@ export const getRoundTripRoute = async (start: {longitude: number, latitude:numb
     }
 };
 
+export const getNearestPoints = async (startCoordinates: {longitude: number, latitude:number}[] | null) => {
+    console.log("hereeee here");
 
+    if (startCoordinates == null) {
+        console.error("Something went wrong with the coordinates.");
+        return;
+    }
 
+    const coordinates = startCoordinates.map(coord => [coord.longitude, coord.latitude]);
 
+    console.log("coordinate:", coordinates);
 
+    try {
+        const response = await fetch("https://api.openrouteservice.org/v2/snap/foot-walking/json"
+, {
+            method: "POST",
+            headers: {
+                Authorization: ORS_API_KEY,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                locations: coordinates, 
+                radius: 6000,
+            
+            }),  
+        });
+
+        console.log("Response Status:", response.status);
+        
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error response:", errorText);
+            return;
+          }
+     
+        const data = await response.json();
+        console.log("Full Response:", data);
+
+        const snappedCoordinates = data.features?.map(
+        (feature: any) => feature.geometry.coordinates);
+       
+        if(snappedCoordinates) {
+            return snappedCoordinates;
+        }else {
+            console.error("route data is invalid")
+        }
+    } catch (error) {
+        console.error("API error:", error);
+    }
+};

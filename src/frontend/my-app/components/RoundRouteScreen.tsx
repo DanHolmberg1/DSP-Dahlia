@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute, getRoundTripRouteTriangle } from "./RoundTripRoutingAPI";
+import { getNearestPoints, getRoundTripRoute, getRoundTripRouteTriangle } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -54,10 +54,14 @@ export const RoundRouteScreen = (props:MapProps) => {
       const distanceNum = Number(distance);
 
     //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
-    //const Allpoints = calculateSquareWalk(startLocation, Number(distance));
+    const Allpoints = calculateSquareWalk(startLocation, Number(distance));
 
-    const Allpoints = calculateTriangleeWalk(startLocation, Number(distance));
+    //const Allpoints = calculateTriangleeWalk(startLocation, Number(distance));
+    console.log("all points", Allpoints);
     //const Allpoints = calculateTriangleAndCircleWalk(startLocation, Number(distance));
+
+    //const nearPoints = await getNearestPoints(Allpoints);
+
 
     //   console.log('hereeee');
 

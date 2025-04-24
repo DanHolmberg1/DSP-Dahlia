@@ -13,7 +13,7 @@ export function calculateSquareWalk(start:{longitude: number, latitude:number} |
 
     if (start) {
 
-        const SquareSideLen = len/4;
+        const SquareSideLen = len/5;
         const latOffset = SquareSideLen/ 111320;
         const lonOffset = SquareSideLen/ (111320 * Math.cos(start.latitude * Math.PI/180));
 
