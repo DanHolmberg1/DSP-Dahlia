@@ -20,6 +20,15 @@ export interface Route {
   data: string; // Stored as a JSON string.
 }
 
+export interface Group {
+  id: number; 
+  routeID: number;
+  description: string;
+  groupName: string;
+  availableSpots: number; 
+  datetime: string; 
+}
+
 // A generic response type for all database operations.
 export interface DBResponse<T> {
   success: boolean;
@@ -38,6 +47,8 @@ export async function DBInit(): Promise<Database> {
     driver: sqlite3.Database,
   });
 
+  try {
+
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,20 +60,27 @@ export async function DBInit(): Promise<Database> {
   `);
 
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS groups (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      routeID INTEGER,
-      description TEXT, 
-      groupName TEXT 
-      )
-    `); 
-
-  await db.exec(`
     CREATE TABLE IF NOT EXISTS routes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       data TEXT UNIQUE
     )
   `); // data = routes i json
+
+  //await db.exec(`DROP TABLE IF EXISTS groups`); //run if you made changes to any table 
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      routeID INTEGER NOT NULL,
+      description TEXT NOT NULL, 
+      groupName TEXT NOT NULL, 
+      availableSpots INTEGER NOT NULL CHECK(availableSpots < 11 AND availableSpots > -1),
+      datetime TEXT NOT NULL,
+      FOREIGN KEY (routeID) REFERENCES routes(id) ON DELETE CASCADE
+    )
+  `);
+  //datetime ISO 8601 format: "YYYY-MM-DD HH:MM:SS"
+    //Maybe add starting location and distance, if we want to sort based on that?? 
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS mapRoutesToUsers (
@@ -87,20 +105,27 @@ export async function DBInit(): Promise<Database> {
 
 
   //Creates search trees based on userID and routeID 
+  //routes - users search trees 
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_userID ON mapRoutesToUsers(userID)`);
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_routeID ON mapRoutesToUsers(routeID)`);
 
-
+  //groups - users search trees 
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_userID ON mapGroupsToUsers(userID)`);
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_groupID ON mapGroupsToUsers(groupID)`);
 
-  //Allows deletion happen automatically in the mapRoutesToUsers table 
+  //groups - date search trees 
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_groups_datetime ON groups(datetime)`);
+  
+
+  //Allows deletion to happen automatically in the mapRoutesToUsers table 
   await db.exec("PRAGMA foreign_keys = ON");
 
   return db;
+  } catch (err) {
+    console.error("Failed to create db" + err); 
+    return db; 
+  }
 }
-
-
 
 // Inserts a new route and returns its ID.
 export async function routeAdd(db: Database, data: JSON): Promise<DBResponse<number>> {
@@ -142,30 +167,232 @@ export async function routeGet(db: Database, id: number): Promise<DBResponse<Rou
   }
 }
 
-// Creates a new group (stub implementation)
-// id = userID of the creator of the group
-export async function groupCreate(db: Database, routeID: number, distance: number): Promise<DBResponse<number>> {
+//Creates a new walking group, creator is automatically added 
+export async function groupCreate(db: Database, userID: number, routeID: number, description: string, groupName: string, spots: number, date: Date): Promise<DBResponse<number>> {
+  if( !description || !groupName ){
+    return {success: false, error: "no description or name"}; 
+  }
+
+  if(spots <= 0 || spots > 10) {
+    return {success: false, error: "invalid amount of spots"}
+  }
+
+  if(!(date instanceof Date) || isNaN(date.getTime())) {
+    return {success: false, error: "Invalid date"}; 
+  }
+
   try {
-    const res = await db.run("INSERT INTO groups (routeID, distance) VALUES (?, ?)", [routeID, distance]);
-    if (res.changes && res.lastID) {
-      return { success: true, data: res.lastID };
+    /*//Kanske onödigt??? 
+    const routeStatus = await routeGet(db, routeID); 
+    if(routeStatus.success === false) {
+      return { success: false, error: "Could not find route" }; 
+    }*/
+    const dateS = date.toISOString(); 
+
+    const resGroup = await db.run(`INSERT INTO groups (routeID, description, groupName, availableSpots, datetime) VALUES (?, ?, ?, ?, ?)`,
+                                   [routeID, description, groupName, spots, dateS]);
+
+    if (resGroup.changes && resGroup.lastID && (await groupAdd(db, userID, resGroup.lastID)).success) {
+      return { success: true, data: resGroup.lastID };
     }
+    
     return { success: false, error: "Please report, unexpected failure." };
+
   } catch (err) {
     console.error("Error creating group:", err);
     return { success: false, error: "Error creating group." };
   }
 }
 
+//Pairs user and group 
 export async function groupAdd(db: Database, userID: number, groupID: number): Promise<DBResponse<void>> {
   try {
-    const res = await db.run(`UPDATE groups SET users = ? WHERE id = ?`, [userID, groupID]);
+    await db.exec("BEGIN TRANSACTION"); //enables rollbacks just in case 
+
+    const groupInfo = await groupGet(db, groupID); 
+
+    if(groupInfo.success && groupInfo.data && groupInfo.data.availableSpots > 0) {
+      const updateStatus = await db.run(
+        `UPDATE groups SET availableSpots = ? WHERE id = ?`,
+        [groupInfo.data.availableSpots - 1, groupID]
+      );
+      if(!updateStatus.changes) {
+        await db.exec(`ROLLBACK`); 
+        return {success: false}; 
+      }
+    } else {
+      await db.exec(`ROLLBACK`); 
+      return {success: false}; 
+    }
+
+    const res = await db.run(`INSERT INTO mapGroupsToUsers (userID, groupID) VALUES(?, ?)`, [userID, groupID]);
+
     if (res.changes) {
+      await db.exec("COMMIT");
       return { success: true };
     }
+    await db.exec(`ROLLBACK`); 
     return { success: false, error: "Failed to update group, please report" };
   } catch (err) {
+    await db.exec(`ROLLBACK`); 
+    console.error("Error adding user to group" + err); 
     return { success: false, error: "Error adding user to group" };
+  }
+}
+
+//Checks if a user is in a group (group ID, user ID)
+export async function isInGroup(db: Database, userID: number, groupID: number): Promise<DBResponse<void>> {
+  try {
+    const res = await db.get(`
+      SELECT * FROM mapGroupsToUsers
+      WHERE userID = ? AND groupID = ?
+    `, [userID, groupID]);
+    if(res) {
+      return {success: true};
+    }
+    return {success: false}; 
+
+  } catch (err) {
+    return {success: false, error: "Could not find group - user pair"}; 
+  }
+}
+
+//Get group (group ID)
+export async function groupGet(db: Database, groupID: number): Promise<DBResponse<Group>> {
+  try {
+    const res = await db.get(`SELECT * FROM groups WHERE id = ?`, [groupID]); 
+
+    if(res) {
+      return {success: true, data: res};
+    }
+    return {success: false};
+
+  } catch (err) {
+    console.error("Error fetching group info from db" + err);
+    return {success: false, error: "Error fetching group info from db"}; 
+  }
+}
+
+//Get all groups (user ID)
+export async function groupGetAllGroups(db: Database, userID: number): Promise<DBResponse<Array<Group>>> {
+  try {
+    const rows = await db.all(`  
+      SELECT g.*
+      FROM groups g
+      JOIN mapGroupsToUsers mg ON g.id = mg.groupID
+      WHERE mg.userID = ?
+      ORDER BY mg.groupID
+    `, [userID]);
+
+    if(rows[0] === undefined) {
+      return {success: false, error: "no pairs found"}
+    }
+
+    return {success: true, data: rows};
+  } catch (err) {
+    console.error("Error getting all routes: ", err); 
+    return { success: false, error: "Error getting all routes"}; 
+  }
+}
+
+//Get all users (group ID)
+export async function groupGetAllUsers(db: Database, groupID: number): Promise<DBResponse<Array<User>>> {
+  try {
+    const rows = await db.all(`  
+      SELECT u.*
+      FROM users u
+      JOIN mapGroupsToUsers mu ON u.id = mu.userID
+      WHERE mu.groupID = ?
+      ORDER BY mu.userID
+    `, [groupID]);
+
+    if(rows[0] === undefined) {
+      return {success: false, error: "no pairs found"}
+    }
+
+    return {success: true, data: rows};
+  } catch (err) {
+    console.error("Error getting all routes: ", err); 
+    return { success: false, error: "Error getting all routes"}; 
+  }
+}
+
+//Get all groups (date)
+export async function groupGetAllDate(db: Database, date: Date): Promise<DBResponse<Array<Group>>> {
+  const dateObj = new Date(date); 
+
+  const startOfDay = new Date(dateObj);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(dateObj);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  const startISO = startOfDay.toISOString();
+  const endISO = endOfDay.toISOString();
+  
+  try {
+    const rows = await db.all(
+      `SELECT * FROM groups 
+       WHERE datetime BETWEEN ? AND ? 
+       ORDER BY datetime ASC`,
+      [startISO, endISO]
+    );
+
+    if(rows[0] === undefined) {
+      return {success: false, error: "no pairs found"}
+    }
+
+    return {success: true, data: rows};
+  } catch (err) {
+    console.error("Error getting all routes: ", err); 
+    return { success: false, error: "Error getting all routes"}; 
+  }
+}
+
+//Remove one user from group (user ID, group ID)
+export async function groupRemoveUser(db: Database, userID: number, groupID: number): Promise<DBResponse<void>> {
+  try {
+    const removed = await db.run(`
+      DELETE FROM mapGroupsToUsers
+      WHERE userID = ? AND groupID = ?
+    `, [userID, groupID]);
+    
+    if (removed.changes === 0) {
+      return { success: false, error: "No pair found to delete." };
+    } else {
+      return { success: true };
+    }
+
+  } catch (err) {
+    console.error("Error deleting pair:", err);
+    return {success: false, error: "Error deleting pair"};
+  }
+}
+
+//Remove group (date)
+export async function groupRemoveAllDate(db: Database, date: Date): Promise<DBResponse<void>> {
+  const dateObj = new Date(date); 
+
+  const startOfDate = new Date();
+  startOfDate.setFullYear(0); 
+
+  const endOfDate = new Date(dateObj);
+  endOfDate.setHours(23, 59, 59, 999);
+  
+  const startISO = startOfDate.toISOString();
+  const endISO = endOfDate.toISOString();
+  
+  try {
+    await db.run(`
+      DELETE FROM groups
+      WHERE datetime BETWEEN ? AND ? 
+    `, [startISO, endISO]);
+
+    return {success: true};
+
+  } catch (err) {
+    console.error("Error deleting all groups based on date:", err);
+    return {success: false, error: "Error deleting all groups"};
   }
 }
 
@@ -416,7 +643,7 @@ export async function clearRoutes(db: Database): Promise<boolean> {
   }
 }
 
-//clears the routes table 
+//clears the groups table 
 export async function clearGroups(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM groups'); 
@@ -428,7 +655,7 @@ export async function clearGroups(db: Database): Promise<boolean> {
   }
 }
 
-//Clears the routes table 
+//Clears the routes and users table 
 export async function clearUsersRoutes(db: Database): Promise<boolean> {
   try {
     await db.run('DELETE FROM mapRoutesToUsers'); 
@@ -436,6 +663,18 @@ export async function clearUsersRoutes(db: Database): Promise<boolean> {
     return true; 
   } catch (err) {
     console.error("Error clearing mapping table", err); 
+    return false; 
+  }
+}
+
+//Clears the groups and users table 
+export async function clearUsersGroups(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM mapGroupsToUsers'); 
+    await db.run('VACUUM'); 
+    return true; 
+  } catch (err) {
+    console.error("Error clearing mapping table (groups)", err); 
     return false; 
   }
 }

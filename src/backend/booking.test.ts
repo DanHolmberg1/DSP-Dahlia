@@ -2,7 +2,16 @@ import { DBInit, routeAdd, routeDelete, routeGet, createUser,
     getUser, updateUser, deleteUser, clearUsers, removeAllRoutesFromPairs,
     removeUserRoutePair, getAllUsers, getAllRoutes, pairUserAndRoute, 
     clearGroups, clearUsersRoutes, clearRoutes, 
-    removeAllUsersFromPairs} from "./db_opertions";
+    removeAllUsersFromPairs,
+    groupCreate,
+    groupGetAllUsers,
+    groupGetAllGroups,
+    groupGet,
+    groupAdd,
+    isInGroup,
+    groupGetAllDate,
+    groupRemoveAllDate,
+    groupRemoveUser} from "./db_opertions";
 import { Database } from 'sqlite';
 
 const name1 = "Anna"; 
@@ -22,6 +31,22 @@ const invalidSex = 0;
 
 const route1 = JSON.parse('{"name":"TestWalk1, not real data"}');
 const route2 = JSON.parse('{"name":"TestWalk2, not real data"}');
+
+const descr1 = "Walking in group";
+const groupName1 = "Walk"; 
+const nrOfSpots1 = 10
+const nrOfSpots2 = 1
+const date1 = new Date(); 
+date1.setDate(date1.getDate() + 1); 
+const date2 = new Date(); 
+date2.setDate(date2.getDate() + 2); 
+const date3 = new Date(); 
+date3.setDate(date3.getDate() + 3); 
+
+
+const nrOfSpotsInv1 = 0
+const nrOfSpotsInv2 = 11
+
 
 let db: Database;
 
@@ -158,6 +183,7 @@ test('Insert multiple users in sequence', async () => {
     }
 });
 
+
 //Testing route table functions
 //routeAdd
 test('Insert route in routing table', async () => {
@@ -189,8 +215,6 @@ test('Delete route from routing table', async () => {
     const fetchedRoute = await routeGet(db, routeID.data!);
     expect(fetchedRoute.success).toBe(false); 
 })
-
-
 
 
 //Tests Mapping users to routes (and vice versa)
@@ -358,5 +382,245 @@ test("Get all users for route without any pairings", async () => {
     expect(allUsers.success).toBe(false); 
 });
 
+//Tester för groups 
+test("Create group", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+    
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    expect(groupID.success).toBe(true); 
+    expect(groupID.data).toBeDefined(); 
 
+    const allUsers = await groupGetAllUsers(db, groupID.data!); 
+    expect(allUsers.success).toBe(true); 
+    expect(allUsers.data![0]?.id).toEqual(userID.data); 
+});
+
+test("Add to group", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const userID2 = await createUser(db, name2, email2, age2, sex2); 
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true); 
+    expect(userID2.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+    
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots2, date1); 
+    expect(groupID.success).toBe(true); 
+    expect(groupID.data).toBeDefined(); 
+
+    const addInvalid = await groupAdd(db, userID2.data!, groupID.data!);
+    expect(addInvalid.success).toBe(false);  
+})
+
+test("Get all groups based on user ID", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1); 
+    expect(userID.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    console.log(groupID.error); 
+    expect(groupID.success).toBe(true); 
+    expect(groupID.data).toBeDefined(); 
+
+    const allGroups = await groupGetAllGroups(db, userID.data!); 
+    expect(allGroups.success).toBe(true);
+    expect(allGroups.data![0]).toBeDefined();
+
+    const group = await groupGet(db, groupID.data!);
+    expect(group.success).toBe(true);
+    expect(group.data).toEqual(allGroups.data![0]);
+});
+
+test("Get all users based on group ID", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1); 
+    expect(userID.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    console.log(groupID.error); 
+    expect(groupID.success).toBe(true); 
+    expect(groupID.data).toBeDefined(); 
+
+    const allUsers = await groupGetAllUsers(db, groupID.data!); 
+    expect(allUsers.success).toBe(true);
+    expect(allUsers.data).toBeDefined();
+
+    const user = await getUser(db, userID.data!);
+    expect(user.success).toBe(true);
+    expect(user.data).toEqual(allUsers.data![0]);
+});
+
+test("Is in group", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const userID2 = await createUser(db, name1, email2, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true); 
+    expect(userID2.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+    
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    expect(groupID.success).toBe(true); 
+
+    const status1 = await isInGroup(db, userID.data!, groupID.data!); 
+    expect(status1.success).toBe(true); 
+
+    const status2 = await isInGroup(db, userID2.data!, groupID.data!);
+    expect(status2.success).toBe(false); 
+});
+
+test("Get all groups based on date", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+    
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    expect(groupID.success).toBe(true); 
+    expect(groupID.data).toBeDefined(); 
+
+    const allGroups = await groupGetAllDate(db, date1); 
+    expect(allGroups.success).toBe(true); 
+    expect(allGroups.data![0]).toEqual(((await groupGet(db, groupID.data!)).data));
+
+    const noGroups = await groupGetAllDate(db, date2); 
+    expect(noGroups.success).toBe(false); 
+});
+
+test("Remove user from group", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const userID2 = await createUser(db, name1, email2, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true); 
+    expect(userID2.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+    
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    expect(groupID.success).toBe(true); 
+
+    const addStatus = await groupAdd(db, userID2.data!, groupID.data!); 
+    expect(addStatus.success).toBe(true); 
+
+    const status1 = await isInGroup(db, userID.data!, groupID.data!); 
+    expect(status1.success).toBe(true); 
+
+    const status2 = await isInGroup(db, userID2.data!, groupID.data!); 
+    expect(status2.success).toBe(true);
+
+    const removeStatus = await groupRemoveUser(db, userID.data!, groupID.data!); 
+    expect(removeStatus.success).toBe(true); 
+
+    const status3 = await isInGroup(db, userID.data!, groupID.data!); 
+    expect(status3.success).toBe(false); 
+
+    const status4 = await isInGroup(db, userID2.data!, groupID.data!); 
+    expect(status4.success).toBe(true);
+});
+
+test("Remove all groups with a smaller date", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true); 
+    expect(routeID.success).toBe(true);
+    
+    const groupID1 = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1); 
+    const groupID2 = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date2); 
+    const groupID3 = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date3); 
+    expect(groupID1.success).toBe(true); 
+    expect(groupID2.success).toBe(true); 
+    expect(groupID3.success).toBe(true); 
+
+    const status1 = await groupRemoveAllDate(db, date1); 
+    expect(status1.success).toBe(true); 
+
+    const groupDate1 = await groupGetAllDate(db, date1);
+    let groupDate2 = await groupGetAllDate(db, date2);
+    let groupDate3 = await groupGetAllDate(db, date3);
+
+    expect(groupDate1.success).toBe(false);
+    expect(groupDate2.success).toBe(true);
+    expect(groupDate3.success).toBe(true);
+
+    const status2 = await groupRemoveAllDate(db, date3); 
+    expect(status2.success).toBe(true); 
+
+    groupDate2 = await groupGetAllDate(db, date2); 
+    groupDate3 = await groupGetAllDate(db, date3); 
+    expect(groupDate2.success).toBe(false);
+    expect(groupDate3.success).toBe(false);
+});
+
+test("Create group with invalid values", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    expect(userID.success).toBe(true);
+    expect(routeID.success).toBe(true);
+  
+    const badGroup1 = await groupCreate(db, userID.data!, routeID.data!, "", groupName1, nrOfSpots1, date1);
+    expect(badGroup1.success).toBe(false);
+  
+    const badGroup2 = await groupCreate(db, userID.data!, routeID.data!, descr1, "", nrOfSpots1, date1);
+    expect(badGroup2.success).toBe(false);
+  
+    const badGroup3 = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpotsInv1, date1);
+    expect(badGroup3.success).toBe(false);
+
+    const badGroup5 = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpotsInv2, date1);
+    expect(badGroup5.success).toBe(false);
+  
+    const badGroup4 = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, 1, new Date("invalid-date"));
+    expect(badGroup4.success).toBe(false);
+});
+
+test("User cannot join the same group twice", async () => {
+  const userID = await createUser(db, name1, email1, age1, sex1);
+  const routeID = await routeAdd(db, route1);
+  const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots2, date1);
+
+  const addResult = await groupAdd(db, userID.data!, groupID.data!);
+  expect(addResult.success).toBe(false); // already added on group creation
+});
+
+test("Cannot join group with 0 available spots", async () => {
+    const userID1 = await createUser(db, name1, email1, age1, sex1);
+    const userID2 = await createUser(db, name2, email2, age2, sex2);
+    const routeID = await routeAdd(db, route1);
+    
+    const groupID = await groupCreate(db, userID1.data!, routeID.data!, descr1, groupName1, 1, date1);
+    expect(groupID.success).toBe(true);
+  
+    const result = await groupAdd(db, userID2.data!, groupID.data!);
+    expect(result.success).toBe(false); // Should be full
+});
+
+test("Deleting group removes user mappings", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    const groupID = await groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, date1);
+    
+    const isIn = await isInGroup(db, userID.data!, groupID.data!);
+    expect(isIn.success).toBe(true);
+  
+    await db.run("DELETE FROM groups WHERE id = ?", groupID.data!);
+  
+    const isStillIn = await isInGroup(db, userID.data!, groupID.data!);
+    expect(isStillIn.success).toBe(false); // Should be removed
+});
+
+test("Groups are ordered correctly by datetime", async () => {
+    const userID = await createUser(db, name1, email1, age1, sex1);
+    const routeID = await routeAdd(db, route1);
+    const dates = [new Date("2025-04-01"), new Date("2025-04-03"), new Date("2025-04-02")];
+  
+    const groupIDs = await Promise.all(
+      dates.map(d => groupCreate(db, userID.data!, routeID.data!, descr1, groupName1, nrOfSpots1, d))
+    );
+  
+    const result = await db.all("SELECT datetime FROM groups ORDER BY datetime ASC");
+    const resultDates = result.map(r => new Date(r.datetime).getDate());
+    expect(resultDates).toEqual([1, 2, 3]);
+});
 
