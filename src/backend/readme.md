@@ -11,3 +11,6 @@ MessageMenu.tsx
 Messages.tsx
 FindFriend.tsx
 FindWalks.tsx
+
+my-app/http
+my-app/tests

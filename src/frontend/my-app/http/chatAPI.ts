@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/api',
@@ -6,55 +6,34 @@ const api = axios.create({
 });
 
 function handleApiError(error: unknown): never {
-  if (error instanceof Error && error.message.includes('ECONNREFUSED')) {
-    throw new Error('Backend server is not running. Please start the server and try again.');
-  }
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
-    if (axiosError.response) {
-      const errorData = axiosError.response.data as { message?: string; error?: string };
-      const errorMessage = errorData.message || errorData.error || axiosError.response.statusText;
-      throw new Error(`API Error: ${axiosError.response.status} - ${errorMessage}`);
-    } else if (axiosError.request) {
-      throw new Error('Server not responding');
-    }
+    const errorMessage = (axiosError.response?.data as { error?: string })?.error || axiosError.message;
+    throw new Error(errorMessage || 'Unknown API error');
   }
-  throw new Error('Unknown API error');
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  age: number;
-  gender: number;
-}
-
-interface Message {
-  id: number;
-  content: string;
-  userId: number;
-  userName: string;
-  sent_at: string;
+  throw new Error('Unknown error occurred');
 }
 
 export const chatAPI = {
-  getUsers: async (): Promise<User[]> => {
+  getUsers: async () => {
     try {
-      const response = await api.get('/users');
-      if (response.status !== 200) {
-        throw new Error(`API returned status ${response.status}`);
-      }
-      return response.data;
+      const res = await api.get('/users');
+      return res.data;
     } catch (error) {
-      if ((error as AxiosError).code === 'ECONNREFUSED') {
-        throw new Error('Server is offline');
-      }
       return handleApiError(error);
     }
   },
 
-  sendMessage: async (userId: number, content: string): Promise<void> => {
+  getMessages: async () => {
+    try {
+      const res = await api.get('/messages');
+      return res.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  sendMessage: async (userId: number, content: string) => {
     try {
       await api.post('/messages', { userId, content });
     } catch (error) {
@@ -62,19 +41,30 @@ export const chatAPI = {
     }
   },
 
-  getMessages: async (): Promise<Message[]> => {
+  healthCheck: async () => {
     try {
-      const response: AxiosResponse<Message[]> = await api.get('/messages');
-      return response.data;
+      const res = await api.get('/health');
+      return res.data;
     } catch (error) {
       return handleApiError(error);
     }
   },
 
-  healthCheck: async (): Promise<{ status: string }> => {
+  // Skapa en ny användare via API
+  createUser: async (name: string, email: string, age: number, gender: number) => {
     try {
-      const response = await axios.get('http://localhost:3000/health');
-      return response.data;
+      const res = await api.post('/users', { name, email, age, gender });
+      return res.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  // Skapa en ny chatt via API
+  createChat: async (name: string, userIds: number[]) => {
+    try {
+      const res = await api.post('/chats', { name, userIds });
+      return res.data;
     } catch (error) {
       return handleApiError(error);
     }
