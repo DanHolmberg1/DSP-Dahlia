@@ -1,3 +1,6 @@
+
+//db_operations.ts
+
 import * as sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import * as path from 'path';
@@ -12,9 +15,27 @@ export interface User {
   name: string;
   email: string;
   age: number;
-  sex: number;
+  gender: number;
+}
+export interface Chat {
+  id: number;
+  name: string;
+  created_at: string;
 }
 
+export interface ChatMember {
+  chat_id: number;
+  user_id: number;
+  joined_at: string;
+}
+
+export interface Message {
+  id: number;
+  chat_id: number;
+  user_id: number;
+  content: string;
+  sent_at: string;
+}
 export interface Route {
   id: number;
   data: string; // Stored as a JSON string.
@@ -30,12 +51,14 @@ export interface DBResponse<T> {
 
 // Initialize the database with the required tables.
 // nameing????
-export async function DBInit(): Promise<Database> {
-  const dbPath = path.resolve(__dirname, '../../db/database.db');
-  // console.log("Using database file:", dbPath);
+export async function DBInit(dbPath: string = '../../db/database.db'): Promise<Database> {
+  const resolvedPath = dbPath === ':memory:' ? ':memory:' : path.resolve(__dirname, dbPath);
+  console.log("Database path:", resolvedPath);
+
   const db = await open({
-    filename: dbPath,
+    filename: resolvedPath,
     driver: sqlite3.Database,
+    mode: sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
   });
 
   await db.exec(`
@@ -44,7 +67,7 @@ export async function DBInit(): Promise<Database> {
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       age INTEGER NOT NULL CHECK(age < 122 AND age > 0),
-      sex INTEGER NOT NULL CHECK(sex > 0 AND sex < 4)
+      gender INTEGER NOT NULL CHECK(gender > 0 AND gender < 4)
     )
   `);
 
@@ -63,6 +86,37 @@ export async function DBInit(): Promise<Database> {
       data TEXT UNIQUE
     )
   `); // data = routes i json
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS chats (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS chat_members (
+      chat_id INTEGER,
+      user_id INTEGER,
+      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (chat_id, user_id),
+      FOREIGN KEY (chat_id) REFERENCES chats(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+  
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chat_id INTEGER,
+      user_id INTEGER,
+      content TEXT,
+      sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (chat_id) REFERENCES chats(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
 
   return db;
 }
@@ -141,7 +195,7 @@ export async function groupAdd(db: Database, userID: number, groupID: number): P
 
 
 // Creates a new user record.
-export async function createUser(db: Database, name: string, email: string, age: number, sex: number): Promise<DBResponse<number>> {
+export async function createUser(db: Database, name: string, email: string, age: number, gender: number): Promise<DBResponse<number>> {
   // Validate email.
   const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
   if (!validEmailRegExp.test(email)) {
@@ -161,16 +215,16 @@ export async function createUser(db: Database, name: string, email: string, age:
     return { success: false, error: "Invalid age." };
   }
 
-  // Validate sex. (Assuming 1 = female, 2 = male, 3 = other)
-  if (sex < 1 || sex > 3) {
-    console.error("Invalid sex:", sex);
-    return { success: false, error: "Invalid sex." };
+  // Validate gender. (Assuming 1 = female, 2 = male, 3 = other)
+  if (gender < 1 || gender > 3) {
+    console.error("Invalid gender:", gender);
+    return { success: false, error: "Invalid gender." };
   }
 
   try {
     const result = await db.run(
-      `INSERT INTO users (name, email, age, sex) VALUES (?, ?, ?, ?)`,
-      [name, email, age, sex]
+      `INSERT INTO users (name, email, age, gender) VALUES (?, ?, ?, ?)`,
+      [name, email, age, gender]
     );
 
     if (result.lastID) {
@@ -199,7 +253,7 @@ export async function getUser(db: Database, id: number): Promise<DBResponse<User
 
 // Updates a user record by ID.
 export async function updateUser(db: Database, id: number, name: string, 
-  email: string, age: number, sex: number): Promise<DBResponse<boolean>> {
+  email: string, age: number, gender: number): Promise<DBResponse<boolean>> {
 
     // Validate email. ska man kunna uppdatera email?? 
     const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
@@ -220,16 +274,16 @@ export async function updateUser(db: Database, id: number, name: string,
       return { success: false, error: "Invalid age." };
     }
   
-    // Validate sex. (Assuming 1 = female, 2 = male, 3 = other)
-    if (sex < 1 || sex > 3) {
-      console.error("Invalid sex:", sex);
-      return { success: false, error: "Invalid sex." };
+    // Validate gender. (Assuming 1 = female, 2 = male, 3 = other)
+    if (gender < 1 || gender > 3) {
+      console.error("Invalid gender:", gender);
+      return { success: false, error: "Invalid gender." };
     }
   
   try {
     const res = await db.run(
-      `UPDATE users SET name = ?, email = ?, age = ?, sex = ? WHERE id = ?`,
-      [name, email, age, sex, id]
+      `UPDATE users SET name = ?, email = ?, age = ?, gender = ? WHERE id = ?`,
+      [name, email, age, gender, id]
     );
     return { success: true, data: (res.changes && res.changes > 0) || false };
   } catch (err) {
@@ -279,5 +333,125 @@ export async function clearGroups(db: Database): Promise<boolean> {
   } catch (err) {
     console.error("Error clearing routes table", err); 
     return false; 
+  }
+}
+
+// Lägg till dessa interface i din db_operations.ts
+export interface Chat {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface ChatMember {
+  chat_id: number;
+  user_id: number;
+  joined_at: string;
+}
+
+export interface Message {
+  id: number;
+  chat_id: number;
+  user_id: number;
+  content: string;
+  sent_at: string;
+}
+
+// Lägg till dessa funktioner i din db_operations.ts:
+
+// Skapa en ny chat
+export async function createChat(db: Database, name: string): Promise<DBResponse<number>> {
+  if (!name.trim()) {
+    return { success: false, error: "Chat name required" };
+  }
+
+  try {
+    const result = await db.run("INSERT INTO chats (name) VALUES (?)", [name]);
+    return result.lastID 
+      ? { success: true, data: result.lastID }
+      : { success: false, error: "Failed to create chat" };
+  } catch (err) {
+    console.error("Error creating chat:", err);
+    return { success: false, error: "Database error" };
+  }
+}
+
+// Lägg till användare i chat
+export async function addUserToChat(db: Database, chatId: number, userId: number): Promise<DBResponse<void>> {
+  try {
+    await db.run("INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)", [chatId, userId]);
+    return { success: true };
+  } catch (err) {
+    console.error("Error adding user to chat:", err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : "Database error" 
+    };
+  }
+}
+
+// Skicka meddelande
+export async function sendMessage(db: Database, chatId: number, userId: number, content: string): Promise<DBResponse<number>> {
+  try {
+    const result = await db.run(
+      "INSERT INTO messages (chat_id, user_id, content) VALUES (?, ?, ?)",
+      [chatId, userId, content]
+    );
+    if (result.lastID) {
+      return {
+        success: true,
+        data: result.lastID // Only include defined properties
+      };
+    }
+    return { success: false, error: "Failed to send message" };
+  } catch (err) {
+    console.error("Error sending message:", err);
+    return { success: false, error: "Error sending message" };
+  }
+}
+
+// Hämta meddelanden för en chat
+export async function getMessages(db: Database, chatId: number, limit: number = 50): Promise<DBResponse<Message[]>> {
+  try {
+    const messages = await db.all(
+      "SELECT * FROM messages WHERE chat_id = ? ORDER BY sent_at DESC LIMIT ?",
+      [chatId, limit]
+    );
+    return { 
+      success: true, 
+      data: messages.reverse() // Correctly return the messages array
+    };
+  } catch (err) {
+    console.error("Error getting messages:", err);
+    return { success: false, error: "Error getting messages" };
+  }
+}
+
+// Hämta användarens chattar
+export async function getUserChats(db: Database, userId: number): Promise<DBResponse<Chat[]>> {
+  try {
+    const chats = await db.all(
+      `SELECT c.* FROM chats c
+       JOIN chat_members cm ON c.id = cm.chat_id
+       WHERE cm.user_id = ?`,
+      [userId]
+    );
+    return { success: true, data: chats };
+  } catch (err) {
+    console.error("Error getting user chats:", err);
+    return { success: false, error: "Error getting user chats" };
+  }
+}
+
+// Rensa chat-tabeller (för tester)
+export async function clearChats(db: Database): Promise<boolean> {
+  try {
+    await db.run('DELETE FROM messages');
+    await db.run('DELETE FROM chat_members');
+    await db.run('DELETE FROM chats');
+    return true;
+  } catch (err) {
+    console.error('Error clearing chats:', err);
+    return false;
   }
 }

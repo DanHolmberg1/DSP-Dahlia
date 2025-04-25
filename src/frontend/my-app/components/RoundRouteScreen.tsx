@@ -12,7 +12,7 @@ import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
-import sendRouteDataHttpRequest from "./httpRequestClient";
+import sendRouteDataHttpRequest from "../http/httpRequestClient";
 
 
 interface MapProps {
