@@ -60,7 +60,7 @@ export async function DBInit(dbPath: string = '../../db/database.db'): Promise<D
     driver: sqlite3.Database,
     mode: sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
   });
-
+  await db.exec('PRAGMA foreign_keys = ON'); // Enable foreign key constraints
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,26 +97,26 @@ export async function DBInit(dbPath: string = '../../db/database.db'): Promise<D
   
   await db.exec(`
     CREATE TABLE IF NOT EXISTS chat_members (
-      chat_id INTEGER,
-      user_id INTEGER,
-      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (chat_id, user_id),
-      FOREIGN KEY (chat_id) REFERENCES chats(id),
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-  `);
+    chat_id INTEGER,
+    user_id INTEGER,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (chat_id, user_id),
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+`);
   
   await db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      chat_id INTEGER,
-      user_id INTEGER,
-      content TEXT,
-      sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (chat_id) REFERENCES chats(id),
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-  `);
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id INTEGER,
+    user_id INTEGER,
+    content TEXT,
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+`);
 
   return db;
 }
