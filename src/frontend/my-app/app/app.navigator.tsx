@@ -15,6 +15,8 @@ import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
 import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
 import { Help, help } from "@/components/HelpScreen";
+import CreateWalk from "@/components/CreateWalkScreen";
+import AddRoute from "@/components/AddRouteScreen";
 
 
 const { Navigator, Screen } = createStackNavigator();
@@ -48,6 +50,8 @@ const AppNavigator = () => (
         <Screen  name="Walk with stops" component={TripWithStopsScreen} />
         <Screen  name = "Saved routes" component= {SavedRoute}/>
         <Screen  name = "Help" component= {Help}/>
+        <Screen  name = "Skapa promenad" component= {CreateWalk}/>
+        <Screen  name = "Välj rutt" component= {AddRoute}/>
     </Navigator>
 
 ); export default AppNavigator;

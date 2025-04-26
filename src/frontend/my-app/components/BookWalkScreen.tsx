@@ -16,27 +16,25 @@ interface BookingProps {
 }
 
 const BookWalkScreen = (props: BookingProps) => {
-    const [bookSpot, setbookSpot] = useState<boolean>(false);
 
     return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}> 
-        <Text style = {styles.HeaderText}> Book a walk with others!</Text>
-        <Text style = {styles.StartText}> Share a walk with others!</Text>
+        <Text style = {styles.HeaderText}> Boka en tur!</Text>
 
-        <View style = {styles.BookContainer}> 
-            <Button title = 'Family walk' onPress={() => props.navigation.navigate("Family walk")}/>
-            {/* <Text style = {styles.FamilyWalkText}> Family walk</Text> */}
-           
-
-        </View>
+          <View style={{ marginRight: Platform.OS === 'android' ? -30: 0 }}>
+         <TouchableOpacity 
+           style={styles.createWalkConatiner} 
+           onPress={() => props.navigation.navigate("Skapa promenad")}
+         >
+           <Text style = {styles.Addsign}> + </Text>
+         </TouchableOpacity>
+       </View>
+        
+  
         <MenuBar navigation={props.navigation}/>
 
     </View>
-    )
-
-    
-
-}; 
+)}; 
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -49,6 +47,30 @@ const styles = StyleSheet.create({
         padding: 20,
         justifyContent:"center",
         alignItems:"center",
+    },
+    createWalkConatiner: {
+      width: "30%",
+      marginBottom: 10,
+      backgroundColor: '#F5BFA2',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 30,
+      borderColor: "black",
+      color: "black",
+      marginLeft: 250,
+      marginTop: 0
+
+    },
+
+    Addsign : {
+      fontSize: 30,
+      marginLeft: 45,
+      marginBottom: 4,
+
+    },
+
+    AddSignContainer: {
+
     },
     BookContainer: {
         backgroundColor: 'rgb(5, 6, 58)',
@@ -99,8 +121,9 @@ const styles = StyleSheet.create({
         color:'rgb(5, 6, 58)',
         marginBottom: 10,
         marginTop: 20,
-        marginLeft: 0,
+        marginLeft: 5,
         fontFamily: 'inter',
+        
         
     },
     OptionContainer: {
