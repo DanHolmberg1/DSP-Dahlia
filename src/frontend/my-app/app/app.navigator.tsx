@@ -15,7 +15,7 @@ import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
 import ProfileScreen from "@/components/ProfileScreen";
 import FindWalks from "@/components/FindWalks";
-import FindFriend from "@/components/DiscoverPeopleScreen";
+import DiscoverPeopleScreen from "@/components/DiscoverPeopleScreen";
 import ChatScreen from "@/components/ChatScreen";
 import ConversationListScreen from "@/components/ConversationListScreen";
 
@@ -39,7 +39,7 @@ const AppNavigator = () => (
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="Find Walks" component={FindWalks} />
     <Stack.Screen name="Walk with destination" component={RoutewithDesScreen} />
-    <Stack.Screen name="Find Friends" component={FindFriend} />
+    <Stack.Screen name="Find Friends" component={DiscoverPeopleScreen} />
     <Stack.Screen 
       name="Messages" 
       component={ChatScreen} 

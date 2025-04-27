@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useTypedNavigation, useTypedRoute } from '@/hooks/useTypedNavigation';
 import { chatAPI } from '@/http/chatAPI';
 
@@ -24,14 +24,12 @@ const ConversationListScreen = () => {
     const loadConversations = async () => {
       try {
         const friends = await chatAPI.getFriends(currentUser.id);
-        
         const conversationsData = await Promise.all(
           friends.map(async (friend) => {
             const chat = await chatAPI.findChatBetweenUsers([currentUser.id, friend.id]);
-            
             if (!chat) {
               return {
-                id: 0, // Temporärt ID
+                id: 0,
                 friendId: friend.id,
                 friendName: friend.name,
                 friendAvatar: friend.avatar,
@@ -39,14 +37,11 @@ const ConversationListScreen = () => {
                 hasChat: false
               };
             }
-
             const [messages, unreadCount] = await Promise.all([
               chatAPI.getMessages(chat.id, currentUser.id),
               chatAPI.getChatUnreadCount(chat.id, currentUser.id)
             ]);
-
             const lastMessage = messages[messages.length - 1];
-
             return {
               id: chat.id,
               friendId: friend.id,
@@ -59,7 +54,6 @@ const ConversationListScreen = () => {
             };
           })
         );
-
         setConversations(conversationsData);
       } catch (error) {
         console.error('Error loading conversations:', error);
@@ -76,14 +70,10 @@ const ConversationListScreen = () => {
   const handleOpenChat = async (item: ConversationItem) => {
     try {
       let chatId = item.id;
-      
-      // Om ingen chatt finns, skapa en ny
       if (!item.hasChat) {
         const newChat = await chatAPI.createChat(item.friendName, [currentUser.id, item.friendId]);
         chatId = newChat.id;
       }
-
-      // Markera som läst och navigera
       await chatAPI.markChatAsRead(chatId, currentUser.id);
       navigation.navigate('Messages', {
         chatId,
@@ -95,6 +85,10 @@ const ConversationListScreen = () => {
     }
   };
 
+  const handleNewConversation = () => {
+    navigation.navigate('Find Friends', { currentUser });
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -104,69 +98,66 @@ const ConversationListScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Meddelanden</Text>
-      
-      <FlatList
-        data={conversations}
-        keyExtractor={(item) => `${item.friendId}-${item.id}`}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={[
-              styles.conversationItem,
-              item.unreadCount > 0 && styles.unreadConversation
-            ]}
-            onPress={() => handleOpenChat(item)}
-          >
-            <Image 
-              source={{ uri: item.friendAvatar || `https://i.pravatar.cc/150?u=${item.friendId}` }} 
-              style={styles.avatar} 
-            />
-            
-            <View style={styles.conversationContent}>
-              <Text style={styles.friendName}>{item.friendName}</Text>
-              
-              {item.hasChat ? (
-                <>
-                  <Text 
-                    style={styles.lastMessage}
-                    numberOfLines={1}
-                  >
-                    {item.lastMessage || 'Inga meddelanden än'}
-                  </Text>
-                  {item.lastMessageTime && (
-                    <Text style={styles.messageTime}>
-                      {new Date(item.lastMessageTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.container}>
+        <Text style={styles.header}>Meddelanden</Text>
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => `${item.friendId}-${item.id}`}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[styles.conversationItem, item.unreadCount > 0 && styles.unreadConversation]}
+              onPress={() => handleOpenChat(item)}
+            >
+              <Image
+                source={{ uri: item.friendAvatar || `https://i.pravatar.cc/150?u=${item.friendId}` }}
+                style={styles.avatar}
+              />
+              <View style={styles.conversationContent}>
+                <Text style={styles.friendName}>{item.friendName}</Text>
+                {item.hasChat ? (
+                  <>
+                    <Text style={styles.lastMessage} numberOfLines={1}>
+                      {item.lastMessage || 'Inga meddelanden än'}
                     </Text>
-                  )}
-                </>
-              ) : (
-                <Text style={styles.startChatText}>Tryck för att chatta</Text>
-              )}
-            </View>
-            
-            {item.unreadCount > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadBadgeText}>
-                  {item.unreadCount > 9 ? '9+' : item.unreadCount}
-                </Text>
+                    {item.lastMessageTime && (
+                      <Text style={styles.messageTime}>
+                        {new Date(item.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    )}
+                  </>
+                ) : (
+                  <Text style={styles.startChatText}>Tryck för att chatta</Text>
+                )}
               </View>
-            )}
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>Inga konversationer än</Text>
-        }
-      />
-    </View>
+              {item.unreadCount > 0 && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadBadgeText}>
+                    {item.unreadCount > 9 ? '9+' : item.unreadCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={<Text style={styles.emptyText}>Inga konversationer än</Text>}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
+        <TouchableOpacity style={styles.newConversationButton} onPress={handleNewConversation}>
+          <Text style={styles.newConversationButtonText}>Hitta vänner</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
   },
   header: {
     fontSize: 20,
@@ -234,6 +225,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     color: '#666',
+  },
+  newConversationButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#007bff',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newConversationButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
