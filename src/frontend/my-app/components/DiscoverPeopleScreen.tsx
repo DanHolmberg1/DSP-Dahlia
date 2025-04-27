@@ -1,129 +1,150 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  Pressable,
-  Image,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Image, ActivityIndicator, Modal, Pressable, Alert
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import MenuBar from "../components/menuBar"; 
+import { chatAPI } from '@/http/chatAPI';
+import { useTypedNavigation, useTypedRoute } from '@/hooks/useTypedNavigation';
 
-// Mockdata för personer med bilder
-const mockPeople = [
-    {
-      id: '1',
-      name: 'Anna',
-      age: 32,
-      distance: 1.2,
-      gender: 'Kvinna',
-      bio: 'Gillar långa promenader i naturen',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      pace: 'Medium',
-      features: ['dog']
-    },
-    {
-      id: '2',
-      name: 'Johan',
-      age: 28,
-      distance: 0.8,
-      gender: 'Man',
-      bio: 'Motionär som gillar att springa',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      pace: 'Hög',
-      features: []
-    },
-    {
-      id: '3',
-      name: 'Maria',
-      age: 45,
-      distance: 2.5,
-      gender: 'Kvinna',
-      bio: 'Söker någon att promenera med på lunchen',
-      avatar: 'https://randomuser.me/api/portraits/women/63.jpg',
-      pace: 'Låg',
-      features: ['wheelchair']
-    },
-    {
-      id: '4',
-      name: 'Erik',
-      age: 35,
-      distance: 3.1,
-      gender: 'Man',
-      bio: 'Nyinflyttad och vill utforska området',
-      avatar: 'https://randomuser.me/api/portraits/men/33.jpg',
-      pace: 'Medium',
-      features: ['dog']
-    },
-    {
-      id: '5',
-      name: 'Sofia',
-      age: 29,
-      distance: 0.5,
-      gender: 'Kvinna',
-      bio: 'Älskar att träna och vara aktiv',
-      avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
-      pace: 'Hög',
-      features: []
-    },
-    {
-      id: '6',
-      name: 'Lars',
-      age: 40,
-      distance: 4.0,
-      gender: 'Annat',
-      bio: 'Gillar att vandra och vara ute i naturen',
-      avatar: 'https://randomuser.me/api/portraits/men/34.jpg',
-      pace: 'Låg',
-      features: ['wheelchair']
-    }
-  ];
+const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
 
-const FindFriend = ({ navigation }: { navigation: any }) => {
+const mapPace = (pace: string) => {
+  switch (pace?.toLowerCase()) {
+    case 'low': return 'Långsam';
+    case 'medium': return 'Medel';
+    case 'high': return 'Snabb';
+    default: return pace || 'Okänd';
+  }
+};
+
+const mapGender = (gender: number) => {
+  return gender === 1 ? 'Kvinna' : gender === 2 ? 'Man' : 'Annat';
+};
+
+const DiscoverPeopleScreen = () => {
+  const navigation = useTypedNavigation();
+  const { params: { currentUser } } = useTypedRoute<'Find Friends'>();
+
+  const [people, setPeople] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<any>(null);
-  const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
+  const [expandedPerson, setExpandedPerson] = useState<number | null>(null);
   const [lowAge, setLowAge] = useState(18);
   const [highAge, setHighAge] = useState(80);
   const [maxDistance, setMaxDistance] = useState(10);
   const [selectedGender, setSelectedGender] = useState('Alla');
   const [filters, setFilters] = useState({
     dogFriendly: false,
-    pace: {
-      low: false,
-      medium: false,
-      high: false
-    }
+    pace: { low: false, medium: false, high: false }
   });
 
-  const filteredPeople = mockPeople.filter(person => {
-    // Grundläggande filter
+  useEffect(() => {
+    const fetchPeople = async () => {
+      try {
+        const users = await chatAPI.getUsers();
+        
+        // Säkerställ att users är en array och hantera felaktig data
+        if (!Array.isArray(users)) {
+          throw new Error('Ogiltigt dataformat från servern');
+        }
+
+        const filtered = users
+          .filter(user => user?.id && user.id !== currentUser.id)
+          .map(user => ({
+            ...user,
+            bio: user.bio || '',
+            features: typeof user.features === 'string' ? 
+              JSON.parse(user.features) : 
+              Array.isArray(user.features) ? user.features : [],
+            pace: user.pace || 'Okänd',
+            gender: user.gender || 0,
+            age: user.age || 0,
+            latitude: user.latitude || 0,
+            longitude: user.longitude || 0
+          }));
+
+        setPeople(filtered);
+      } catch (err) {
+        console.error('Kunde inte ladda personer:', err);
+        Alert.alert('Fel', 'Kunde inte ladda användardata');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPeople();
+  }, [currentUser.id]);
+
+  const handleStartChat = async (person: any) => {
+    try {
+      const existingChat = await chatAPI.findChatBetweenUsers([currentUser.id, person.id]);
+      let chat;
+      if (existingChat) {
+        chat = existingChat;
+      } else {
+        chat = await chatAPI.createChat(`${currentUser.name} & ${person.name}`, [currentUser.id, person.id]);
+      }
+
+      navigation.navigate('Messages', { 
+        chatId: chat.id, 
+        chatName: person.name, 
+        currentUser 
+      });
+    } catch (err) {
+      console.error('Error starting chat:', err);
+      Alert.alert('Fel', 'Kunde inte starta chatt');
+    }
+  };
+
+  const filteredPeople = people.filter(person => {
+    if (!person?.latitude || !person?.longitude) return false;
+
+    const distance = haversineDistance(
+      currentUser.latitude, currentUser.longitude,
+      person.latitude, person.longitude
+    );
+    person.distance = distance;
+
     if (person.age < lowAge || person.age > highAge) return false;
-    if (person.distance > maxDistance) return false;
-    if (selectedGender !== 'Alla' && person.gender !== selectedGender) return false;
+    if (distance > maxDistance) return false;
     
-    // Hundvänligt filter
+    if (selectedGender !== 'Alla') {
+      const genderMap: Record<string, string> = {
+        'Kvinna': '1',
+        'Man': '2',
+        'Annat': '3'
+      };
+      if (person.gender.toString() !== genderMap[selectedGender]) return false;
+    }
+
     if (filters.dogFriendly && !person.features?.includes('dog')) return false;
-    
-    // Hastighetsfilter
+
     const paceFilters = Object.entries(filters.pace).filter(([_, value]) => value);
     if (paceFilters.length > 0) {
-      const personPace = person.pace.toLowerCase();
+      const personPace = person.pace?.toLowerCase();
       const matchedPace = paceFilters.some(([key]) => {
         const paceMap: Record<string, string> = {
-          low: 'låg',
+          low: 'low',
           medium: 'medium',
-          high: 'hög'
+          high: 'high'
         };
-        return personPace.includes(paceMap[key]);
+        return personPace?.includes(paceMap[key]);
       });
       if (!matchedPace) return false;
     }
-    
+
     return true;
   });
 
@@ -144,16 +165,20 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const handlePersonPress = (personId: string) => {
-    setExpandedPerson(expandedPerson === personId ? null : personId);
-  };
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E15F18" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>
-          Personer nära dig! ({filteredPeople.length})
+          Personer nära dig ({filteredPeople.length})
         </Text>
         <TouchableOpacity
           style={styles.filterButton}
@@ -166,27 +191,28 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
       {/* Lista */}
       <ScrollView style={styles.scrollContainer}>
         {filteredPeople.map((person) => (
-          <TouchableOpacity
-            key={person.id}
-            style={[
-              styles.personCard,
-              expandedPerson === person.id && styles.expandedCard
-            ]}
-            onPress={() => handlePersonPress(person.id)}
-          >
+          <View key={person.id} style={[
+            styles.personCard,
+            expandedPerson === person.id && styles.expandedCard
+          ]}>
             <View style={styles.personHeader}>
-              <Image 
-                source={{ uri: person.avatar }} 
-                style={styles.avatar} 
-              />
-              <View style={styles.personInfo}>
+              <TouchableOpacity onPress={() => setSelectedPerson(person)}>
+                <Image 
+                  source={{ uri: person.avatar }} 
+                  style={styles.avatar} 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.personInfo}
+                onPress={() => setExpandedPerson(expandedPerson === person.id ? null : person.id)}
+              >
                 <Text style={styles.personName}>
                   {person.name}, {person.age} år
                 </Text>
                 <Text style={styles.personDistance}>
-                  {person.distance} km bort • {person.pace} hastighet
+                  {person.distance?.toFixed(1)} km bort • {mapPace(person.pace)} hastighet
                 </Text>
-              </View>
+              </TouchableOpacity>
               <View style={styles.featuresContainer}>
                 {person.features?.includes('dog') && (
                   <FontAwesome name="paw" size={16} color="#666" style={styles.featureIcon} />
@@ -199,19 +225,17 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
 
             {expandedPerson === person.id && (
               <View style={styles.expandedContent}>
-                <Text style={styles.bioText}>{person.bio}</Text>
+                <Text style={styles.bioText}>{person.bio || 'Den här användaren har inte skrivit någon bio ännu'}</Text>
                 
                 <TouchableOpacity
                   style={styles.messageButton}
-                  onPress={() => {
-                    setSelectedPerson(person);
-                  }}
+                  onPress={() => handleStartChat(person)}
                 >
                   <Text style={styles.messageButtonText}>Skicka meddelande</Text>
                 </TouchableOpacity>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         ))}
       </ScrollView>
 
@@ -242,9 +266,9 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   minimumValue={18}
                   maximumValue={highAge - 1}
                   step={1}
-                  minimumTrackTintColor="#007bff"
+                  minimumTrackTintColor="#E15F18"
                   maximumTrackTintColor="#d3d3d3"
-                  thumbTintColor="#007bff"
+                  thumbTintColor="#E15F18"
                   value={lowAge}
                   onValueChange={(value) => setLowAge(Math.min(value, highAge - 1))}
                 />
@@ -253,9 +277,9 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   minimumValue={lowAge + 1}
                   maximumValue={80}
                   step={1}
-                  minimumTrackTintColor="#007bff"
+                  minimumTrackTintColor="#E15F18"
                   maximumTrackTintColor="#d3d3d3"
-                  thumbTintColor="#007bff"
+                  thumbTintColor="#E15F18"
                   value={highAge}
                   onValueChange={(value) => setHighAge(Math.max(value, lowAge + 1))}
                 />
@@ -271,9 +295,9 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   minimumValue={1}
                   maximumValue={50}
                   step={1}
-                  minimumTrackTintColor="#007bff"
+                  minimumTrackTintColor="#E15F18"
                   maximumTrackTintColor="#d3d3d3"
-                  thumbTintColor="#007bff"
+                  thumbTintColor="#E15F18"
                   value={maxDistance}
                   onValueChange={(value) => setMaxDistance(value)}
                 />
@@ -333,7 +357,7 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   style={styles.filterItem}
                   onPress={() => toggleFilter('pace', 'low')}
                 >
-                  <Text style={styles.filterText}>Låg</Text>
+                  <Text style={styles.filterText}>Långsam</Text>
                   {filters.pace.low ? (
                     <FontAwesome name="check-circle" size={20} color="#00aa00" />
                   ) : (
@@ -344,7 +368,7 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   style={styles.filterItem}
                   onPress={() => toggleFilter('pace', 'medium')}
                 >
-                  <Text style={styles.filterText}>Medium</Text>
+                  <Text style={styles.filterText}>Medel</Text>
                   {filters.pace.medium ? (
                     <FontAwesome name="check-circle" size={20} color="#00aa00" />
                   ) : (
@@ -355,7 +379,7 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   style={styles.filterItem}
                   onPress={() => toggleFilter('pace', 'high')}
                 >
-                  <Text style={styles.filterText}>Hög</Text>
+                  <Text style={styles.filterText}>Snabb</Text>
                   {filters.pace.high ? (
                     <FontAwesome name="check-circle" size={20} color="#00aa00" />
                   ) : (
@@ -399,19 +423,34 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
                   {selectedPerson?.name}, {selectedPerson?.age} år
                 </Text>
                 <Text style={styles.modalDistance}>
-                  {selectedPerson?.distance} km bort • {selectedPerson?.pace} hastighet
+                  {selectedPerson?.distance?.toFixed(1)} km bort • {mapPace(selectedPerson?.pace)} hastighet
                 </Text>
                 
                 <View style={styles.bioContainer}>
                   <Text style={styles.bioTitle}>Om mig</Text>
-                  <Text style={styles.bioText}>{selectedPerson?.bio}</Text>
+                  <Text style={styles.bioText}>{selectedPerson?.bio || 'Ingen bio tillgänglig'}</Text>
+                </View>
+                
+                <View style={styles.featuresContainer}>
+                  {selectedPerson?.features?.includes('dog') && (
+                    <View style={styles.featureTag}>
+                      <FontAwesome name="paw" size={16} color="#666" />
+                      <Text style={styles.featureText}>Hundvänlig</Text>
+                    </View>
+                  )}
+                  {selectedPerson?.features?.includes('wheelchair') && (
+                    <View style={styles.featureTag}>
+                      <MaterialIcons name="accessible" size={16} color="#666" />
+                      <Text style={styles.featureText}>Rullstolsanpassad</Text>
+                    </View>
+                  )}
                 </View>
                 
                 <TouchableOpacity
                   style={styles.modalMessageButton}
                   onPress={() => {
                     setSelectedPerson(null);
-                    navigation.navigate('Messages', { person: selectedPerson });
+                    handleStartChat(selectedPerson);
                   }}
                 >
                   <Text style={styles.modalMessageButtonText}>Skicka meddelande</Text>
@@ -421,12 +460,7 @@ const FindFriend = ({ navigation }: { navigation: any }) => {
           </View>
         </Pressable>
       </Modal>
-      <MenuBar 
-      iconFocus="PROFILE" // eller 'HOME' beroende på vilken skärm du är på
-      navigation={navigation} 
-    />
     </View>
-    
   );
 };
 
@@ -434,7 +468,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingBottom: 100,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   header: {
     flexDirection: 'row',
@@ -504,6 +542,21 @@ const styles = StyleSheet.create({
   featuresContainer: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  featureTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eee',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  featureText: {
+    marginLeft: 4,
+    fontSize: 12,
   },
   featureIcon: {
     marginLeft: 8,
@@ -521,7 +574,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   messageButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#E15F18",
     borderRadius: 8,
     padding: 12,
     alignItems: "center",
@@ -582,8 +635,8 @@ const styles = StyleSheet.create({
     borderColor: "#e0e0e0",
   },
   selectedGenderButton: {
-    backgroundColor: "#007bff",
-    borderColor: "#007bff",
+    backgroundColor: "#E15F18",
+    borderColor: "#E15F18",
   },
   genderButtonText: {
     color: "#333",
@@ -612,7 +665,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   applyButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#E15F18",
     borderRadius: 8,
     padding: 16,
     alignItems: "center",
@@ -661,11 +714,12 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   modalMessageButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#E15F18",
     borderRadius: 8,
     padding: 12,
     alignItems: "center",
     width: '100%',
+    marginTop: 16,
   },
   modalMessageButtonText: {
     color: "white",
@@ -674,4 +728,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FindFriend;
+export default DiscoverPeopleScreen;

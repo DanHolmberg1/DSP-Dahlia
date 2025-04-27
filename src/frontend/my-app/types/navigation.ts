@@ -1,13 +1,19 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 
 export type User = {
-    id: number;
-    name: string;
-    email: string;
-    age: number;
-    gender: number;
-    avatar: string; // Gör avatar obligatorisk
-  };
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+  gender: number;
+  avatar: string;
+  latitude: number;   // 🆕
+  longitude: number;  // 🆕
+  bio: string;        // 🆕
+  pace?: string;      // 🆕 ('Låg', 'Medium', 'Hög')
+  features?: string[]; // 🆕 (ex: ['dog', 'wheelchair'])
+};
+
 
 export type RootStackParamList = {
   Start: undefined;

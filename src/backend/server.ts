@@ -15,15 +15,56 @@ const dbPath = path.join(__dirname, '../../db/test.db');
 async function seedTestData(db: any) {
   // 1. Skapa testanvändare
   const testUsers = [
-    { name: 'Anna', email: 'anna@test.com', age: 32, gender: 1 },
-    { name: 'Johan', email: 'johan@test.com', age: 28, gender: 2 },
-    { name: 'Maria', email: 'maria@test.com', age: 45, gender: 1 },
-    { name: 'Erik', email: 'erik@test.com', age: 35, gender: 2 }
+    { 
+      name: 'Anna', 
+      email: 'anna@test.com', 
+      age: 32, 
+      gender: 1,
+      pace: 'Medium',
+      features: ['dog'],
+      latitude: 59.3293,
+      longitude: 18.0696,
+      bio: 'Gillar långa promenader' 
+    },
+    { 
+      name: 'Johan', 
+      email: 'johan@test.com', 
+      age: 28, 
+      gender: 2,
+      pace: 'High',
+      features: [],
+      latitude: 59.4326,
+      longitude: 18.0649,
+      bio: 'Älskar att springa'
+    },
+    { 
+      name: 'Maria', 
+      email: 'maria@test.com', 
+      age: 45, 
+      gender: 1,
+      pace: 'Low',
+      features: ['wheelchair'],
+      latitude: 59.3275,
+      longitude: 18.0774,
+      bio: 'Behöver en rullstol för att gå'
+    },
+    { 
+      name: 'Erik', 
+      email: 'erik@test.com', 
+      age: 35, 
+      gender: 2,
+      pace: 'Medium',
+      features: ['dog'],
+      latitude: 59.3300,
+      longitude: 18.0700,
+      bio: 'Älskar hundar och naturen'
+    }
   ];
 
   const createdUsers = [];
   for (const user of testUsers) {
-    const result = await createUser(db, user.name, user.email, user.age, user.gender);
+    const result = await createUser(db, user.name, user.email, user.age, user.gender, user.latitude, user.longitude, user.bio, user.pace, user.features);
+
     if (!result.success || !result.data) throw new Error(`Failed to create user ${user.name}`);
     createdUsers.push({ ...user, id: result.data });
   }

@@ -62,14 +62,19 @@ export async function DBInit(dbPath: string = '../../db/database.db'): Promise<D
   });
   await db.exec('PRAGMA foreign_keys = ON'); // Enable foreign key constraints
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      age INTEGER NOT NULL CHECK(age < 122 AND age > 0),
-      gender INTEGER NOT NULL CHECK(gender > 0 AND gender < 4)
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  age INTEGER NOT NULL CHECK(age < 122 AND age > 0),
+  gender INTEGER NOT NULL CHECK(gender > 0 AND gender < 4),
+  latitude REAL,
+  longitude REAL,
+  bio TEXT,
+  pace TEXT,
+  features TEXT
+)
+`);
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS groups (
@@ -218,47 +223,38 @@ export async function groupAdd(db: Database, userID: number, groupID: number): P
 
 
 // Creates a new user record.
-export async function createUser(db: Database, name: string, email: string, age: number, gender: number): Promise<DBResponse<number>> {
-  // Validate email.
-  const validEmailRegExp = new RegExp("^[a-zA-Z0-9_.±]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");
-  if (!validEmailRegExp.test(email)) {
-    console.error("Invalid email:", email);
-    return { success: false, error: "Invalid email." };
-  }
-
-  // Validate name.
-  if (!name.trim()) {
-    console.error("Invalid name");
-    return { success: false, error: "Invalid name." };
-  }
-
-  // Validate age.
-  if (age <= 0 || age > 122) {
-    console.error("Invalid age:", age);
-    return { success: false, error: "Invalid age." };
-  }
-
-  // Validate gender. (Assuming 1 = female, 2 = male, 3 = other)
-  if (gender < 1 || gender > 3) {
-    console.error("Invalid gender:", gender);
-    return { success: false, error: "Invalid gender." };
-  }
+export async function createUser(
+  db: Database,
+  name: string,
+  email: string,
+  age: number,
+  gender: number,
+  latitude: number = 0,
+  longitude: number = 0,
+  bio: string = '',
+  pace: string = '',
+  features: string[] = []
+): Promise<DBResponse<number>> {
+  if (!name.trim()) return { success: false, error: "Invalid name." };
+  if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) return { success: false, error: "Invalid email." };
+  if (age <= 0 || age > 122) return { success: false, error: "Invalid age." };
+  if (gender < 1 || gender > 3) return { success: false, error: "Invalid gender." };
 
   try {
     const result = await db.run(
-      `INSERT INTO users (name, email, age, gender) VALUES (?, ?, ?, ?)`,
-      [name, email, age, gender]
+      `INSERT INTO users (name, email, age, gender, latitude, longitude, bio, pace, features)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, age, gender, latitude, longitude, bio, pace, JSON.stringify(features)]
     );
-
-    if (result.lastID) {
-      return { success: true, data: result.lastID };
-    }
+    if (result.lastID) return { success: true, data: result.lastID };
     return { success: false, error: "Failed to create user." };
   } catch (err) {
     console.error("Error creating user:", err);
-    return { success: false, error: "Error creating user." };
+    return { success: false, error: "Database error" };
   }
 }
+
+
 
 // Retrieves a user record by ID.
 export async function getUser(db: Database, id: number): Promise<DBResponse<User>> {

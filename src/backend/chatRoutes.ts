@@ -2,26 +2,33 @@
 import { Router } from 'express';
 const router = Router();
 import { findChatBetweenUsers } from './db_operations';
+
 router.get('/users', async (req, res) => {
   const db = (req as any).db;
   try {
-    const users = await db.all('SELECT id, name, email, age, gender FROM users');
-    interface User {
-      id: number;
-      name: string;
-      email: string;
-      age: number;
-      gender: string;
-    }
+    const users = await db.all(`
+      SELECT id, name, email, age, gender, latitude, longitude, bio, pace, features 
+      FROM users
+    `);
 
-    res.json((users as User[]).map(user => ({
-      ...user,
-      avatar: `https://i.pravatar.cc/150?u=${user.id}`
+    res.json(users.map((user: any) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      age: user.age,
+      gender: user.gender,
+      avatar: `https://i.pravatar.cc/150?u=${user.id}`,
+      latitude: user.latitude,
+      longitude: user.longitude,
+      bio: user.bio,
+      pace: user.pace,
+      features: user.features ? JSON.parse(user.features) : []
     })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
+
 
 router.post('/users', async (req, res) => {
   const db = (req as any).db;

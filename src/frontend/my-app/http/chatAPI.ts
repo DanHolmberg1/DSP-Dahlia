@@ -35,10 +35,14 @@ export const chatAPI = {
   getUsers: async () => {
     try {
       const res = await api.get('/users');
-      return res.data;
+      return res.data.map((user: any) => ({
+        ...user,
+        features: user.features || [],
+        avatar: user.avatar || `https://i.pravatar.cc/150?u=${user.id}`
+      }));
     } catch (error) {
       console.error('Error fetching users:', error);
-      return []; // Returnera tom array vid fel
+      return [];
     }
   },
 
