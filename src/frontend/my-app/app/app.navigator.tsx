@@ -1,10 +1,10 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import { NavigationContainer } from "@react-navigation/native";
+import { StackNavigationOptions } from '@react-navigation/stack';
+import { RootStackParamList } from '@/types/navigation';
 import HomeScreen from "../components/HomeScreen";
 import MapScreen from "../components/MapScreen";
-import WalkBuddyScreen from "../components/WalkBuddyScreen"
-import { Stack } from "expo-router";
+import WalkBuddyScreen from "../components/WalkBuddyScreen";
 import BookWalkScreen from "../components/BookWalkScreen";
 import LoginScreen from "../components/LoginScreen";
 import CreateAccountScreen from "../components/CreateAccountScreen";
@@ -15,52 +15,44 @@ import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
 import ProfileScreen from "@/components/ProfileScreen";
 import FindWalks from "@/components/FindWalks";
-import FindFriend from "@/components/FindFriend";
-import Messages from "@/components/Messages";
-import MessageMenu from "@/components/MessageMenu";
-const { Navigator, Screen } = createStackNavigator();
+import FindFriend from "@/components/DiscoverPeopleScreen";
+import ChatScreen from "@/components/ChatScreen";
+import ConversationListScreen from "@/components/ConversationListScreen";
+
+const Stack = createStackNavigator<RootStackParamList>();
+
+const screenOptions: StackNavigationOptions = {
+  gestureEnabled: false,
+  headerLeft: () => null,
+};
 
 const AppNavigator = () => (
+  <Stack.Navigator screenOptions={screenOptions} initialRouteName="Start">
+    <Stack.Screen name="Start" component={StartScreen} />
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Create account" component={CreateAccountScreen} />
+    <Stack.Screen name="Home" component={HomeScreen} />
+    <Stack.Screen name="Generate routes" component={MapScreen} />
+    <Stack.Screen name="Book walk" component={BookWalkScreen} />
+    <Stack.Screen name="Walk Buddy" component={WalkBuddyScreen} />
+    <Stack.Screen name="Family walk" component={FamilyWalk} />
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="Find Walks" component={FindWalks} />
+    <Stack.Screen name="Walk with destination" component={RoutewithDesScreen} />
+    <Stack.Screen name="Find Friends" component={FindFriend} />
+    <Stack.Screen 
+      name="Messages" 
+      component={ChatScreen} 
+      options={({ route }) => ({ title: route.params.chatName })}
+    />
+    <Stack.Screen 
+      name="ConversationList" 
+      component={ConversationListScreen} 
+      options={{ title: 'Meddelanden' }}
+    />
+    <Stack.Screen name="Round walk" component={RoundRouteScreen} />
+    <Stack.Screen name="Walk with stops" component={TripWithStopsScreen} />
+  </Stack.Navigator>
+);
 
-    <Navigator screenOptions={{
-        gestureEnabled: false,
-    }} initialRouteName="Start">
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Start" component={StartScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Login" component={LoginScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Create account" component={CreateAccountScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Home" component={HomeScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Generate routes" component={MapScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Book walk" component={BookWalkScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Walk Buddy" component={WalkBuddyScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Family walk" component={FamilyWalk} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Profile" component={ProfileScreen} />
-        <Screen options={{
-            headerLeft: () => null,
-        }} name="Find Walks" component={FindWalks} />
-        <Screen name="Walk with destination" component={RoutewithDesScreen} />
-        <Screen options={{headerLeft: () => null,}} name="Find Friends" component={FindFriend} />
-        <Screen options={{headerLeft: () => null,}} name="Messages" component={Messages} />
-        <Screen options={{headerLeft: () => null,}} name="MessageMenu" component={MessageMenu} />
-        <Screen name="Round walk" component={RoundRouteScreen} />
-        <Screen name="Walk with stops" component={TripWithStopsScreen} />
-    </Navigator>
-
-); export default AppNavigator;
+export default AppNavigator;

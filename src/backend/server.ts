@@ -1,16 +1,59 @@
-// server.ts
 import express from 'express';
-import { DBInit } from './db_operations';
+import cors from 'cors';
+import { DBInit, createUser, createChat, addUserToChat, sendMessage } from './db_operations';
 import chatRoutes from './chatRoutes';
 import path from 'path';
 import fs from 'fs';
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+
 const dbPath = path.join(__dirname, '../../db/test.db');
+
+// Uppdatera seedTestData-funktionen:
+async function seedTestData(db: any) {
+  // 1. Skapa testanvändare
+  const testUsers = [
+    { name: 'Anna', email: 'anna@test.com', age: 32, gender: 1 },
+    { name: 'Johan', email: 'johan@test.com', age: 28, gender: 2 },
+    { name: 'Maria', email: 'maria@test.com', age: 45, gender: 1 },
+    { name: 'Erik', email: 'erik@test.com', age: 35, gender: 2 }
+  ];
+
+  const createdUsers = [];
+  for (const user of testUsers) {
+    const result = await createUser(db, user.name, user.email, user.age, user.gender);
+    if (!result.success || !result.data) throw new Error(`Failed to create user ${user.name}`);
+    createdUsers.push({ ...user, id: result.data });
+  }
+
+  // 2. Skapa vänrelationer (alla är vänner med alla i detta test)
+  const [anna, johan, maria, erik] = createdUsers;
+  const friendships = [
+    [anna.id, johan.id],
+    [anna.id, maria.id],
+    [anna.id, erik.id],
+    [johan.id, maria.id],
+    [johan.id, erik.id],
+    [maria.id, erik.id]
+  ];
+
+  for (const [user1, user2] of friendships) {
+    await db.run(
+      'INSERT OR IGNORE INTO friends (user_id, friend_id) VALUES (?, ?), (?, ?)',
+      [user1, user2, user2, user1]
+    );
+  }
+
+  console.log('Testdata initierad med:', {
+    users: createdUsers.map(u => u.name),
+    friendships
+  });
+}
 
 async function startServer(port = 3000) {
   try {
-    // Rensa befintlig databas
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
       console.log('Tidigare databas raderad');
@@ -19,12 +62,14 @@ async function startServer(port = 3000) {
     const db = await DBInit(dbPath);
     console.log('Databas initierad');
 
+    // Lägg till testdata
+    await seedTestData(db);
+
     app.use((req, res, next) => {
       (req as any).db = db;
       next();
     });
 
-    app.use(express.json());
     app.use('/api', chatRoutes);
 
     app.get('/health', (req, res) => {
@@ -33,7 +78,6 @@ async function startServer(port = 3000) {
 
     const server = app.listen(port, () => {
       console.log(`Server igång på http://localhost:${port}`);
-      console.log(`API tillgängligt på http://localhost:${port}/api`);
     });
 
     return server;
@@ -43,10 +87,9 @@ async function startServer(port = 3000) {
   }
 }
 
-// Starta servern endast om filen körs direkt
 if (require.main === module) {
   startServer()
-    .then(() => console.log('Server startad'))
+    .then(() => console.log('Server startad med testdata'))
     .catch(err => console.error('Server start misslyckades:', err));
 }
 

@@ -1,8 +1,13 @@
 // chatAPI.ts
 import axios, { AxiosError } from 'axios';
-
+interface Friend {
+  id: number;
+  name: string;
+  email?: string;
+  avatar: string;
+}
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://192.168.1.131:3000/api',
   timeout: 5000, // Ökad timeout
   headers: {
     'Content-Type': 'application/json'
@@ -32,7 +37,8 @@ export const chatAPI = {
       const res = await api.get('/users');
       return res.data;
     } catch (error) {
-      return handleApiError(error);
+      console.error('Error fetching users:', error);
+      return []; // Returnera tom array vid fel
     }
   },
 
@@ -53,6 +59,27 @@ export const chatAPI = {
     }
   },
   
+  getFriends: async (userId: number): Promise<Friend[]> => {
+    try {
+      const res = await api.get(`/users/${userId}/friends`);
+      return res.data.map((friend: any) => ({
+        ...friend,
+        avatar: friend.avatar || `https://i.pravatar.cc/150?u=${friend.id}`
+      }));
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+      return [];
+    }
+  },
+  getLastMessage: async (chatId: number, userId: number) => {
+    try {
+      const res = await api.get(`/messages/${chatId}/last?userId=${userId}`);
+      return res.data;
+    } catch (error) {
+      console.error('Error fetching last message:', error);
+      return null;
+    }
+  },
   getAllMessages: async (chatId: number) => {
     try {
       const res = await api.get(`/messages/all/${chatId}`);
@@ -84,12 +111,32 @@ export const chatAPI = {
       return handleApiError(error);
     }
   },
-
-  sendMessage: async (userId: number, content: string, chatId: number) => {
+  findChatBetweenUsers: async (userIds: number[]) => {
     try {
-      await api.post('/messages', { userId, content, chatId });
+      const res = await api.post('/chats/find', { userIds });
+      return res.data;
     } catch (error) {
-      return handleApiError(error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null; // Returnera null om chatt inte finns istället för att kasta fel
+      }
+      console.error('Error finding chat:', error);
+      throw error;
+    }
+  },
+  sendMessage: async (data: {
+    userId: number;
+    chatId: number;
+    content: string;
+  }) => {
+    try {
+      if (!data.userId || !data.chatId || !data.content) {
+        throw new Error('userId, chatId and content are required');
+      }
+      
+      const res = await api.post('/messages', data);
+      return res.data;
+    } catch (error) {
+      handleApiError(error);
     }
   },
 
@@ -155,6 +202,42 @@ export const chatAPI = {
         }
       }
       throw error; // Kasta vidare andra fel
+    }
+  },
+  getTotalUnread: async (userId: number): Promise<number> => {
+    try {
+      const res = await api.get(`/users/${userId}/unread-total`);
+      return res.data.total;
+    } catch (error) {
+      console.error('Error fetching total unread:', error);
+      return 0;
+    }
+  },
+
+  markChatAsRead: async (chatId: number, userId: number) => {
+    try {
+      await api.post(`/chats/${chatId}/mark-read`, { userId });
+    } catch (error) {
+      console.error('Error marking chat as read:', error);
+    }
+  },
+
+  getChatUnreadCount: async (chatId: number, userId: number) => {
+    try {
+      const res = await api.get(`/chats/${chatId}/unread-count?userId=${userId}`);
+      return res.data.count;
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      return 0;
+    }
+  },
+  getUnreadCount: async (userId: number) => {
+    try {
+      const res = await api.get(`/users/${userId}/unread-total`);
+      return res.data.total;
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      return 0;
     }
   },
 };

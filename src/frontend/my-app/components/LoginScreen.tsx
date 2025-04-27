@@ -1,141 +1,133 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
-import polyline, { decode } from "polyline";
-import { start } from "repl";
-import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker"; 
-import { StatusBar } from "expo-status-bar";
-import { abort } from "process";
-import Arrow from "@/icons/arrow";
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  Image, 
+  ActivityIndicator 
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { chatAPI } from '@/http/chatAPI';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '@/types/navigation';
 
-interface LoginProps {
-    navigation: any;
-}
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+  gender: number;
+  avatar?: string;
+};
 
-const LoginScreen = (props: LoginProps) => {
+const LoginScreen = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await chatAPI.getUsers();
+        setUsers(users);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchUsers();
+  }, []);
+
+  if (loading) {
     return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
 
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}> 
-
-        <View style = {styles.container}>
-            <Text style = {styles.startText}>
-                Log in to your account
-            </Text>
-
-            {/* <Text style = {styles.inputEmail}> 
-                
-            </Text> */}
-
-        <TextInput
-          style={styles.inputEmail}
-          placeholderTextColor="#888"
-          placeholder="Email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-    <TextInput
-          style={styles.inputPassword}
-          placeholderTextColor="#888"
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <Button title="Login" onPress={() => props.navigation.navigate("Home")} />
-
-        </View>
-        </KeyboardAvoidingView>
-       </TouchableWithoutFeedback>
-
-    )
-}; 
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Välj testanvändare</Text>
+      
+      <ScrollView style={styles.usersContainer}>
+        {users.map((user) => (
+          <TouchableOpacity
+          key={user.id}
+          style={styles.userCard}
+          onPress={() => navigation.navigate('ConversationList', { currentUser: { ...user, avatar: user.avatar || '' } })}
+        >
+          <Image 
+            source={{ uri: `https://i.pravatar.cc/150?u=${user.id}` }} 
+            style={styles.avatar} 
+          />
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userDetails}>{user.age} år • {user.gender === 1 ? 'Kvinna' : 'Man'}</Text>
+          </View>
+        </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1,
-        backgroundColor: "white",
-        padding: 10,
-    },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  usersContainer: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  userCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    marginBottom: 10,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: "500",
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "#666",
+  },
+  userDetails: {
+    fontSize: 14,
+    color: "#666",
+  },
+});
 
-    controls: {
-        position: "absolute",
-        bottom: 0,
-        width:"100%",
-        height:"30%",
-        backgroundColor: 'rgba(52, 52, 52, 0.8)',
-        padding: 20,
-        justifyContent:"center",
-        alignItems:"center",
-    },
-    messageContainer: {
-        backgroundColor: 'rgba(7, 39, 14, 0.8)',
-        padding: 10, // Add some padding to make it look less cramped
-        alignItems: 'center', // Center the text
-        justifyContent: 'center',
-        position: 'absolute', // Position it over the screen if needed
-        top: 0, // Position it at the top or adjust based on your layout
-        left: 0,
-        right: 0,
-        zIndex: 10, // Ensure it sits above other elements
-      },
-    inputLable: {
-        fontSize: 22,
-        color:"white",
-        marginBottom: 50,
-        marginTop: 20,
-    
-    },
-
-    buttoncontainer: {
-        width: "50%",
-        marginBottom: 40,
-        backgroundColor: 'white',
-        position: "absolute",
-        bottom: 0,
-        borderRadius: 30,
-        borderColor: "black",
-        color: "black"
-    },
-
-    startText: {
-        fontSize: 30,
-        color:"black",
-        marginBottom: 10,
-        marginTop: 85,
-        marginLeft: 55,
-        position: "absolute",
-    },
-
-    inputEmail: {
-        height: 50,
-        borderColor: 'black',
-        borderWidth: 1,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        marginTop: 250,
-      },
-
-      
-    inputPassword: {
-        height: 50,
-        borderColor: 'black',
-        borderWidth: 1,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        marginTop: 10,
-      },
-  }); export default LoginScreen;
+export default LoginScreen;

@@ -94,17 +94,26 @@ export async function DBInit(dbPath: string = '../../db/database.db'): Promise<D
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS friends (
+      user_id INTEGER,
+      friend_id INTEGER,
+      PRIMARY KEY (user_id, friend_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
   await db.exec(`
     CREATE TABLE IF NOT EXISTS chat_members (
-    chat_id INTEGER,
-    user_id INTEGER,
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (chat_id, user_id),
-    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-  )
-`);
+      chat_id INTEGER,
+      user_id INTEGER,
+      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_read_at DATETIME, 
+      PRIMARY KEY (chat_id, user_id),
+      FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
   
   await db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
@@ -117,11 +126,25 @@ export async function DBInit(dbPath: string = '../../db/database.db'): Promise<D
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   )
 `);
-
+await db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id)
+`);
   return db;
 }
 
+export async function findChatBetweenUsers(db: Database, userIds: number[]): Promise<number | null> {
+  const [user1, user2] = userIds.sort();
+  
+  const chat = await db.get(`
+    SELECT cm1.chat_id
+    FROM chat_members cm1
+    JOIN chat_members cm2 ON cm1.chat_id = cm2.chat_id
+    WHERE cm1.user_id = ? AND cm2.user_id = ?
+    LIMIT 1
+  `, [user1, user2]);
 
+  return chat ? chat.chat_id : null;
+}
 
 // Inserts a new route and returns its ID.
 export async function routeAdd(db: Database, data: string): Promise<DBResponse<number>> {

@@ -1,11 +1,26 @@
 //chatRoutes.ts
 import { Router } from 'express';
 const router = Router();
-
+import { findChatBetweenUsers } from './db_operations';
 router.get('/users', async (req, res) => {
   const db = (req as any).db;
-  const users = await db.all('SELECT id, name, email, age, gender FROM users');
-  res.json(users);
+  try {
+    const users = await db.all('SELECT id, name, email, age, gender FROM users');
+    interface User {
+      id: number;
+      name: string;
+      email: string;
+      age: number;
+      gender: string;
+    }
+
+    res.json((users as User[]).map(user => ({
+      ...user,
+      avatar: `https://i.pravatar.cc/150?u=${user.id}`
+    })));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
 });
 
 router.post('/users', async (req, res) => {
@@ -33,23 +48,80 @@ router.get('/chats', async (req, res) => {
   const chats = await db.all('SELECT id, name FROM chats');
   res.json(chats);
 });
+router.get('/users/:userId/friends', async (req, res) => {
+  const db = (req as any).db;
+  const { userId } = req.params;
 
+  try {
+    const friends = await db.all(
+      `SELECT u.id, u.name, u.email 
+       FROM users u
+       JOIN friends f ON u.id = f.friend_id
+       WHERE f.user_id = ?`,
+      [userId]
+    );
+
+    interface Friend {
+      id: number;
+      name: string;
+      email: string;
+    }
+
+    res.json(friends.map((friend: Friend) => ({
+      ...friend,
+      avatar: `https://i.pravatar.cc/150?u=${friend.id}`
+    })));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch friends' });
+  }
+});
+
+router.post('/chats/find', async (req, res) => {
+  const db = (req as any).db;
+  const { userIds } = req.body;
+
+  if (!userIds || userIds.length !== 2) {
+    return res.status(400).json({ error: 'Exactly two userIds required' });
+  }
+
+  try {
+    const chatId = await findChatBetweenUsers(db, userIds);
+    if (chatId) {
+      const chat = await db.get('SELECT * FROM chats WHERE id = ?', [chatId]);
+      return res.json(chat);
+    }
+    return res.status(404).json({ error: 'Chat not found' });
+  } catch (err) {
+    console.error('Error finding chat:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 router.post('/chats', async (req, res) => {
   const db = (req as any).db;
   const { name, userIds } = req.body;
 
-  if (!name || !Array.isArray(userIds) || userIds.length === 0) {
-    return res.status(400).json({ error: 'Name and userIds[] are required' });
+  if (!userIds || userIds.length !== 2) {
+    return res.status(400).json({ error: 'Exactly two userIds required' });
   }
 
-  const result = await db.run('INSERT INTO chats (name) VALUES (?)', [name]);
+  // Kolla om chatt redan finns
+  const existingChatId = await findChatBetweenUsers(db, userIds);
+  if (existingChatId) {
+    const chat = await db.get('SELECT * FROM chats WHERE id = ?', [existingChatId]);
+    return res.json(chat);
+  }
+
+  // Skapa ny chatt
+  const chatName = name || `Privat chatt`;
+  const result = await db.run('INSERT INTO chats (name) VALUES (?)', [chatName]);
   const chatId = result.lastID;
 
+  // Lägg till båda användarna
   for (const userId of userIds) {
     await db.run('INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)', [chatId, userId]);
   }
 
-  res.status(201).json({ id: chatId, name });
+  res.status(201).json({ id: chatId, name: chatName });
 });
 
 router.post('/messages', async (req, res) => {
@@ -75,44 +147,116 @@ router.post('/messages', async (req, res) => {
   await db.run('INSERT INTO messages (chat_id, user_id, content) VALUES (?, ?, ?)', [chatId, userId, content]);
   res.status(201).json({ success: true });
 });
+router.post('/chats/:chatId/mark-read', async (req, res) => {
+  const db = (req as any).db;
+  const { chatId } = req.params;
+  const { userId } = req.body;
 
+  await db.run(
+    `UPDATE chat_members 
+     SET last_read_at = CURRENT_TIMESTAMP 
+     WHERE chat_id = ? AND user_id = ?`,
+    [chatId, userId]
+  );
+
+  res.json({ success: true });
+});
 router.get('/messages/:chatId', async (req, res) => {
+  const db = (req as any).db;
+  const { chatId } = req.params;
+  const { userId } = req.query;
+
+  // Validering
+  const user = await db.get('SELECT id FROM users WHERE id = ?', [userId]);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const isMember = await db.get('SELECT 1 FROM chat_members WHERE chat_id = ? AND user_id = ?', [chatId, userId]);
+  if (!isMember) return res.status(403).json({ error: 'Not a member' });
+
+  // Hämta meddelanden med läst-status
+  const messages = await db.all(`
+    SELECT 
+      m.id, 
+      m.content, 
+      m.sent_at, 
+      u.id as userId, 
+      u.name as userName,
+      (m.sent_at <= IFNULL(cm.last_read_at, '1970-01-01')) as is_read
+    FROM messages m
+    JOIN users u ON m.user_id = u.id
+    LEFT JOIN chat_members cm ON cm.chat_id = m.chat_id AND cm.user_id = ?
+    WHERE m.chat_id = ?
+    ORDER BY m.sent_at ASC
+  `, [userId, chatId]);
+
+  res.json(messages);
+});
+router.get('/chats/:chatId/unread-count', async (req, res) => {
+  const db = (req as any).db;
+  const { chatId } = req.params;
+  const { userId } = req.query;
+
+  const result = await db.get(
+    `SELECT COUNT(*) as count
+     FROM messages m
+     JOIN chat_members cm ON m.chat_id = cm.chat_id
+     WHERE 
+       m.chat_id = ? AND
+       cm.user_id = ? AND
+       m.user_id != cm.user_id AND
+       (cm.last_read_at IS NULL OR m.sent_at > cm.last_read_at)`,
+    [chatId, userId]
+  );
+
+  res.json({ count: result.count });
+});
+
+router.get('/users/:userId/unread-total', async (req, res) => {
+  const db = (req as any).db;
+  const { userId } = req.params;
+
+  const result = await db.get(`
+    SELECT COUNT(*) as total
+    FROM messages m
+    JOIN chat_members cm ON m.chat_id = cm.chat_id
+    WHERE 
+      cm.user_id = ? AND
+      m.user_id != cm.user_id AND
+      (cm.last_read_at IS NULL OR m.sent_at > cm.last_read_at)
+  `, [userId]);
+
+  res.json({ total: result.total });
+});
+
+router.get('/messages/:chatId/last', async (req, res) => {
   const db = (req as any).db;
   const chatId = req.params.chatId;
   const userId = req.query.userId;
 
-  // 1. Kontrollera att användaren finns först
+  // Kontrollera användare och medlemskap
   const user = await db.get('SELECT id FROM users WHERE id = ?', [userId]);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
+  if (!user) return res.status(404).json({ error: 'User not found' });
 
-  // 2. Kontrollera chatmedlemskap
-  const isMember = await db.get(
-    'SELECT 1 FROM chat_members WHERE chat_id = ? AND user_id = ?',
-    [chatId, userId]
+  const isMember = await db.get('SELECT 1 FROM chat_members WHERE chat_id = ? AND user_id = ?', [chatId, userId]);
+  if (!isMember) return res.status(403).json({ error: 'Not a member' });
+
+  // Hämta senaste meddelandet
+  const lastMessage = await db.get(
+    `SELECT m.id, m.content, m.sent_at, u.id as userId, u.name as userName
+     FROM messages m
+     JOIN users u ON m.user_id = u.id
+     WHERE m.chat_id = ?
+     ORDER BY m.sent_at DESC
+     LIMIT 1`,
+    [chatId]
   );
-  if (!isMember) {
-    return res.status(403).json({ error: 'User is not a member of this chat' });
-  }
 
-  // 3. Hämta meddelanden
-const messages: { id: number; content: string; sent_at: string; userId: number; userName: string }[] = await db.all(
-  `SELECT m.id, m.content, m.sent_at, u.id as userId, u.name as userName
-  FROM messages m
-  JOIN users u ON m.user_id = u.id
-  WHERE m.chat_id = ?
-  AND m.user_id = ?
-  ORDER BY m.sent_at DESC`,
-  [chatId, userId]
-);
-
-  res.json(messages);
+  res.json(lastMessage || null);
 });
 router.delete('/messages/:id', async (req, res) => {
   const db = (req as any).db;
   const messageId = req.params.id;
-  
+
   try {
     const result = await db.run('DELETE FROM messages WHERE id = ?', [messageId]);
     if (result.changes === 0) {
@@ -154,10 +298,10 @@ router.delete('/users/:id', async (req, res) => {
 
   // Ta först bort användaren från alla chattar
   await db.run('DELETE FROM chat_members WHERE user_id = ?', [userId]);
-  
+
   // Ta sedan bort användaren
   await db.run('DELETE FROM users WHERE id = ?', [userId]);
-  
+
   res.status(200).json({ success: true });
 });
 
