@@ -28,15 +28,22 @@ export type RootStackParamList = {
   "Find Walks": undefined;
   "Walk with destination": undefined;
   "Find Friends": { currentUser: User };
-  Messages: { 
-    chatId: number; 
-    chatName: string; 
-    currentUser: User 
+  Messages: {
+    chatId: number;
+    chatName: string;
+    currentUser: User;
+    otherUser: {
+      id: number;
+      name: string;
+      avatar: string;
+    };
   };
+
   ConversationList: { currentUser: User };
   "Round walk": undefined;
   "Walk with stops": undefined;
 };
+
 
 // Typer för navigation props
 export type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Messages'>;

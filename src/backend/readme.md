@@ -14,3 +14,5 @@ FindWalks.tsx
 
 my-app/http
 my-app/tests
+TODO Rensa endpoints, polling i conversationlist
+TODO AUTH-hook, tester,login, chatfunktioner, 

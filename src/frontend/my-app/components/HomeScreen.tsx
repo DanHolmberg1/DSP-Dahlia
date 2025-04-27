@@ -1,14 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
-import polyline, { decode } from "polyline";
-import { start } from "repl";
-import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker";
-import { StatusBar } from "expo-status-bar";
-import { abort } from "process";
-import Arrow from "@/icons/arrow";
+import React from "react";
+import { StyleSheet, View, Text, Button, TouchableOpacity } from "react-native";
 import MenuBar from "./menuBar";
 
 interface HomeScreenProps {
@@ -16,44 +7,73 @@ interface HomeScreenProps {
 }
 
 const HomeScreen = (props: HomeScreenProps) => {
-
-    //const Map = () => props.navigation.navigate("Map");
-
     return (
-
         <View style={{ backgroundColor: "white", flex: 1 }}>
             <Text style={styles.startText}>
                 Hello
             </Text>
 
-            <View>
-                <Button title="Generate routes" onPress={() => props.navigation.navigate('Generate routes')} />
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Generate routes" 
+                    onPress={() => props.navigation.navigate('Generate routes')} 
+                />
             </View>
 
-            <View>
-                <Button title="Book walk" onPress={() => props.navigation.navigate('Book walk')} />
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Book walk" 
+                    onPress={() => props.navigation.navigate('Book walk')} 
+                />
             </View>
-            <View>
-                <Button title="Messages" onPress={() => props.navigation.navigate('MessageMenu')} />
+            
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Messages" 
+                    onPress={() => props.navigation.navigate('ConversationList')} // Uppdaterat här
+                />
             </View>
-            <View>
-                <Button title="Find Walk Buddy" onPress={() => props.navigation.navigate('Walk Buddy')} />
+            
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Find Walk Buddy" 
+                    onPress={() => props.navigation.navigate('Walk Buddy')} 
+                />
             </View>
-            <View>
-                <Button title="Find Walks" onPress={() => props.navigation.navigate('Find Walks')} />
+            
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Find Walks" 
+                    onPress={() => props.navigation.navigate('Find Walks')} 
+                />
             </View>
-            <View>
-  <Button title="Find Friends" onPress={() => props.navigation.navigate('Find Friends')} />
-</View>
+            
+            <View style={styles.buttonContainer}>
+                <Button 
+                    title="Find Friends" 
+                    onPress={() => props.navigation.navigate('Find Friends')} // Redan korrekt
+                />
+            </View>
+            
             <MenuBar navigation={props.navigation} iconFocus="HOME" />
         </View>
-        
-
     )
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
+    buttonContainer: {
+        marginBottom: 15,
+        marginHorizontal: 20
+    },
+    startText: {
+        fontSize: 22,
+        color: "black",
+        marginBottom: 50,
+        marginTop: 80,
+        marginLeft: 20,
+    },
+   
     controls: {
         position: "absolute",
         bottom: 0,
@@ -93,13 +113,4 @@ const styles = StyleSheet.create({
         color: "black"
     },
 
-    startText: {
-        fontSize: 22,
-        color: "black",
-        marginBottom: 50,
-        marginTop: 80,
-        marginLeft: 20,
-
-
-    },
 }); export default HomeScreen;

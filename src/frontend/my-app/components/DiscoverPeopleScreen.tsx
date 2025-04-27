@@ -36,12 +36,14 @@ const mapGender = (gender: number) => {
 const DiscoverPeopleScreen = () => {
   const navigation = useTypedNavigation();
   const { params: { currentUser } } = useTypedRoute<'Find Friends'>();
-
+  
   const [people, setPeople] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<any>(null);
   const [expandedPerson, setExpandedPerson] = useState<number | null>(null);
+  
+  // Filter states
   const [lowAge, setLowAge] = useState(18);
   const [highAge, setHighAge] = useState(80);
   const [maxDistance, setMaxDistance] = useState(10);
@@ -56,51 +58,89 @@ const DiscoverPeopleScreen = () => {
       try {
         const users = await chatAPI.getUsers();
         
-        // Säkerställ att users är en array och hantera felaktig data
-        if (!Array.isArray(users)) {
-          throw new Error('Ogiltigt dataformat från servern');
+        interface User {
+          id: number;
+          latitude?: number;
+          longitude?: number;
+          bio?: string;
+          features?: string[];
+          pace?: string;
+          gender?: number;
+          age?: number;
+          avatar?: string;
         }
 
-        const filtered = users
-          .filter(user => user?.id && user.id !== currentUser.id)
-          .map(user => ({
-            ...user,
-            bio: user.bio || '',
-            features: typeof user.features === 'string' ? 
-              JSON.parse(user.features) : 
-              Array.isArray(user.features) ? user.features : [],
-            pace: user.pace || 'Okänd',
-            gender: user.gender || 0,
-            age: user.age || 0,
-            latitude: user.latitude || 0,
-            longitude: user.longitude || 0
-          }));
+        interface ProcessedUser extends User {
+          distance: number;
+          bio: string;
+          features: string[];
+          pace: string;
+          gender: number;
+          age: number;
+          avatar: string;
+        }
 
-        setPeople(filtered);
+        const processedUsers: ProcessedUser[] = users
+          .filter((user: User) => user?.id && user.id !== currentUser.id)
+          .map((user: User) => {
+            // Calculate distance for each user
+            const distance = haversineDistance(
+              currentUser.latitude || 59.3293, 
+              currentUser.longitude || 18.0686,
+              user.latitude || 59.3293,
+              user.longitude || 18.0686
+            );
+
+            return {
+              ...user,
+              distance,
+              bio: user.bio || 'Ingen bio tillgänglig',
+              features: Array.isArray(user.features) ? user.features : [],
+              pace: user.pace?.toLowerCase() || 'medium',
+              gender: user.gender || 0,
+              age: user.age || 30,
+              avatar: user.avatar || `https://i.pravatar.cc/150?u=${user.id}`
+            };
+          });
+
+        setPeople(processedUsers);
       } catch (err) {
-        console.error('Kunde inte ladda personer:', err);
-        Alert.alert('Fel', 'Kunde inte ladda användardata');
+        console.error('Error fetching people:', err);
+        Alert.alert('Fel', 'Kunde inte ladda användare');
       } finally {
         setLoading(false);
       }
     };
+
     fetchPeople();
   }, [currentUser.id]);
 
   const handleStartChat = async (person: any) => {
     try {
+      // Check for existing chat first
       const existingChat = await chatAPI.findChatBetweenUsers([currentUser.id, person.id]);
+      
       let chat;
       if (existingChat) {
         chat = existingChat;
       } else {
-        chat = await chatAPI.createChat(`${currentUser.name} & ${person.name}`, [currentUser.id, person.id]);
+        // Create new chat if none exists
+        chat = await chatAPI.createChat(
+          `${currentUser.name} & ${person.name}`,
+          [currentUser.id, person.id]
+        );
       }
 
-      navigation.navigate('Messages', { 
-        chatId: chat.id, 
-        chatName: person.name, 
-        currentUser 
+      // Navigate to chat screen
+      navigation.navigate('Messages', {
+        chatId: chat.id,
+        chatName: person.name,
+        currentUser,
+        otherUser: {
+          id: person.id,
+          name: person.name,
+          avatar: person.avatar
+        }
       });
     } catch (err) {
       console.error('Error starting chat:', err);
@@ -109,40 +149,35 @@ const DiscoverPeopleScreen = () => {
   };
 
   const filteredPeople = people.filter(person => {
-    if (!person?.latitude || !person?.longitude) return false;
-
-    const distance = haversineDistance(
-      currentUser.latitude, currentUser.longitude,
-      person.latitude, person.longitude
+    // Basic filters
+    const passesBasicFilters = (
+      person.age >= lowAge &&
+      person.age <= highAge &&
+      person.distance <= maxDistance
     );
-    person.distance = distance;
 
-    if (person.age < lowAge || person.age > highAge) return false;
-    if (distance > maxDistance) return false;
-    
+    if (!passesBasicFilters) return false;
+
+    // Gender filter
     if (selectedGender !== 'Alla') {
-      const genderMap: Record<string, string> = {
-        'Kvinna': '1',
-        'Man': '2',
-        'Annat': '3'
+      const genderMap: Record<string, number> = {
+        'Kvinna': 1,
+        'Man': 2,
+        'Annat': 3
       };
-      if (person.gender.toString() !== genderMap[selectedGender]) return false;
+      if (person.gender !== genderMap[selectedGender]) return false;
     }
 
-    if (filters.dogFriendly && !person.features?.includes('dog')) return false;
+    // Dog friendly filter
+    if (filters.dogFriendly && !person.features.includes('dog')) return false;
 
-    const paceFilters = Object.entries(filters.pace).filter(([_, value]) => value);
-    if (paceFilters.length > 0) {
-      const personPace = person.pace?.toLowerCase();
-      const matchedPace = paceFilters.some(([key]) => {
-        const paceMap: Record<string, string> = {
-          low: 'low',
-          medium: 'medium',
-          high: 'high'
-        };
-        return personPace?.includes(paceMap[key]);
-      });
-      if (!matchedPace) return false;
+    // Pace filter
+    const paceFilters = Object.entries(filters.pace)
+      .filter(([_, value]) => value)
+      .map(([key]) => key);
+    
+    if (paceFilters.length > 0 && !paceFilters.includes(person.pace)) {
+      return false;
     }
 
     return true;
@@ -188,58 +223,67 @@ const DiscoverPeopleScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Lista */}
+      {/* People List */}
       <ScrollView style={styles.scrollContainer}>
-        {filteredPeople.map((person) => (
-          <View key={person.id} style={[
-            styles.personCard,
-            expandedPerson === person.id && styles.expandedCard
-          ]}>
-            <View style={styles.personHeader}>
-              <TouchableOpacity onPress={() => setSelectedPerson(person)}>
-                <Image 
-                  source={{ uri: person.avatar }} 
-                  style={styles.avatar} 
-                />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.personInfo}
-                onPress={() => setExpandedPerson(expandedPerson === person.id ? null : person.id)}
-              >
-                <Text style={styles.personName}>
-                  {person.name}, {person.age} år
-                </Text>
-                <Text style={styles.personDistance}>
-                  {person.distance?.toFixed(1)} km bort • {mapPace(person.pace)} hastighet
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.featuresContainer}>
-                {person.features?.includes('dog') && (
-                  <FontAwesome name="paw" size={16} color="#666" style={styles.featureIcon} />
-                )}
-                {person.features?.includes('wheelchair') && (
-                  <MaterialIcons name="accessible" size={16} color="#666" style={styles.featureIcon} />
-                )}
-              </View>
-            </View>
-
-            {expandedPerson === person.id && (
-              <View style={styles.expandedContent}>
-                <Text style={styles.bioText}>{person.bio || 'Den här användaren har inte skrivit någon bio ännu'}</Text>
-                
-                <TouchableOpacity
-                  style={styles.messageButton}
-                  onPress={() => handleStartChat(person)}
-                >
-                  <Text style={styles.messageButtonText}>Skicka meddelande</Text>
+        {filteredPeople.length > 0 ? (
+          filteredPeople.map((person) => (
+            <View key={person.id} style={[
+              styles.personCard,
+              expandedPerson === person.id && styles.expandedCard
+            ]}>
+              <View style={styles.personHeader}>
+                <TouchableOpacity onPress={() => setSelectedPerson(person)}>
+                  <Image 
+                    source={{ uri: person.avatar }} 
+                    style={styles.avatar} 
+                  />
                 </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.personInfo}
+                  onPress={() => setExpandedPerson(
+                    expandedPerson === person.id ? null : person.id
+                  )}
+                >
+                  <Text style={styles.personName}>
+                    {person.name}, {person.age} år
+                  </Text>
+                  <Text style={styles.personDistance}>
+                    {person.distance.toFixed(1)} km bort • {mapPace(person.pace)} hastighet
+                  </Text>
+                </TouchableOpacity>
+                <View style={styles.featuresContainer}>
+                  {person.features.includes('dog') && (
+                    <FontAwesome name="paw" size={16} color="#666" style={styles.featureIcon} />
+                  )}
+                  {person.features.includes('wheelchair') && (
+                    <MaterialIcons name="accessible" size={16} color="#666" style={styles.featureIcon} />
+                  )}
+                </View>
               </View>
-            )}
+
+              {expandedPerson === person.id && (
+                <View style={styles.expandedContent}>
+                  <Text style={styles.bioText}>{person.bio}</Text>
+                  
+                  <TouchableOpacity
+                    style={styles.messageButton}
+                    onPress={() => handleStartChat(person)}
+                  >
+                    <Text style={styles.messageButtonText}>Skicka meddelande</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Inga personer hittades med valda filter</Text>
+            <Text style={styles.emptySubText}>Justera filtren eller försök igen senare</Text>
           </View>
-        ))}
+        )}
       </ScrollView>
 
-      {/* Filtermodal */}
+      {/* Filter Modal */}
       <Modal
         visible={showFilterModal}
         transparent
@@ -252,11 +296,9 @@ const DiscoverPeopleScreen = () => {
         >
           <View style={styles.filterModalContainer}>
             <Pressable style={styles.filterModalContent}>
-              <Text style={styles.filterModalTitle}>
-                Filtrera personer
-              </Text>
+              <Text style={styles.filterModalTitle}>Filtrera personer</Text>
 
-              {/* Åldersintervall */}
+              {/* Age Range */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>
                   Ålder: {lowAge} - {highAge} år
@@ -285,7 +327,7 @@ const DiscoverPeopleScreen = () => {
                 />
               </View>
 
-              {/* Max avstånd */}
+              {/* Max Distance */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>
                   Max avstånd: {maxDistance} km
@@ -303,7 +345,7 @@ const DiscoverPeopleScreen = () => {
                 />
               </View>
 
-              {/* Kön */}
+              {/* Gender */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Kön:</Text>
                 <View style={styles.genderButtonsContainer}>
@@ -327,7 +369,7 @@ const DiscoverPeopleScreen = () => {
                 </View>
               </View>
 
-              {/* Hundvänligt filter */}
+              {/* Dog Friendly */}
               <View style={styles.filterSection}>
                 <TouchableOpacity 
                   style={styles.filterItem}
@@ -350,7 +392,7 @@ const DiscoverPeopleScreen = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Hastighetsfilter */}
+              {/* Pace */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Gånghastighet:</Text>
                 <TouchableOpacity 
@@ -401,7 +443,7 @@ const DiscoverPeopleScreen = () => {
         </Pressable>
       </Modal>
 
-      {/* Profilmodal */}
+      {/* Profile Modal */}
       <Modal
         visible={!!selectedPerson}
         transparent
@@ -428,7 +470,7 @@ const DiscoverPeopleScreen = () => {
                 
                 <View style={styles.bioContainer}>
                   <Text style={styles.bioTitle}>Om mig</Text>
-                  <Text style={styles.bioText}>{selectedPerson?.bio || 'Ingen bio tillgänglig'}</Text>
+                  <Text style={styles.bioText}>{selectedPerson?.bio}</Text>
                 </View>
                 
                 <View style={styles.featuresContainer}>
@@ -504,6 +546,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
   personCard: {
     backgroundColor: "#f8f8f8",

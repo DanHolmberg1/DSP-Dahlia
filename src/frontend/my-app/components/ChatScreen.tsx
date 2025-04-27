@@ -13,29 +13,32 @@ import { chatAPI } from "@/http/chatAPI";
 import { RootStackParamList } from "@/types/navigation";
 import { StackNavigationProp } from '@react-navigation/stack';
 
+interface User {
+  id: number;
+  name: string;
+  avatar: string;
+}
+
 interface Message {
   id: number;
   content: string;
   sent_at: string;
   userId: number;
   userName: string;
-  is_read?: boolean; // Lägg till denna
+  is_read?: boolean;
 }
 
 interface RouteParams {
   chatId: number;
   chatName: string;
-  currentUser: {
-    id: number;
-    name: string;
-    avatar: string;
-  };
+  currentUser: User;
+  otherUser: User;
 }
 
 const ChatScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute();
-  const { chatId, chatName, currentUser } = route.params as RouteParams;
+  const { chatId, chatName, currentUser, otherUser } = route.params as RouteParams;
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -45,8 +48,6 @@ const ChatScreen = () => {
       const messages = await chatAPI.getMessages(chatId, currentUser.id);
       setMessages(messages);
       setLoading(false);
-      
-      // Markera meddelanden som lästa när de hämtas
       await chatAPI.markChatAsRead(chatId, currentUser.id);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -56,11 +57,9 @@ const ChatScreen = () => {
 
   useEffect(() => {
     fetchMessages();
-    
     const interval = setInterval(fetchMessages, 1000);
     return () => {
       clearInterval(interval);
-      // Markera som läst när komponenten unmounts
       chatAPI.markChatAsRead(chatId, currentUser.id);
     };
   }, [chatId, currentUser.id]);
@@ -75,7 +74,7 @@ const ChatScreen = () => {
         content: newMessage
       });
       setNewMessage('');
-      fetchMessages(); // Uppdatera meddelandelistan
+      fetchMessages();
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -83,13 +82,15 @@ const ChatScreen = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Image source={{ uri: otherUser.avatar }} style={styles.headerAvatar} />
+        <Text style={styles.headerName}>{otherUser.name}</Text>
+      </View>
+
       <ScrollView 
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
-        ref={scrollView => {
-          // Auto-scroll till botten när nya meddelanden kommer
-          scrollView?.scrollToEnd({ animated: true });
-        }}
+        ref={scrollView => scrollView?.scrollToEnd({ animated: true })}
       >
         {messages.map((message) => {
           const isMyMessage = message.userId === currentUser.id;
@@ -99,18 +100,18 @@ const ChatScreen = () => {
               style={[
                 styles.messageContainer,
                 isMyMessage ? styles.myMessage : styles.theirMessage,
-                !message.is_read && !isMyMessage && styles.unreadMessage // Styla olästa meddelanden
+                !message.is_read && !isMyMessage && styles.unreadMessage
               ]}
             >
               {!isMyMessage && (
                 <Image 
-                  source={{ uri: `https://i.pravatar.cc/150?u=${message.userId}` }} 
+                  source={{ uri: otherUser.avatar }} 
                   style={styles.messageAvatar} 
                 />
               )}
               <View style={styles.messageContent}>
                 {!isMyMessage && (
-                  <Text style={styles.senderName}>{message.userName}</Text>
+                  <Text style={styles.senderName}>{otherUser.name}</Text>
                 )}
                 <Text style={[
                   styles.messageText,
@@ -151,6 +152,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     paddingBottom: 80,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  headerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  headerName: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   messagesContainer: {
     flex: 1,

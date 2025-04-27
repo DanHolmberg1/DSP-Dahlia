@@ -75,6 +75,15 @@ export const chatAPI = {
       return [];
     }
   },
+  getUserChats: async (userId: number) => {
+    try {
+      const res = await api.get(`/users/${userId}/chats`);
+      return res.data;
+    } catch (error) {
+      console.error('Error fetching user chats:', error);
+      return [];
+    }
+  },
   getLastMessage: async (chatId: number, userId: number) => {
     try {
       const res = await api.get(`/messages/${chatId}/last?userId=${userId}`);
@@ -242,6 +251,24 @@ export const chatAPI = {
     } catch (error) {
       console.error('Error fetching unread count:', error);
       return 0;
+    }
+  },
+  
+  getOtherChatMember: async (chatId: number, currentUserId: number) => {
+    try {
+      const res = await api.get(`/chats/${chatId}/other-member?userId=${currentUserId}`);
+      return {
+        id: res.data.id,
+        name: res.data.name,
+        avatar: res.data.avatar || `https://i.pravatar.cc/150?u=${res.data.id}`
+      };
+    } catch (error) {
+      console.error('Error getting other chat member:', error);
+      return { 
+        id: 0, 
+        name: 'Okänd', 
+        avatar: 'https://i.pravatar.cc/150?u=0' 
+      };
     }
   },
 };

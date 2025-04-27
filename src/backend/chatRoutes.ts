@@ -275,6 +275,50 @@ router.delete('/messages/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete message' });
   }
 });
+router.get('/users/:userId/chats', async (req, res) => {
+  const db = (req as any).db;
+  const { userId } = req.params;
+
+  try {
+    const chats = await db.all(`
+      SELECT c.id, c.name 
+      FROM chats c
+      JOIN chat_members cm ON c.id = cm.chat_id
+      WHERE cm.user_id = ?
+    `, [userId]);
+
+    res.json(chats);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user chats' });
+  }
+});
+router.get('/chats/:chatId/other-member', async (req, res) => {
+  const db = (req as any).db;
+  const { chatId } = req.params;
+  const { userId } = req.query;
+
+  try {
+    const otherUser = await db.get(`
+      SELECT u.id, u.name, u.email, u.age, u.gender, 
+             u.latitude, u.longitude, u.bio, u.pace, u.features
+      FROM chat_members cm
+      JOIN users u ON cm.user_id = u.id
+      WHERE cm.chat_id = ? AND cm.user_id != ?
+      LIMIT 1
+    `, [chatId, userId]);
+
+    if (!otherUser) {
+      return res.status(404).json({ error: 'Other member not found' });
+    }
+
+    res.json({
+      ...otherUser,
+      features: otherUser.features ? JSON.parse(otherUser.features) : []
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch other chat member' });
+  }
+});
 router.get('/messages/all/:chatId', async (req, res) => {
   const db = (req as any).db;
   const chatId = req.params.chatId;

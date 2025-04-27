@@ -1,7 +1,10 @@
 import React from "react";
+import { TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { createStackNavigator } from "@react-navigation/stack";
 import { StackNavigationOptions } from '@react-navigation/stack';
 import { RootStackParamList } from '@/types/navigation';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import HomeScreen from "../components/HomeScreen";
 import MapScreen from "../components/MapScreen";
 import WalkBuddyScreen from "../components/WalkBuddyScreen";
@@ -25,7 +28,18 @@ const screenOptions: StackNavigationOptions = {
   gestureEnabled: false,
   headerLeft: () => null,
 };
+const BackToHomeButton = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
+  return (
+    <TouchableOpacity 
+      style={{ marginLeft: 20, padding: 1, marginTop: 0, marginBottom: 11 }} 
+      onPress={() => navigation.navigate('Home')}
+    >
+      <Ionicons name="chevron-back" size={38} color="black" />
+    </TouchableOpacity>
+  );
+};
 const AppNavigator = () => (
   <Stack.Navigator screenOptions={screenOptions} initialRouteName="Start">
     <Stack.Screen name="Start" component={StartScreen} />
@@ -39,17 +53,26 @@ const AppNavigator = () => (
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="Find Walks" component={FindWalks} />
     <Stack.Screen name="Walk with destination" component={RoutewithDesScreen} />
-    <Stack.Screen name="Find Friends" component={DiscoverPeopleScreen} />
+    <Stack.Screen name="Find Friends" component={DiscoverPeopleScreen} options={({ route }) => ({
+        title: '',
+        headerLeft: () => <BackToHomeButton />,
+      })} />
     <Stack.Screen 
       name="Messages" 
       component={ChatScreen} 
-      options={({ route }) => ({ title: route.params.chatName })}
+      options={({ route }) => ({
+        title: '',
+        headerLeft: () => <BackToHomeButton />,
+      })}
     />
     <Stack.Screen 
-      name="ConversationList" 
-      component={ConversationListScreen} 
-      options={{ title: 'Meddelanden' }}
-    />
+  name="ConversationList" 
+  component={ConversationListScreen} 
+  options={{
+    title: '',
+    headerLeft: () => <BackToHomeButton />,
+  }}
+/>
     <Stack.Screen name="Round walk" component={RoundRouteScreen} />
     <Stack.Screen name="Walk with stops" component={TripWithStopsScreen} />
   </Stack.Navigator>

@@ -63,33 +63,14 @@ async function seedTestData(db: any) {
 
   const createdUsers = [];
   for (const user of testUsers) {
-    const result = await createUser(db, user.name, user.email, user.age, user.gender, user.latitude, user.longitude, user.bio, user.pace, user.features);
-
+    const result = await createUser(db, user.name, user.email, user.age, user.gender, 
+      user.latitude, user.longitude, user.bio, user.pace, user.features);
     if (!result.success || !result.data) throw new Error(`Failed to create user ${user.name}`);
     createdUsers.push({ ...user, id: result.data });
   }
 
-  // 2. Skapa vänrelationer (alla är vänner med alla i detta test)
-  const [anna, johan, maria, erik] = createdUsers;
-  const friendships = [
-    [anna.id, johan.id],
-    [anna.id, maria.id],
-    [anna.id, erik.id],
-    [johan.id, maria.id],
-    [johan.id, erik.id],
-    [maria.id, erik.id]
-  ];
-
-  for (const [user1, user2] of friendships) {
-    await db.run(
-      'INSERT OR IGNORE INTO friends (user_id, friend_id) VALUES (?, ?), (?, ?)',
-      [user1, user2, user2, user1]
-    );
-  }
-
   console.log('Testdata initierad med:', {
-    users: createdUsers.map(u => u.name),
-    friendships
+    users: createdUsers.map(u => u.name)
   });
 }
 

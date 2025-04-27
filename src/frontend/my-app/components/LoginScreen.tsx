@@ -59,7 +59,7 @@ const LoginScreen = () => {
           <TouchableOpacity
           key={user.id}
           style={styles.userCard}
-          onPress={() => navigation.navigate('ConversationList', { currentUser: { ...user, avatar: user.avatar || '' } })}
+          onPress={() => navigation.navigate('ConversationList', { currentUser: { ...user, avatar: user.avatar || '', latitude: 0, longitude: 0, bio: '' } })}
         >
           <Image 
             source={{ uri: `https://i.pravatar.cc/150?u=${user.id}` }} 
