@@ -9,12 +9,26 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { useAuthRequest } from 'expo-auth-session';
-import * as AuthSession from 'expo-auth-session';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'; 
 
-WebBrowser.maybeCompleteAuthSession();
+const firebaseConfig = {
+  apiKey: "",
+
+  authDomain: "",
+
+  projectId: "",
+
+  storageBucket: "",
+
+  messagingSenderId: "",
+
+  appId: "",
+
+  measurementId: ""
+};
+
+const app = initializeApp(firebaseConfig);
 
 
 interface LoginProps {
@@ -26,38 +40,18 @@ const LoginScreen = (props: LoginProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // @ts-ignore
-    const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
-
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        clientId: '955694188383-chv871v0gi6aksgj6t8gsphcockauok2.apps.googleusercontent.com',
-        //androidClientId: '955694188383-it4f8l0uoglb96bf3f4rhctaoo5abh87.apps.googleusercontent.com',
-        scopes: ['profile', 'email'],
-        redirectUri:'https://auth.expo.io/@g162477/my-app'
-      });
-    
-    useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-        
-      const fetchUserInfo = async () => {
-        const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-          headers: { Authorization: `Bearer ${authentication?.accessToken}` },
-        });
-        const user = await userInfoResponse.json();
-        console.log("Google user info:", user);
-
-        console.log("Logged in with Google:", authentication);
-      
-        props.navigation.navigate("Home");
-        };
-      fetchUserInfo();
+    const handleLogin = async () => {
+      const auth = getAuth();
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log('Logged in user:', userCredential.user);
+        props.navigation.navigate("Home"); 
+      } catch (error: any) {
+        console.error('Login error:', error.message);
+        alert('Login failed: ' + error.message);
       }
-    }, [response]);
+    };
 
-    
-    
-      
       return (
         <>
           <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -86,16 +80,11 @@ const LoginScreen = (props: LoginProps) => {
                   onChangeText={setPassword}
                 />
       
-                <Button title="Login" onPress={() => props.navigation.navigate("Home")} />
+                <Button title="Sign in" onPress={handleLogin} />
+
+
       
                 
-                <View style={{ marginTop: 20 }}>
-                  <Button
-                    disabled={!request}
-                    title="Log in with Google"
-                    onPress={() => promptAsync()}
-                  />
-                </View>
               </View>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
