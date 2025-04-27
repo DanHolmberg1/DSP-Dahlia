@@ -1,0 +1,71 @@
+import { groupGetAllDate, groupCreate } from "../db_opertions";
+import { Request, Response } from 'express';
+import { db } from '../httpDriver' 
+import { Router } from 'express';
+
+const router = Router();
+
+//Get all groups based on date 
+router.get('/byDate', async(req: Request, res: Response) => {
+  try {
+        
+    const {date} = req.query; 
+
+    if(!date) {
+      console.log("No date :("); 
+      //Avbryt request?? 
+      return; 
+    }
+
+    var parsedDate = new Date(date?.toString()); 
+    const allGroups = await groupGetAllDate(db, parsedDate); 
+
+    if(!allGroups.success) {
+      console.log("Failed to fetch :("); 
+      //Avbryt request?? 
+      return; 
+    }
+
+    res.json(allGroups.data); 
+    console.log("done!!"); 
+
+  } catch (err) {
+    console.error("Request error backend: " + err); 
+    res.status(500);
+    res.json();
+  }
+});
+
+//Creates a group, returns a group id to frontend 
+router.post(`/create`, async(req: Request, res: Response) => {
+  try {
+    const { userID, routeID, name, description, availableSpots, date } = req.body;
+    const parsedDate = new Date(date);
+    const groupID = await groupCreate(db, userID, routeID, description, name, availableSpots, parsedDate);
+
+    if(!groupID.success) {
+      console.log("Failed to create group"); 
+      return; 
+    }
+    //console.log(req.body);
+    //console.log("id", groupID.data);
+
+    res.status(201);
+    res.json(groupID.data);
+
+  } catch (err) {
+    console.error("Request error backend: " + err); 
+    res.status(500);
+    res.json();
+  }
+});
+
+//byUser 
+
+//byGroup 
+
+//add 
+
+//remove 
+
+module.exports = router;
