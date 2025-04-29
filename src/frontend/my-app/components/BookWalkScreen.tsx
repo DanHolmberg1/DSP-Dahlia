@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, BackHandler } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
@@ -10,12 +10,34 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
+import { useNavigation } from "expo-router";
 
 interface BookingProps {
     navigation: any
 }
 
 const BookWalkScreen = (props: BookingProps) => {
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const onBackPress = () => {
+      navigation.navigate('Home' as never); 
+      return true; 
+    };
+  
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  
+    const beforeRemove = navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault(); 
+      navigation.navigate('Home' as never);
+    });
+  
+    return () => {
+      backHandler.remove();
+      beforeRemove(); 
+    };
+  }, [navigation]);
 
     return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}> 
@@ -30,7 +52,6 @@ const BookWalkScreen = (props: BookingProps) => {
          </TouchableOpacity>
        </View>
         
-  
         <MenuBar navigation={props.navigation}/>
 
     </View>
@@ -59,7 +80,6 @@ const styles = StyleSheet.create({
       color: "black",
       marginLeft: 250,
       marginTop: 0
-
     },
 
     Addsign : {

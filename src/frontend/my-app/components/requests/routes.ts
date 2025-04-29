@@ -1,5 +1,5 @@
 
-async function createRoute(userID: number, routeData: JSON): Promise<number | undefined> {
+export async function createRoute(userID: number, routeData: JSON): Promise<number | undefined> {
     try {
         const res = await fetch("http://0.0.0.0:3000/routes/create", { // change IP address to your computer
             body: JSON.stringify(routeData),

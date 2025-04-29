@@ -39,7 +39,9 @@ const AppNavigator = () => (
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
         <Screen name="Generate routes" component={MapScreen} />
-        <Screen name="Book walk" component={BookWalkScreen} />
+        <Screen name="Book walk" component={BookWalkScreen} options={{
+            headerBackTitle: 'Home', 
+          }}  />
         <Screen name="Walk Buddy" component={WalkBuddyScreen} />
         <Screen options={{
             headerLeft: () => null,
@@ -50,7 +52,10 @@ const AppNavigator = () => (
         <Screen  name="Walk with stops" component={TripWithStopsScreen} />
         <Screen  name = "Saved routes" component= {SavedRoute}/>
         <Screen  name = "Help" component= {Help}/>
-        <Screen  name = "Skapa promenad" component= {CreateWalk}/>
+        <Screen  name = "Skapa promenad" component= {CreateWalk}
+        options={{
+            headerBackTitle: 'Book Walk', 
+          }} />
         <Screen  name = "Välj rutt" component= {AddRoute}/>
     </Navigator>
 

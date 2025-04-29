@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Alert, BackHandler } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
@@ -12,13 +12,41 @@ import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { showRoute } from "./routeDetailScreen";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { sendGroupCreate } from "./requests/groups";
+import { createRoute } from "./requests/routes"; 
+
+//OBS MOCK FUNCTION, remove later 
+import { mockUser } from "./requests/mock";
+//OBS MOCK FUNCTION, remove later 
 
 interface CreateWalkProps {
     navigation: any;
     route: any
 }
 const CreateWalk = (props: CreateWalkProps) => {
+
+    const navigation = useNavigation();
+
+    useEffect(() => {
+      const onBackPress = () => {
+        navigation.navigate('Book walk' as never); 
+        return true; 
+      };
+  
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  
+      const beforeRemove = navigation.addListener('beforeRemove', (e) => {
+        e.preventDefault(); 
+        navigation.navigate('Book walk' as never);
+      });
+  
+      return () => {
+        backHandler.remove();
+        beforeRemove();
+      };
+    }, [navigation]);
+
         const [selectedRoute, setSelectedRoute] = useState();
         const isFocused = useIsFocused();
         const [bookSpot, setbookSpot] = useState<boolean>(false);
@@ -41,14 +69,28 @@ const CreateWalk = (props: CreateWalkProps) => {
             if(props.route.params?.selectedRoute) {
                 setSelectedRoute(props.route.params.selectedRoute);
             }
+
+            if(props.route.params?.walkData) {
+                setTitle(props.route.params.walkData.title);
+                setDescription(props.route.params.walkData.description);
+                setDate( new Date(props.route.params.walkData.date));
+
+            }
+
+            if(props.route.params?.walkData.expandState) {
+                const expandState = props.route.params?.walkData.expandState;
+                setHasDate(expandState.hasDate);
+                setShowInput(expandState.showInput);
+
+            }
             //console.log("data",selectedRoute );
         },[props.route.params, isFocused]);
 
         useEffect(() => {
             if (selectedRoute) {
-              console.log("Selected Route:", selectedRoute); // Log AFTER the state has actually updated
+              console.log("Selected Route:", selectedRoute); 
             }
-          }, [selectedRoute]); // Th
+          }, [selectedRoute]); 
 
 
         const toggleMenuExpander = () => setTitleExpand(prev => !prev);
@@ -57,11 +99,23 @@ const CreateWalk = (props: CreateWalkProps) => {
         const toggleRouteExpander = () => setRouteExpnad(prev => !prev);
 
 
-        const handleCreateWalk = () => {
+        const handleCreateWalk = async () => {
             //Skicka data till databasen --> route och skapa nytt pass
             var canSendRequest = title.length > 0 && description.length > 0 && selectedRoute;
+            const userID = await mockUser(); 
             if(!canSendRequest){
                 alert("Besvara alla fält")
+            } else if(userID && selectedRoute){
+                const routeID = await createRoute(userID, selectedRoute);
+                if(typeof routeID !== "number") {
+                    alert("route undefined");
+                } else {
+                  const groupID = await sendGroupCreate(date, userID, routeID, description, title, 10); 
+                  console.log("Group ID: " + groupID); 
+
+                }
+            } else {
+              alert("user id undefined");
             }
         }
 
@@ -130,7 +184,7 @@ const CreateWalk = (props: CreateWalkProps) => {
             value={description}
             onChangeText={setDescription}
             onFocus={() => setShowInput(false)}
-            onBlur={() => setShowInput(true)} // hides input on blur
+            onBlur={() => setShowInput(true)} 
           />
           <Text style={{ marginTop: 4, color: '#999' }}>
             {description.length}/200
@@ -141,14 +195,14 @@ const CreateWalk = (props: CreateWalkProps) => {
   </View>
 <View style={{width: "100%", alignItems: "center", justifyContent: "center", borderBottomWidth: 1, padding: 20}}>
 <View style={{ position: "relative", width: "100%", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "row"}}>
-                    <Text style={{fontSize: 20}}>
-                      {date && hasDate ? "Tid: "+ date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Välj tid"}  
-                      
-                    </Text>
-                    <Pressable style={{zIndex: 20, right: 20, backgroundColor: "white", position: "absolute"}}  onPress={toggleCalenderExpander} >
+    <Text style={{fontSize: 20}}>
+                {date && hasDate ? "Tid: "+ date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Välj tid"}  
+                
+    </Text>
+    <Pressable style={{zIndex: 20, right: 20, backgroundColor: "white", position: "absolute"}}  onPress={toggleCalenderExpander} >
     <Arrow width={36} height={36} angle={showCalender}/>
     </Pressable>
-    </View>
+</View>
 
   <DateTimePicker
   style = {{width:'50%',  borderRadius: 40,  marginLeft: 25, opacity: showCalender ? 100 : 0, height: showCalender ? 130 : 0, marginTop: showCalender ? 20 : -30, backgroundColor: "#1B2D92"}}
@@ -165,9 +219,9 @@ const CreateWalk = (props: CreateWalkProps) => {
   />
   </View>
 
-  <View style={{width: "100%",alignItems: "center",justifyContent: "center",borderBottomWidth: 1,padding: 10,
+  <View style={{width: "100%", alignItems: "center", justifyContent: "center", borderBottomWidth: 1, padding: 10,
 }}>
-  <View style={{position: "relative",width: "100%",height: 40, justifyContent: "center", alignItems: "center",
+  <View style={{position: "relative", width: "100%", height: 40, justifyContent: "center", alignItems: "center",
 }}>
     {/* Centered Title */}
     <Text style={styles.Titletext}>{selectedRoute ? "Ändra rutt" : "Välj rutt"}</Text>
@@ -193,7 +247,15 @@ const CreateWalk = (props: CreateWalkProps) => {
     overflow: "hidden",
     marginTop: routeExpnad ? 10 : 0,
   }}>
-    <TouchableOpacity style = {styles.RouteConatiner} onPress={() => props.navigation.navigate("Välj rutt")}>
+    <TouchableOpacity style = {styles.RouteConatiner} onPress={() => props.navigation.navigate("Välj rutt", {walkData: {
+        title: title,
+        description: description,
+        date : date.toISOString(),
+        expandState: {
+            hasDate,
+            showInput,
+        }
+    }})}>
       <Text style={styles.Routetext}>Skapa din rutt</Text>
     </TouchableOpacity>
   </View>

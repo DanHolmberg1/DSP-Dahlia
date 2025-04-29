@@ -1,6 +1,6 @@
-async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
+export async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
     try {
-        const res = await fetch(`http://localhost:3000/groups/byDate?date=${date.toISOString()}`);
+        const res = await fetch(`http://0.0.0.0:3000/groups/byDate?date=${date.toISOString()}`);
         const data = await res.json();
         console.log("Groups on that date:", data);
         return data; 
@@ -10,9 +10,9 @@ async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
     }
 }
 
-async function sendGroupCreate(date: Date, userID: number, routeID: number, description: string, name: string, spots: number): Promise<number | undefined> {
+export async function sendGroupCreate(date: Date, userID: number, routeID: number, description: string, name: string, spots: number): Promise<number | undefined> {
     try {
-        const res = await fetch('http://localhost:3000/groups/create', {
+        const res = await fetch('http://0.0.0.0:3000/groups/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -28,7 +28,7 @@ async function sendGroupCreate(date: Date, userID: number, routeID: number, desc
         });
 
         const data = await res.json();
-        console.log("routeID:", data);
+        console.log("groupID:", data);
         return data; 
 
     } catch (err) {

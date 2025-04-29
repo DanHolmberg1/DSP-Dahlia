@@ -4,7 +4,7 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 
 //import api_key from '../secrets.env'
 
-const ORS_API_KEY = '';
+const ORS_API_KEY = '5b3ce3597851110001cf6248b1f7555fe5853475313cd0743d282c959806e66bce50ba0c6b28aa69';
 /**
  * Function that makes an API call to OpenRouteService to get the desired route.
  * 

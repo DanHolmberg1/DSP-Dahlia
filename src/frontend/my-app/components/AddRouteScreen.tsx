@@ -38,26 +38,23 @@ export const AddRoute = (props: BookingProps) => {
    
     setWalkGenerated(true);
 
-      const randomSeed = Math.floor(Math.random()* 1000);
-      const distanceNum = Number(distance);
-
+    const randomSeed = Math.floor(Math.random()* 1000);
+    const distanceNum = Number(distance);
+    const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
+    setRouteInfo(result);
+    const resultGeometry = result.routes[0].geometry;
+    console.log("geo: ", resultGeometry);
     
-      const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-      setRouteInfo(result);
-      const resultGeometry = result.routes[0].geometry;
-      console.log("geo: ", resultGeometry);
-     
-          const decodegeom = polyline.decode(resultGeometry);
-        
-          const formattedRoute = decodegeom.map((coord: number[]) => ({
-              latitude: coord[0],
-              longitude: coord[1],
-            }));
+    const decodegeom = polyline.decode(resultGeometry);
 
-          setRoute(formattedRoute);
-          setCurrentWalkData(result);
-    };
+    const formattedRoute = decodegeom.map((coord: number[]) => ({
+        latitude: coord[0],
+        longitude: coord[1],
+    }));
 
+    setRoute(formattedRoute);
+    setCurrentWalkData(result);
+};
 
 return (
 
@@ -97,7 +94,7 @@ return (
     if (!startLocation || !routeInfo) {
       alert("Välj en startpunkt/sträcka.");
     } else {
-      props.navigation.navigate("Skapa promenad", {selectedRoute: routeInfo});
+      props.navigation.navigate("Skapa promenad", {selectedRoute: routeInfo, walkData: props.route.params.walkData});
     }
   }}
 >
