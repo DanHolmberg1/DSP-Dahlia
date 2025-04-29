@@ -11,12 +11,20 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
 import { useNavigation } from "expo-router";
+import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
 
 interface BookingProps {
-    navigation: any
+    navigation: any,
+    date: any
 }
 
 const BookWalkScreen = (props: BookingProps) => {
+  const [selectedDate, setSelected] = useState('');
+
+  const handleDate = () => {
+    props.navigation.navigator("Tillgängliga pass")
+
+  }
 
   const navigation = useNavigation();
 
@@ -51,6 +59,32 @@ const BookWalkScreen = (props: BookingProps) => {
            <Text style = {styles.Addsign}> + </Text>
          </TouchableOpacity>
        </View>
+
+       <View style = {{marginTop: 90}}>
+
+<Calendar
+style={{ }}
+    onDayPress={(day: any) => {
+      setSelected(day.dateString);
+      handleDate();
+    }}
+    markedDates={{
+      [selectedDate]: {
+        selected: true,
+        selectedColor: '#E25E17',
+      },
+    }}
+    theme={{
+      dayTextColor: 'black',        // Regular day numbers
+      todayTextColor: 'blue',        // Today's date
+      selectedDayTextColor: 'white',// Text color when selected
+      textDisabledColor: 'gray',    // Disabled (non-current month) 
+    }}
+  />
+  <Text>
+    Selected date: {selectedDate}
+  </Text>
+  </View>
         
         <MenuBar navigation={props.navigation}/>
 

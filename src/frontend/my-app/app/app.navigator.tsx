@@ -17,6 +17,7 @@ import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
 import { Help, help } from "@/components/HelpScreen";
 import CreateWalk from "@/components/CreateWalkScreen";
 import AddRoute from "@/components/AddRouteScreen";
+import { DisplayWalk } from "@/components/DisplayWalksScreen";
 
 
 const { Navigator, Screen } = createStackNavigator();
@@ -57,6 +58,8 @@ const AppNavigator = () => (
             headerBackTitle: 'Book Walk', 
           }} />
         <Screen  name = "Välj rutt" component= {AddRoute}/>
+        <Screen name = "Tillgängliga pass" component= {DisplayWalk}/>
+        
     </Navigator>
 
 ); export default AppNavigator;
