@@ -22,7 +22,9 @@ const BookWalkScreen = (props: BookingProps) => {
   const [selectedDate, setSelected] = useState('');
 
   const handleDate = () => {
-    props.navigation.navigator("Tillgängliga pass")
+    props.navigation.navigate("Tillgängliga pass", {dateInfo: {
+      date: selectedDate 
+    }})
 
   }
 

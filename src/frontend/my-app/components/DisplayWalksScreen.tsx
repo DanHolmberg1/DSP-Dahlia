@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, SafeAreaView } from "react-native";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, SafeAreaView, FlatList } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
@@ -16,31 +16,94 @@ import { getGroupByDate } from "./requests/groups"
 
 interface DisplayProps {
     navigation: any,
+    route: any;
 }
 
 export const DisplayWalk = (props: DisplayProps) => {
-    const getAllWalks = async (date: Date) => {
-        const groups: Array<any> | undefined = await getGroupByDate(date); 
-        if(!groups) {
-            //no data 
-        }
-        return groups; 
+    const [chosenDate, setChosenDate] = useState<string>();
+    const [valid, setValid] = useState<boolean>();
+    const [walks, setWalks] = useState<Array<any>>([]);
+    const [length, setlength] = useState<number>(0);
+    
+    /*
+    useEffect(() => {
+        if (props.route.params?.dateInfo) {
+            setChosenDate(props.route.params.dateInfo);
+            console.log("date", chosenDate);
     }
+    }, [props.route.params?.dateInfo]); */
+
+    useEffect(() => {
+        if (props.route.params?.dateInfo) {
+            setChosenDate(props.route.params?.dateInfo.date); 
+            console.log("date", props.route.params.dateInfo.date);
+        }
+    }, [props.route.params?.dateInfo]);
+
+    useEffect(() => {
+        const getAllWalks = async () => {
+            if (chosenDate) {
+                const groups: Array<any> | undefined = await getGroupByDate(new Date(chosenDate)); 
+                if(groups) {
+                    setWalks(groups); 
+                    setlength(groups.length);
+                }
+                setWalks([]); 
+            }
+        }
+
+        getAllWalks();
+    }, [chosenDate]); 
 
     const parseWalkData = (data: JSON) => {
         const { userID, routeID, name, description, availableSpots, date } = data; 
     }
+
+    const Item = ({title}: ItemProps) => (
+        <View style={styles.item}>
+          <Text style={styles.title}>{title}</Text>
+        </View>
+      );
     
-
-
 return (
     <View>
 
-        <Text>Hello from MyScreen</Text>
-        
+        <Text> pass</Text>
+
+        <View>
+
+            {length > 0 ? (
+
+        <FlatList
+            data={walks}
+            renderItem={({item}) => <Item title={item.title} />}
+            keyExtractor={item => item.id}
+            
+          />
+              
+            ) : <Text> inga pass</Text>        
+        }
+
+        </View>
+
         
     </View>
 
     
 )};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: 0,
+  },
+  item: {
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  title: {
+    fontSize: 32,
+  },
+});
 
