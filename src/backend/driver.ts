@@ -1,4 +1,5 @@
-import { DBInit, routeAdd } from './db_opertions.ts';
+import { DBInit, routeAdd, } from './db_opertions.ts';
+import { LatLng, getRoundRoute, getRouteWithStops, getStartEndTrip } from './api_calls.ts'
 import http from 'http';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -10,7 +11,17 @@ dotenv.config();
 const app = express();
 const PORT = 8443;
 const CURRENTIP = '172.20.10.8';
-const ORS_API_KEY = process.env['ORS_API_KEY']!;
+
+
+
+function isLatLng(obj: any): obj is LatLng {
+  return (
+    obj != null &&
+    typeof obj === 'object' &&
+    typeof obj.latitude === 'number' &&
+    typeof obj.longitude === 'number'
+  );
+}
 
 
 app.use(cors({
@@ -26,10 +37,6 @@ app.use(express.json());
 
 async function main() {
   const db = await DBInit();
-
-  if (!ORS_API_KEY) {
-    throw new Error("Missing ORS_API_KEY");
-  }
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS request_log (
@@ -97,13 +104,13 @@ async function main() {
     '/routeGenerateRoundWalk',
     async (
       req: Request<{}, {}, {
-        start: { latitude: number; longitude: number };
+        start: { latitude: number, longitude: number };
         len: number;
         seed: number;
         userID: number;
       }>,
       res: Response,
-      next: NextFunction
+      next: NextFunction,
     ): Promise<void> => {
       console.log("waasdasf")
       //Get values from req.body
@@ -114,40 +121,14 @@ async function main() {
         typeof start.longitude !== 'number' ||
         typeof len !== 'number' ||
         typeof seed !== 'number' ||
-        typeof userID !== 'number'
+        typeof userID !== 'number' // Kolla antal requests ifall en requst limit, använda loggen? eller något annat sätt.
       ) {
         res.status(400).json({ error: 'Missing or invalid parameters' });
         return;
       }
 
       try {
-        // 3️⃣ Call external API
-        const orsRes = await fetch(
-          'https://api.openrouteservice.org/v2/directions/foot-walking',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: ORS_API_KEY,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              coordinates: [[start.longitude, start.latitude]],
-              continue_straight: true,
-              options: {
-                round_trip: {
-                  length: len,
-                  seed: seed,
-                  points: 6,
-                },
-              },
-            }),
-          }
-        );
-
-
-
-
-
+        const orsRes = await getRoundRoute(start, len, seed);
         if (!orsRes.ok) {
           const errText = await orsRes.text();
           // 4️⃣ Log & forward as a 502 Bad Gateway
@@ -174,10 +155,55 @@ async function main() {
         // 6️⃣ On unexpected errors, hand off to your error handler
         next(err);
       }
+
     }
   );
 
 
+
+  app.post('/routeWithStops', async (req: Request<{}, {}, {
+    coordinates: LatLng[];
+    userID: number;
+  }>, res: Response,): Promise<void> => {
+    const { coordinates } = req.body;
+    if (
+      isLatLng(coordinates)
+    )
+      console.log("islatlng funkar")
+    try {
+
+      const response = await getRouteWithStops(coordinates);
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("API error:", error);
+      return;
+    }
+  })
+
+
+
+  app.post('/startEndTrip', async (req: Request<{}, {}, {
+    start: { latitude: number, longitude: number };
+    stop: { latitude: number, longitude: number };
+    userID: number;
+  }>, res: Response): Promise<void> => {
+    const { start, stop } = req.body;
+    if (!isLatLng(start) && !isLatLng(stop)) {
+      console.error('is fucked');
+      return;
+    }
+
+    try {
+      const response = await getStartEndTrip(start, stop);
+      const data = await response.json();
+      console.log('yay startendtip')
+      res.json(data);
+    } catch (err) {
+      console.error(err);
+    }
+  })
 
 
 

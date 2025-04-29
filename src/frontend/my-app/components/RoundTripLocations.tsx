@@ -1,9 +1,7 @@
 
-//import api_key from '../secrets.env'
-
 import { sortAngleSmallToBig } from "./LocationAlgorithm";
 
-const ORS_API_KEY =''
+const ORS_API_KEY = ''
 
 type Coordinate = [number, number]; // [lon, lat]
 type LatLng = {
@@ -12,26 +10,26 @@ type LatLng = {
 };
 
 export const getRouteWithStops = async (
-  start: LatLng, 
-  stops: LatLng[], 
+  start: LatLng,
+  stops: LatLng[],
   radius: number
 ) => {
 
   const orderedStops: LatLng[] = sortAngleSmallToBig([start, ...stops, start]);
 
-  const coordinates: Coordinate[] = orderedStops.map(stop => [stop.longitude, stop.latitude]);
-  
+  //const coordinates: LatLng[] = orderedStops.map(stop => [stop.longitude, stop.latitude]);
+  //console.log(coordinates);
   try {
-    const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
+    const response = await fetch("http://172.20.10.8:8443/routeWithStops", {
       method: "POST",
       headers: {
         Authorization: ORS_API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        coordinates: coordinates,
-        radiuses: Array(coordinates.length).fill(radius)  // Start/end coordinate
-        
+        coordinates: orderedStops,//coordinates,
+        radiuses: Array(orderedStops.length).fill(radius)  // Start/end coordinate
+
       }),
     });
 
