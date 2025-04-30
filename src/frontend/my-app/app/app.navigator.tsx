@@ -13,14 +13,19 @@ import FamilyWalk from "@/components/FamilyWalk";
 import { RoutewithDesScreen } from "@/components/RouteWithDesScreen";
 import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
-import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
-import { Help, help } from "@/components/HelpScreen";
-
+import { SavedRoute } from "@/components/savedRouteScree";
+import { Help } from "@/components/HelpScreen";
+import CreateWalk from "@/components/CreateWalkScreen";
+import AddRoute from "@/components/AddRouteScreen";
+import { DisplayWalk } from "@/components/DisplayWalksScreen";
+import ConversationListScreen from "@/components/ConversationListScreen";
+import { AuthProvider } from "../context/authContext"; 
+import ChatScreen from "@/components/ChatScreen";
 
 const { Navigator, Screen } = createStackNavigator();
 
 const AppNavigator = () => (
-
+    <AuthProvider>
     <Navigator screenOptions={{
         gestureEnabled: false, 
     }} initialRouteName="Start">
@@ -37,7 +42,9 @@ const AppNavigator = () => (
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
         <Screen name="Generate routes" component={MapScreen} />
-        <Screen name="Book walk" component={BookWalkScreen} />
+        <Screen name="Book walk" component={BookWalkScreen} options={{
+            headerBackTitle: 'Home', 
+          }}  />
         <Screen name="Walk Buddy" component={WalkBuddyScreen} />
         <Screen options={{
             headerLeft: () => null,
@@ -48,6 +55,19 @@ const AppNavigator = () => (
         <Screen  name="Walk with stops" component={TripWithStopsScreen} />
         <Screen  name = "Saved routes" component= {SavedRoute}/>
         <Screen  name = "Help" component= {Help}/>
+        <Screen 
+      name="ConversationList" 
+      component={ConversationListScreen}
+      options={{ headerLeft: () => null }}
+    />
+        <Screen  name = "Skapa promenad" component= {CreateWalk}
+        options={{
+            headerBackTitle: 'Book Walk', 
+          }} />
+        <Screen  name = "Välj rutt" component= {AddRoute}/>
+        <Screen name = "Tillgängliga pass" component= {DisplayWalk}/>
+        <Screen name = "Chat" component= {ChatScreen}/>
+        
     </Navigator>
-
+    </AuthProvider>
 ); export default AppNavigator;

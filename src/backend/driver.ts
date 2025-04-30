@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import './db_opertions.ts'
-import { DBInit, routeGet } from './db_opertions.ts';
+import './db_operations.ts'
+import { DBInit, routeGet } from './db_operations.ts';
 import { Database } from 'sqlite';
 
 const httpServer = createServer();

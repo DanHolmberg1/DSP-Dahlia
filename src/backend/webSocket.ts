@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { DBInit, routeAdd, routeGet, clearGroups, clearRoutes,  clearUsers, groupAdd, groupCreate } from "./db_opertions";
+import { DBInit, routeAdd, routeGet, clearGroups, clearRoutes,  clearUsers, groupAdd, groupCreate } from "./db_operations";
 
 //Lägg till signal handler för graceful shutdown kanske? 
 

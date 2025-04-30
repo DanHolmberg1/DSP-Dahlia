@@ -1,4 +1,4 @@
-import { DBInit, getAllRoutes, pairUserAndRoute, routeAdd, routeGet } from "./db_opertions";
+import { DBInit, getAllRoutes, pairUserAndRoute, routeAdd, routeGet } from "./db_operations";
 import { Request, Response } from 'express';
 
 const express = require('express');

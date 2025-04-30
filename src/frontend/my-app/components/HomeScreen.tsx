@@ -8,22 +8,28 @@ import { Pressable, TextInput } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker"; 
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
+import { MaterialIcons } from "@expo/vector-icons";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
-
+import { useAuth } from "@/context/authContext"; 
 interface HomeScreenProps {
     navigation: any;
 }
 
 const HomeScreen = (props: HomeScreenProps) => {
-
+  const { currentUser } = useAuth();
     //const Map = () => props.navigation.navigate("Map");
 
     return (
 
     <View style= {{backgroundColor: "white", flex : 1}}>
 
-
+<View style={styles.userInfoContainer}>
+            <Text style={styles.userInfoText}>
+                (temp)ID: {currentUser?.id || '0'}
+            </Text>
+    
+        </View>
 
 
         <View>
@@ -206,6 +212,31 @@ const styles = StyleSheet.create({
         marginLeft: 255,
         height: 40,
         fontFamily: 'Inter',
+    },
+    
+      userInfoContainer: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        backgroundColor: 'rgba(225, 94, 23, 0.2)',
+        borderRadius: 8,
+        padding: 8,
+        zIndex: 1,
+        borderWidth: 1,
+        borderColor: '#E15E17',
+    },
+    userInfoText: {
+        color: '#1B2D92',
+        fontSize: 12,
+        lineHeight: 16,
+    },
+    featuresContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 4,
+    },
+    featureIcon: {
+        marginRight: 8,
     },
 
     helpText: {
