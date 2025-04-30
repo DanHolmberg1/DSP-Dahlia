@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { chatAPI } from "@/http/chatAPI";
+import { chatAPI } from "@/components/requests/chatAPI";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@/context/authContext"; 
 import { useFocusEffect } from '@react-navigation/native';

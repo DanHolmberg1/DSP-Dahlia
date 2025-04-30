@@ -10,7 +10,7 @@ import {
   ActivityIndicator
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { chatAPI } from "@/http/chatAPI";
+import { chatAPI } from "@/components/requests/chatAPI";
 import { useAuth } from "@/context/authContext"; 
 
 interface User {
