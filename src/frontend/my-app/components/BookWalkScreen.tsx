@@ -21,9 +21,10 @@ interface BookingProps {
 const BookWalkScreen = (props: BookingProps) => {
   const [selectedDate, setSelected] = useState('');
 
-  const handleDate = () => {
+  const handleDate = (date:string) => {
+    console.log("SELECTED " + selectedDate)
     props.navigation.navigate("Tillgängliga pass", {dateInfo: {
-      date: selectedDate 
+      date: date 
     }})
 
   }
@@ -67,8 +68,7 @@ const BookWalkScreen = (props: BookingProps) => {
 <Calendar
 style={{ }}
     onDayPress={(day: any) => {
-      setSelected(day.dateString);
-      handleDate();
+      handleDate(day.dateString);
     }}
     markedDates={{
       [selectedDate]: {

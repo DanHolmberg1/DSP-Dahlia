@@ -1,7 +1,7 @@
 
 export async function mockUser(): Promise<number | undefined> {
     try {
-        const res = await fetch(`http://192.168.0.15:3000/mock/userCreate`);
+        const res = await fetch(`http://0.0.0.0:3000/mock/userCreate`);
         const data = await res.json();
         console.log("userID:", data);
         return data;
