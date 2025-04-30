@@ -47,17 +47,15 @@ export const DisplayWalk = (props: DisplayProps) => {
                 if(groups) {
                     setWalks(groups); 
                     setlength(groups.length);
+                }else {
+                    setWalks([]);
                 }
-                setWalks([]); 
             }
         }
 
         getAllWalks();
     }, [chosenDate]); 
 
-    const parseWalkData = (data: JSON) => {
-        const { userID, routeID, name, description, availableSpots, date } = data; 
-    }
 
     const Item = ({title}: ItemProps) => (
         <View style={styles.item}>
@@ -76,8 +74,12 @@ return (
 
         <FlatList
             data={walks}
-            renderItem={({item}) => <Item title={item.title} />}
-            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+                <Text style={styles.title}>
+                  {item.name ?? "Unnamed"} - {item.description ?? "No description"}
+                </Text>
+            )}
+              keyExtractor={(item, index) => item.id?.toString() ?? index.toString()}
             
           />
               
