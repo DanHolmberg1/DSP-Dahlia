@@ -1,4 +1,4 @@
-import { getAllRoutes, pairUserAndRoute, routeAdd } from "../db_opertions";
+import { getAllRoutes, pairUserAndRoute, routeAdd, routeGet } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
 import { Router } from 'express';
@@ -34,16 +34,17 @@ router.post('/create', async (req:Request, res: Response) => {
 //Sends route information from backend to frontend 
 router.get('/get', async(req: Request, res: Response) => {
   try {
-    const {userID} = req.query;  
+    const {routeID} = req.query;  
      
-    if(!userID) {
+    if(!routeID) {
         return;
     }
 
-    var parseduserId = Number.parseInt(userID.toString());
-    const allRoutes = await getAllRoutes(db, parseduserId);
-
-    res.json(allRoutes.data);
+    var parsedRouteId = Number.parseInt(routeID.toString());
+    const route = await routeGet(db, parsedRouteId);
+    if (route.success && route.data) {
+      res.json(route.data.data);
+    }
 
   }
   catch(error){

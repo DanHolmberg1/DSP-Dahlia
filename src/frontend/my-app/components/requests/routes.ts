@@ -18,3 +18,14 @@ export async function createRoute(userID: number, routeData: JSON): Promise<numb
     }
 }
 
+async function routeGet(routeID: number): Promise<JSON | undefined> {
+    try {
+        const res = await fetch(`http://localhost:3000/routes/get?routeID=${routeID}`); 
+        const data = await res.json();
+        return JSON.parse(data); 
+
+    } catch (err) {
+        console.error("Failed to fetch:", err); 
+        return undefined; 
+    }
+}
