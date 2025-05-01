@@ -13,6 +13,50 @@ import MenuBar from "./menuBar";
 import { useNavigation } from "expo-router";
 import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
 
+LocaleConfig.locales['sv'] = {
+  monthNames: [
+    'januari',
+    'februari',
+    'mars',
+    'april',
+    'maj',
+    'juni',
+    'juli',
+    'augusti',
+    'september',
+    'oktober',
+    'november',
+    'december'
+  ],
+  monthNamesShort: [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'maj',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'okt',
+    'nov',
+    'dec'
+  ],
+  dayNames: [
+    'söndag',
+    'måndag',
+    'tisdag',
+    'onsdag',
+    'torsdag',
+    'fredag',
+    'lördag'
+  ],
+  dayNamesShort: ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'],
+  today: 'Idag'
+};
+
+LocaleConfig.defaultLocale = 'sv';
+
 interface BookingProps {
     navigation: any,
     date: any
@@ -83,9 +127,6 @@ style={{ }}
       textDisabledColor: 'gray',    // Disabled (non-current month) 
     }}
   />
-  <Text>
-    Selected date: {selectedDate}
-  </Text>
   </View>
         
         <MenuBar navigation={props.navigation}/>
