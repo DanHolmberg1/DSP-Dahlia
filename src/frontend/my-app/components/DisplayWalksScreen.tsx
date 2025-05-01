@@ -4,7 +4,7 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
-import { Pressable, TextInput } from "react-native-gesture-handler";
+import { Pressable, ScrollView, TextInput } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker"; 
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
@@ -47,35 +47,39 @@ export const DisplayWalk = (props: DisplayProps) => {
     
 return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}>
+        <ScrollView>
+
+        
 
         <Text style = {styles.dateTime}> Hitta pass för:  {props.route.params.dateInfo.date} </Text>
 
         <View>
 
         {walks.map((walk, index) => (
-            <TouchableOpacity key={index} style = {styles.itemContainer}>
+            <TouchableOpacity key={index} style = {styles.itemContainer} onPress={()=> props.navigation.navigate("Pass", {walkData: walk
+            })}>
                 <View style={styles.item}>
                 <Text style={styles.title}>Titel: {walk.groupName} </Text>
                 <Text style={styles.time}>Tid: {new Date(walk.datetime).toLocaleString('sv-SE', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })}</Text>
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                 })}
+                </Text>
+
             </View>
             </TouchableOpacity>
         ))}
 
-
         </View>
+    </ScrollView>
 
         <MenuBar navigation={props.navigation}/>
-
-        
+ 
     </View>
 
-    
 )};
 
 const styles = StyleSheet.create({
@@ -106,19 +110,16 @@ const styles = StyleSheet.create({
   },
 
   itemContainer: {
-    backgroundColor: '#E25E17', // light gray background
-    padding: 16,
+    backgroundColor: '#E25E17', 
+    padding: 15,
     marginVertical: 8,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#ccc', // light border
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3, // for Android shadow
+    borderColor: '#ccc', 
     justifyContent: "center",
-    alignItems:"center"
+    alignItems:"center",
+    width: "95%",
+    marginLeft: 10
   }
 });
 
