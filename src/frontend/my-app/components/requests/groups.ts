@@ -38,3 +38,28 @@ export async function sendGroupCreate(date: Date, userID: number, routeID: numbe
 
 }
 
+async function sendGroupAdd(userID: number, groupID: number): Promise<boolean> {
+    try {
+        const res = await fetch('http://localhost:3000/groups/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userID: userID,
+                groupID: groupID,
+            })
+        });
+        //console.log("send group data data", res); 
+        const data = await res.json(); 
+        if(data.groupID) {
+            return true; 
+        }
+        return false; 
+
+    } catch (err) {
+        console.log("error group add" + err); 
+        return false; 
+    }
+
+}

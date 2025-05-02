@@ -1,4 +1,4 @@
-import { groupGetAllDate, groupCreate } from "../db_opertions";
+import { groupGetAllDate, groupCreate, groupAdd } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
 import { Router } from 'express';
@@ -60,11 +60,33 @@ router.post(`/create`, async(req: Request, res: Response) => {
   }
 });
 
+//add 
+router.post(`/add`, async(req: Request, res: Response) => {
+  try {
+    const { userID, groupID } = req.body;
+    const status = await groupAdd(db, userID, groupID); 
+
+    if(!status.success) {
+      console.log("Failed to add to group"); 
+      res.status(500); 
+      res.json()
+      return; 
+    }
+    //console.log(req.body);
+    //console.log("id", groupID);
+
+    res.status(201).json({ groupID: groupID });
+
+  } catch (err) {
+    console.error("Request error backend: " + err); 
+    res.status(500);
+    res.json();
+  }
+});
+
 //byUser 
 
 //byGroup 
-
-//add 
 
 //remove 
 
