@@ -4,64 +4,7 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 
 //import api_key from '../secrets.env'
 
-const ORS_API_KEY = '';
-
-/**
- * 
- * @param startCoordinates An array of coordinates to use to create a walk.
- * @returns This function returns the geometry object of the first route in the routes array from the data object. 
- * The geometry contains the geographic data representing the route's path, 
- * which is usually a series of coordinates (latitude and longitude). 
- * This data is typically used to render a route on a map.
- */
-export const getRoundTripRouteTriangle = async (startCoordinates: {longitude: number, latitude:number}[] | null) => {
-    console.log("hereeee");
-
-    if (startCoordinates == null) {
-        console.error("Something went wrong with the coordinates.");
-        return;
-    }
-
-    const coordinates = startCoordinates.map(coord => [coord.longitude, coord.latitude]);
-
-    console.log("coordinate:", coordinates);
-
-    try {
-        const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-hiking", {
-            method: "POST",
-            headers: {
-                Authorization: ORS_API_KEY,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                coordinates: coordinates, 
-                radiuses: Array(coordinates.length).fill(6000),
-                preference: 'recommended',
-
-            }),  
-        });
-
-        console.log("Response Status:", response.status);
-        
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Error response:", errorText);
-            return;
-          }
-     
-        const data = await response.json();
-       
-        if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-            return data;
-        }else {
-            console.error("route data is invalid")
-        }
-    } catch (error) {
-        console.error("API error:", error);
-    }
-};
-
+const ORS_API_KEY = '5b3ce3597851110001cf6248f20c3a6050fc4ea9a72a9a8e2ab654d7';
 
 
 /**

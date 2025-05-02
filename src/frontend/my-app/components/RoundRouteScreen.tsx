@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute, getRoundTripRouteTriangle } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -13,9 +12,8 @@ import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
 import sendRouteDataHttpRequest from "./httpRequestClient";
-import { RemoveDuplicates, RemoveDuplicatesSquare, RoundRouting, calculateSquare, calulateCircle } from "./RoundRoutingAlgortihm";
 import { all } from "axios";
-import { calculateSquareWalk, calculateTriangleAndCircleWalk, calculateTriangleeWalk, removeUTurn } from "./RoudWalkAlgorithm";
+import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 
 
 interface MapProps {
@@ -46,57 +44,19 @@ export const RoundRouteScreen = (props:MapProps) => {
   const toggleMenuExpander = () => setMenuExpand(prev => !prev);
 
   const fetchRoundTripRoute = async () => {
-    console.log("herre");
     setWalkGenerated(true);
       const randomFactor = Math.random() + 1;
       const randomPoints = Math.floor(Math.random()* pointValues.length);
       const randomSeed = Math.floor(Math.random()* 1000);
       const distanceNum = Number(distance);
 
-    //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
-    //const Allpoints = calculateSquareWalk(startLocation, Number(distance));
-
-    const Allpoints = calculateTriangleeWalk(startLocation, Number(distance));
-    //const Allpoints = calculateTriangleAndCircleWalk(startLocation, Number(distance));
-
-    //   console.log('hereeee');
-
-    // console.log("points", Allpoints);
-      
-    const result = await getRoundTripRouteTriangle(Allpoints);
-
-    //const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-    const resultGeometry = result.routes[0].geometry;
-      //console.log("geo: ", resultGeometry);
+      const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
+      const resultGeometry = result.routes[0].geometry;
      
           const decodegeom = polyline.decode(resultGeometry);
          
           console.log("geo ", decodegeom);
 
-          //const test = RemoveDuplicates(decodegeom);
-          let newAllpoints: number[][] = [];
-
-          let test: number[][] = [];
-          
-        if(Allpoints) {
-        //    // console.log("heyyy");
-        //   //const decodedGeomNew = decodegeom.map(([lat, lon]) => [lon, lat]);
-        const numberArray: number[][] = Allpoints.map(coord => [coord.latitude, coord.longitude]);
-        //newAllpoints = RemoveDuplicatesSquare(decodegeom, numberArray );
-        //newAllpoints = removeUTurn(decodegeom, numberArray);
-
-        //test = removeUTurn(newAllpoints, numberArray);
-          
-        //   if (newAllpoints.length === 0) {
-        //     console.warn("No valid route points after duplicate removal!");
-         }
-        
-        //   //console.log("hajahaj");
-        //   } {"latitude": 59.864001192200526, "longitude": 17.64345846823241}
-        
-          //console.log("test coord", test);
-
-          //console.log("decode geo ", decodegeom);
 
 console.log('here');
           const formattedRoute = decodegeom.map((coord: number[]) => ({
