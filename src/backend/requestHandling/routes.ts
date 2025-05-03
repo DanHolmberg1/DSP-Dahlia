@@ -55,6 +55,28 @@ router.get('/get', async(req: Request, res: Response) => {
 });
 
 //add 
+router.post(`/add`, async(req: Request, res: Response) => {
+  try{
+    const {userID, routeID} = req.body; 
+    if(!userID || !routeID) {
+      console.log("No userID or routeID"); 
+      res.status(500).json(); 
+      return; 
+    }
+
+    const pairStatus = await pairUserAndRoute(db, userID, routeID); 
+    if(!pairStatus.success){
+      console.log("could not pair route and user"); 
+      res.status(400).json()
+      return; 
+    }
+
+    res.status(201).json(); 
+  } catch (err) {
+    console.log("Backend request error", err); 
+    res.status(500).json();
+  }
+})
 
 //remove 
 
