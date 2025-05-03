@@ -89,3 +89,22 @@ async function getAllGroupsForUser(userID: number): Promise<Array<any> | undefin
         return undefined;
     }
 }
+
+async function getAllUsersForGroup(groupID: number): Promise<Array<any> | undefined> {
+    try {
+        const res = await fetch(`http://localhost:3000/groups/byGroup?groupID=${groupID}`);
+
+        if(!res.ok) {
+            const errorData = await res.json(); 
+            console.log("Database error:", errorData); 
+            return undefined;
+        }
+
+        const data = await res.json(); 
+        console.log("Users in the group", data); 
+        return data;
+    } catch (err) {
+        console.error("Fetch error:", err); 
+        return undefined; 
+    }
+}

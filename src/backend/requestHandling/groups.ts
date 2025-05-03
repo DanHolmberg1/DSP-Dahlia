@@ -119,6 +119,30 @@ router.get('/byUser', async(req: Request, res: Response) => {
 });
 
 //byGroup 
+router.get(`/byGroup`, async(req: Request, res: Response) => {
+  try {
+    const {groupID} = req.query; 
+    if(!groupID) {
+      console.log("no groupID"); 
+      res.status(400).json({error: "no groupID"}); 
+    } 
+
+    const groupIDParsed = Number(groupID);
+    const allUsers = await groupGetAllUsers(db, groupIDParsed);
+
+    if(!allUsers.success) {
+      console.log(allUsers);
+      console.log("Failed to fetch :("); 
+      res.status(500).json({ error: "Failed to fetch all users" });
+      return; 
+    }
+
+    res.json(allUsers.data); 
+  } catch (err) {
+    console.error("Request error backend:", err); 
+    res.status(500).json({ error: "request error "}); 
+  }
+})
 
 //remove 
 
