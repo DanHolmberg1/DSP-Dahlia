@@ -108,3 +108,27 @@ async function getAllUsersForGroup(groupID: number): Promise<Array<any> | undefi
         return undefined; 
     }
 }
+
+async function removeUserFromGroup(userID: number, groupID: number): Promise<boolean> {
+    try {
+        const res = await fetch('http://localhost:3000/groups/removeUser', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userID: userID,
+                groupID: groupID,
+            })
+        });
+        if(!res.ok) {
+            return false; 
+        }
+        return true; 
+
+    } catch (err) {
+        console.log("error removing user from group" + err); 
+        return false; 
+
+    }
+}

@@ -1,4 +1,4 @@
-import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups } from "../db_opertions";
+import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups, groupRemoveAllDate, groupRemoveUser } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
 import { Router } from 'express';
@@ -145,5 +145,22 @@ router.get(`/byGroup`, async(req: Request, res: Response) => {
 })
 
 //remove 
+router.post(`/removeUser`, async(req: Request, res: Response) => {
+  try{
+    const {userID, groupID} = req.body; 
+    const removeStatus = await groupRemoveUser(db, userID, groupID);
+    
+    if(!removeStatus.success) {
+      console.log("Could not delete user", removeStatus.error);
+      res.status(400).json({error: "Could not delete user"}); 
+      return; 
+    }
+
+    res.status(201).json(); //behövs .json()??
+  } catch (err) {
+    console.log("Request error backend:", err);
+    res.status(500).json({ error: "request error" }); 
+  }
+})
 
 module.exports = router;
