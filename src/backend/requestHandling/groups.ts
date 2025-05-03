@@ -1,4 +1,4 @@
-import { groupGetAllDate, groupCreate, groupAdd } from "../db_opertions";
+import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
 import { Router } from 'express';
@@ -13,7 +13,7 @@ router.get('/byDate', async(req: Request, res: Response) => {
 
     if(!date) {
       console.log("No date :("); 
-      //Avbryt request?? 
+      res.status(400).json({ error: "Missing date query parameter" });
       return; 
     }
 
@@ -22,7 +22,7 @@ router.get('/byDate', async(req: Request, res: Response) => {
 
     if(!allGroups.success) {
       console.log("Failed to fetch :("); 
-      //Avbryt request?? 
+      res.status(500).json({ error: "Failed to fetch groups" });
       return; 
     }
 
@@ -45,6 +45,7 @@ router.post(`/create`, async(req: Request, res: Response) => {
 
     if(!groupID.success) {
       console.log("Failed to create group"); 
+      res.status(500).json({ error: "Failed to create group" });
       return; 
     }
     //console.log(req.body);
@@ -85,6 +86,37 @@ router.post(`/add`, async(req: Request, res: Response) => {
 });
 
 //byUser 
+router.get('/byUser', async(req: Request, res: Response) => {
+  try {
+        
+    const {userID} = req.query; 
+    console.log(userID)
+
+    if(!userID) {
+      console.log("No date :("); 
+      res.status(400).json({ error: "Missing userID query parameter" });
+      return; 
+    }
+
+    const userIDParesd = Number(userID);
+    const allGroups = await groupGetAllGroups(db, userIDParesd); 
+
+    if(!allGroups.success) {
+      console.log(allGroups);
+      console.log("Failed to fetch :("); 
+      //Avbryt request?? 
+      res.status(500).json({ error: "Failed to fetch groups" });
+      return; 
+    }
+
+    res.json(allGroups.data);  
+
+  } catch (err) {
+    console.error("Request error backend: " + err); 
+    res.status(500);
+    res.json();
+  }
+});
 
 //byGroup 
 

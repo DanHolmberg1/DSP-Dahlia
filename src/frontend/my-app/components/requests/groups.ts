@@ -1,6 +1,13 @@
 export async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
     try {
         const res = await fetch(`http://0.0.0.0:3000/groups/byDate?date=${date.toISOString()}`);
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            console.error("Database error:", errorData);
+            return undefined;  
+        }
+
         const data = await res.json();
         console.log("Groups on that date:", data);
         return data; 
@@ -40,7 +47,7 @@ export async function sendGroupCreate(date: Date, userID: number, routeID: numbe
 
 async function sendGroupAdd(userID: number, groupID: number): Promise<boolean> {
     try {
-        const res = await fetch('http://localhost:3000/groups/add', {
+        const res = await fetch('http://0.0.0.0:3000/groups/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -62,4 +69,23 @@ async function sendGroupAdd(userID: number, groupID: number): Promise<boolean> {
         return false; 
     }
 
+}
+
+async function getAllGroupsForUser(userID: number): Promise<Array<any> | undefined> {
+    try {
+        const res = await fetch(`http://localhost:3000/groups/byUser?userID=${userID}`);
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            console.error("Database error:", errorData);
+            return undefined;  
+        }
+
+        const data = await res.json();
+        console.log("Groups on that date:", data);
+        return data; 
+    } catch (err) {
+        console.error("Fetch error:", err);
+        return undefined;
+    }
 }
