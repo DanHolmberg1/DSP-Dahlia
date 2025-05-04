@@ -11,7 +11,19 @@ import CreateAccountScreen from "../components/CreateAccountScreen";
 import StartScreen from "../components/StartScreen";
 import FamilyWalk from "@/components/FamilyWalk";
 
-const {Navigator, Screen} = createStackNavigator();
+export type RootStackParamList = {
+    Start: undefined;
+    Login: undefined;
+    'Create account': undefined;
+    Home: undefined;
+    Map: undefined;
+    'Book walk': undefined;
+    'Walk Buddy': undefined;
+    'Family walk': undefined;
+  };
+
+  const stack = createStackNavigator<RootStackParamList>();
+  const { Navigator, Screen } = stack;
 
 const AppNavigator = () => (
     
