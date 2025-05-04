@@ -9,12 +9,18 @@ import { StyleSheet, TextInput, View, Text, Button,
         KeyboardAvoidingView, Platform, TouchableWithoutFeedback, 
         Keyboard, TouchableOpacity,  } from "react-native";
 import { translatedAdress } from "./TranslateAdressToCoordinare";
+import MenuBar from "./menuBar";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+<SafeAreaView style={{ flex: 1 }}></SafeAreaView>
 
+interface RouteProps {
+  navigation: any
+}
 
 const categories = ["Café", "Library", "Restaurant", "Museum", "Toilet", "Store", "Other"];
 
-export default function TripWithStopsScreen() {
+export default function TripWithStopsScreen(props: RouteProps) {
   type LatLng = { latitude: number; longitude: number };
 
   const [stops, setStops] = useState<LatLng[]>([]);
@@ -24,7 +30,7 @@ export default function TripWithStopsScreen() {
   const [showAddressInput, setShowAddressInput] = useState(false);
   const [showPickStop, setPickStop] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+  const [isSelectingLocation, setIsSelectingLocation] = useState(true);
   const [showMultipleChoice, setShowMultipleChoice] = useState(false);
   const [StartButtontext, setStartButtonText] = useState(true);
   const [startChosen, setStartChosen] = useState(false);
@@ -33,6 +39,9 @@ export default function TripWithStopsScreen() {
   const [isAddingStop, setIsAddingStop] = useState(false);
   const [reset, setReset] = useState(false);
   const [generate, setGenerate] = useState(false);
+  const [showStartText, setShowStartText] = useState<boolean>(true);
+  const [ShowOptions, setShowOptions] = useState<boolean>(false);
+  const [isSelectingStart, setSelectingStart] = useState(true);
   
 
   // Hantering av klick på kartan
@@ -40,7 +49,17 @@ export default function TripWithStopsScreen() {
     setContainerColor(containerColor === "rgba(106, 191, 112, 0.8)" ? "rgba(224, 151, 151, 0.8)" : "rgba(106, 191, 112, 0.8)"); // Toggle between white and light blue
   };
 
+  // Hantering av tryck 
   const handlePress = (e: any) => {
+    
+    if (isSelectingStart){
+      setStartLocation(e.nativeEvent.coordinate)
+      setStartChosen(true);
+      setShowMultipleChoice(true);
+      setShowStartText(false);
+      setSelectingStart(false);
+    } 
+
     const coordinate = e.nativeEvent.coordinate;
     if(isSelectingLocation) {  
       setStartLocation(coordinate);  
@@ -57,111 +76,103 @@ export default function TripWithStopsScreen() {
     }
   }
 
-  // Hantering av startlocation
-  const handleSetStartLocation = () => {
-  setIsSelectingLocation(true);  // Allow map press to select a location
-  }
-
-
+  // Hantering av adress
   const handleAddressConfirm = async () => {
     const result = await translatedAdress(address);
     if (result) {
       setStops(prev => [...prev, result]); // Lägg till i stops
       setShowAddressInput(false); // Stäng inputrutan
       setAddress(""); // Rensa inputfält
+      setShowMultipleChoice(true);
     } else {
       alert("No location found for this address.");
     }
   };
   
 
+
   return (
     <View style={{ flex: 1 }}>
-      <MapView
-        style={{ flex: 1 }}
 
-        onPress={handlePress}>
+    {/**Välj startpunkt */}
+    {showStartText && (
+        <View style={styles.messageContainer}> 
+            <Text style={styles.startText}> Klicka på kartan för att välja en startpunkt </Text> 
+        </View>  )} 
+        
+    {/**Kartan och dess starpunkt */}
+    <MapView
+            style={styles.map}
+            initialRegion={{
+            latitude: 59.8586, //Example center (Uppsala) TODO: is it possible to change the start screen based on user location?
+            longitude: 17.6450,
+            latitudeDelta: 0.05, // Zoom level
+            longitudeDelta: 0.05,
+            }}
 
-        {/** Start location och map view?? */}
-        {startLocation && <Marker coordinate={startLocation} title="Start" />}
-        {stops.map((stop, index) => (
-          <Marker key={index} coordinate={stop} title={`Stop ${index + 1}`} />
-        ))}
-        {route.length > 0 && <Polyline coordinates={route} strokeWidth={3} strokeColor="blue" />}
-      </MapView>
+            onPress={(e) => {handlePress(e)}}
+        >
+            {startLocation && <Marker coordinate={startLocation} title="Start" pinColor="white"/>}
+            {stops.map((stop, index) => (
+            <Marker key={index} coordinate={stop} title={`Stop ${index + 1}`} />
+            ))}
 
-      {/** Meddelande popup - välj en startpunkt på kartan */}
-      {isSelectingLocation &&(
-        <View style= {styles.messageContainer}>
-          <Text style= {styles.startText}> Choose start point by clicking on the map </Text>
-        </View>
-      )}
+            {/* Render the route on the map */}
+            {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
+        </MapView> 
 
+    
       {/** View "Walk with stops" */}
       <View style={styles.card}>
 
-        {/** Knapp för att initiera val av startpunkt på kartan */}
-        {!startChosen && (
-          <View style={styles.chooseStartView}>
-          <TouchableOpacity 
-          style={[styles.bigButtonContainer]}
-          onPress={handleSetStartLocation}>
-            
-            <Text style={[styles.buttonTextBlueReset, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>
-              Confirm startingpoint
-              </Text>
-          </TouchableOpacity>
-          <Text style={styles.descriptionText}>By navigating and pressing on the map</Text>
-          
-          {/**LÄGGA TILL ADRESS SOM STARTPUNKT? TODO: */}
-          {/* <TouchableOpacity 
-          style={[styles.smallButtonContainer]}
-          onPress={() => setShowAddressInput(true)}
-            >
-            
-            <Text style={[styles.buttonTextBlueReset, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>
-              Write adress
-              </Text>
 
-          </TouchableOpacity> */}
-
-          </View>
-
-          
-
-          
-        )}
+      {/** Funktionalitet vid adding stop via karta */}
+      {isAddingStop && (
+        <TouchableOpacity style={styles.cancelButton}
+        onPress={async () => {
+          setShowMultipleChoice(true);
+          setIsAddingStop(false);
+        }}>
+        <Text style={styles.confirmText}>Avbryt</Text>
+        </TouchableOpacity>
+      )}
 
       {/** Funktionalitet av vy av multiple choise (add, pick, adress) */}
       {showMultipleChoice && (
 
           <View style={styles.column}>
-            <Text style={styles.descriptionText}>Choose alternatives to build your route</Text>
+            <Text style={styles.descriptionText}>Välj alternativ för att bygga din rutt</Text>
 
             {/** Lägg till via karttryck */}
           <TouchableOpacity style={styles.button} 
             onPress={() => {
-              alert("Tap on the map to add next stop");
               setShowMultipleChoice(false);
               setIsAddingStop(true);
+              setPickStop(false);
+              setShowAddressInput(false);
               
             }}
           >
-            <Text style={styles.buttonText}>Add stop on map</Text>
+            <Text style={styles.buttonText}>Klicka på kartan</Text>
           </TouchableOpacity>
 
             {/** Lägg till via adress */}
           <TouchableOpacity
             style={styles.button}
-            onPress={() => setShowAddressInput(true)}
-            >
-            <Text style={styles.buttonText}>Add address</Text>
+            onPress={() => {setShowAddressInput(true);
+                            setPickStop(false);
+                            setShowMultipleChoice(false);
+            }}>
+            <Text style={styles.buttonText}>Skriv en adress</Text>
           </TouchableOpacity>
 
             {/** Lägg till via flerval */}
           <TouchableOpacity style={styles.button} 
-            onPress={() => setPickStop(true)}>
-            <Text style={styles.buttonText}>Pick stop</Text>
+            onPress={() => {setPickStop(true);
+                            setShowAddressInput(false);
+                            setShowMultipleChoice(false);
+            }}>
+            <Text style={styles.buttonText}>Välj plats-kategori</Text>
           </TouchableOpacity>
             
           <View style={styles.row}>
@@ -178,10 +189,12 @@ export default function TripWithStopsScreen() {
                 setShowMultipleChoice(false);
                 setStops([]);
                 setAddress("");
+                setSelectingStart(true);
+                setShowStartText(true);
 
               }}
             >
-            <Text style={styles.buttonText}>Reset</Text>
+            <Text style={styles.buttonText}>Återställ</Text>
           </TouchableOpacity>
 
             {/** Generate route */}
@@ -195,7 +208,7 @@ export default function TripWithStopsScreen() {
                   setRoute(formatted);
                 }
               }}>
-            <Text style={styles.buttonText}>Generate</Text>
+            <Text style={styles.buttonText}>Generera</Text>
           </TouchableOpacity>
           </View>
           </View>
@@ -205,15 +218,27 @@ export default function TripWithStopsScreen() {
         {showAddressInput && (
   <>
     <TextInput
-      placeholder="Write an address..."
+      placeholder="Skriv en adress..."
       style={styles.inputRoute}
       value={address}
       onChangeText={setAddress}
     />
-    <Button
-      title="Confirm address"
-      onPress={handleAddressConfirm}
-    />
+
+  <View style={styles.confirmButtonPair}>
+          <TouchableOpacity style={styles.confirmButton}
+                            onPress={handleAddressConfirm}>
+            <Text style={styles.confirmText}>Bekräfta stopp</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton}
+                            onPress={async () => {
+                              setShowAddressInput(false);
+                              setShowMultipleChoice(true);
+                            }}>
+            <Text style={styles.confirmText}>Avbryt</Text>
+          </TouchableOpacity>
+          </View>
+
   </>
 )}
 
@@ -231,27 +256,39 @@ export default function TripWithStopsScreen() {
               <Picker.Item key={cat} label={cat} value={cat} />
             ))}
           </Picker>
-          <Button
-            title="Confirm stop"
-            onPress={async () => {
-              if (!startLocation) {
-                alert("Choose a start location first");
-                return;
-              }
-              const nearest = await getClosestLocation(startLocation, selectedCategory);
-              if (nearest && nearest.lat != null && nearest.lon != null) {
-                const latlng: LatLng = {
-                  latitude: nearest.lat,
-                  longitude: nearest.lon
-                };
-                setStops(prev => [...prev, latlng]);
-              } else {
-                alert("No valid location found.");
-              }
 
-              setPickStop(false);
-            }}
-          />
+          <View style={styles.confirmButtonPair}>
+          <TouchableOpacity style={styles.confirmButton}
+                            onPress={async () => {
+                              if (!startLocation) {
+                                alert("Choose a start location first");
+                                return;
+                              }
+                              const nearest = await getClosestLocation(startLocation, selectedCategory);
+                              if (nearest && nearest.lat != null && nearest.lon != null) {
+                                const latlng: LatLng = {
+                                  latitude: nearest.lat,
+                                  longitude: nearest.lon
+                                };
+                                setStops(prev => [...prev, latlng]);
+                              } else {
+                                alert("No valid location found.");
+                              }
+                
+                              setPickStop(false);
+                              setShowMultipleChoice(true);
+                            }}>
+            <Text style={styles.confirmText}>Bekräfta stopp</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton}
+                            onPress={async () => {
+                              setPickStop(false);
+                              setShowMultipleChoice(true);
+                            }}>
+            <Text style={styles.confirmText}>Avbryt</Text>
+          </TouchableOpacity>
+          </View>
           </View>
           
         )}
@@ -270,7 +307,7 @@ export default function TripWithStopsScreen() {
                 setContainerColor('rgba(7, 67, 11, 0.8)');
               }}
             >
-              <Text style={[styles.buttonTextBlueReset, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>Reset</Text>
+              <Text style={[styles.buttonTextBlueReset, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>Återställ</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -296,6 +333,7 @@ export default function TripWithStopsScreen() {
         </View>
         )}
       </View>
+      <MenuBar navigation={props.navigation}/>
     </View>
   );
 }
@@ -306,7 +344,9 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     padding: 30,
     position: 'relative',
+    bottom: 100,
   },
+  map: { flex: 1 },
   title: {
     fontWeight: 'bold',
     fontSize: 18,
@@ -356,8 +396,8 @@ const styles = StyleSheet.create({
     marginLeft: 40
   },
   messageContainer: {
-    backgroundColor: 'rgba(6, 18, 87, 0.8)',
-    padding: 10, // Add some padding to make it look less cramped
+    backgroundColor: '#1B2D92',
+    padding: 15, // Add some padding to make it look less cramped
     alignItems: 'center', // Center the text
     justifyContent: 'center',
     position: 'absolute', // Position it over the screen if needed
@@ -367,11 +407,14 @@ const styles = StyleSheet.create({
     zIndex: 10, // Ensure it sits above other elements
   },
   startText: {
-    fontSize: 20,
+    fontSize: 22,
     color:"white",
+    fontWeight: "bold",
     marginBottom: 10,
     marginTop: 20,
-    marginLeft: 0,
+    paddingLeft: 15,
+    paddingRight: 15,
+    textAlign: "center",
 },
 
 buttoncontainerReset: {
@@ -412,8 +455,9 @@ chooseStartView: {
 
 descriptionText: {
   textAlign: 'center',
-  margin: 15,
-  fontSize: 17,
+  marginBottom: 15,
+  fontSize: 20,
+  fontWeight: "bold",
 },
 
 resetButton: {
@@ -427,6 +471,34 @@ generateButton: {
   padding: 15,
   borderRadius: 20,
   marginTop: 10,
+},
+menuBar: {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: 60,
+  backgroundColor: 'white',
+  zIndex: 99,
+},
+confirmButtonPair: {
+  flexDirection: "row",
+},
+confirmButton: {
+  backgroundColor: '#E15F18',
+  padding: 15,
+  borderRadius: 20,
+  marginRight: 5,
+},
+cancelButton: {
+  backgroundColor: 'grey',
+  padding: 15,
+  borderRadius: 20,
+},
+confirmText: {
+  color: "white",
+  fontWeight: "bold",
+  fontSize: 19,
 }
 
 });

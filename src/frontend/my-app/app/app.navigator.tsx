@@ -2,7 +2,6 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import HomeScreen from "../components/HomeScreen";
-import MapScreen from "../components/MapScreen";
 import WalkBuddyScreen from "../components/WalkBuddyScreen"
 import { Stack } from "expo-router";
 import BookWalkScreen from "../components/BookWalkScreen";
@@ -15,6 +14,7 @@ import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
 import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
 import { Help, help } from "@/components/HelpScreen";
+import ChooseRoute from "@/components/ChooseRouteScreen";
 
 
 const { Navigator, Screen } = createStackNavigator();
@@ -36,18 +36,18 @@ const AppNavigator = () => (
         <Screen options={{
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
-        <Screen name="Generate routes" component={MapScreen} />
-        <Screen name="Book walk" component={BookWalkScreen} />
-        <Screen name="Walk Buddy" component={WalkBuddyScreen} />
+        <Screen name="Generera rutter" component={ChooseRoute} />
+        <Screen name="Promenera med andra" component={BookWalkScreen} />
+        <Screen name="Promenadkompis" component={WalkBuddyScreen} />
         <Screen options={{
             headerLeft: () => null,
         }} name="Family walk" component={FamilyWalk} />
         <Screen 
-        name="Walk with destination" component={RoutewithDesScreen} />
-        <Screen  name="Round walk" component={RoundRouteScreen} />
-        <Screen  name="Walk with stops" component={TripWithStopsScreen} />
-        <Screen  name = "Saved routes" component= {SavedRoute}/>
-        <Screen  name = "Help" component= {Help}/>
+        name="Start-stop" component={RoutewithDesScreen} />
+        <Screen  name="Rundpromenad" component={RoundRouteScreen} />
+        <Screen  name="Rutt med stopp" component={TripWithStopsScreen} />
+        <Screen  name = "Sparade rutter" component= {SavedRoute}/>
+        <Screen  name = "Hjälp" component= {Help}/>
     </Navigator>
 
 ); export default AppNavigator;

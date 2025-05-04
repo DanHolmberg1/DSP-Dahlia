@@ -5,7 +5,6 @@ import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker"; 
-import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
@@ -14,6 +13,7 @@ import { ws, sendToBackend } from "./webSocketsClient";
 import sendRouteDataHttpRequest from "./httpRequestClient";
 import { all } from "axios";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
+import MenuBar from "./menuBar";
 
 
 interface MapProps {
@@ -32,7 +32,7 @@ export const RoundRouteScreen = (props:MapProps) => {
   const pickerRef = useRef<Picker<string> | null>(null); 
   const [showStartText, setShowStartText] = useState<boolean>(true);
   const [geometry, setGeometry] = useState('');
-  const [ShowRoundTrip, setShowRoundTrip] = useState<boolean>(true);
+  const [ShowRoundTrip, setShowRoundTrip] = useState<boolean>(false);
   const [ShowtripWithDes, setShowTripWitDes] = useState<boolean>(false);
   const [ShowtripWitStops, setShowTripWihStops] = useState<boolean>(false);
   const [ShowOptions, setShowOptions] = useState<boolean>(false);
@@ -84,10 +84,13 @@ return (
     
 <View style={styles.container}>
 
+    {/**Välj startpunkt */}
     {showStartText && (
         <View style={styles.messageContainer}> 
             <Text style={styles.startText}> Klicka på kartan för att välja en startpunkt </Text> 
         </View>  )} 
+
+      {/**Kartan och dess starpunkt */}
     <MapView
             style={styles.map}
             initialRegion={{
@@ -98,7 +101,10 @@ return (
             }}
 
             onPress={(e) => {setStartLocation(e.nativeEvent.coordinate)
-                setStartChosen(true);
+                              setStartChosen(true);
+                              setMenuExpand(true);
+                              setShowStartText(false);
+                              setShowRoundTrip(true);
 
             console.log('ShowOptions:', ShowOptions);
             }}
@@ -108,67 +114,84 @@ return (
             {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
         </MapView> 
 
-{ShowRoundTrip && (
+        {ShowRoundTrip && (
+  <View style={styles.panelContainer}>  
+      <Pressable
+        style={styles.arrowButton}
+        onPress={toggleMenuExpander}
+      >
+        <Arrow width={36} height={36} angle={menuExpand} />
+      </Pressable>
+      <Text style={styles.inputLable}>Välj längd på promenaden</Text>
+    
 
-<View style={{alignItems: 'center', width: "100%" , backgroundColor: 'white',   justifyContent: "center", flexDirection: "column", position: "absolute", bottom: 0}}>
+    {menuExpand && (
+      <>
+        <View style={styles.pickerBlock}>
+          <Picker
+            ref={pickerRef}
+            selectedValue={distance}
+            onValueChange={(value) => setDistance(value)}
+            style={styles.pickerContainer}
+            mode="dropdown"
+          >
+            <Picker.Item label="500 meter" value="500" />
+            <Picker.Item label="1 km" value="1000" />
+            <Picker.Item label="1,5 km" value="1500" />
+            <Picker.Item label="2 km" value="2000" />
+            <Picker.Item label="2.5 km" value="2500" />
+            <Picker.Item label="3 km" value="3000" />
+            <Picker.Item label="3.5 km" value="3500" />
+            <Picker.Item label="4 km" value="4000" />
+            <Picker.Item label="4.5 km" value="4500" />
+            <Picker.Item label="5 km" value="5000" />
+          </Picker>
+        </View>
 
-<View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", position: "relative"}}> 
-<Text style={[styles.inputLable, {marginBottom: menuExpand ? 20 : 40}]}> Välj promenad längd</Text>
+        <View style={{flexDirection: "row"}}>
+        <TouchableOpacity
+          style={styles.buttoncontainer}
+          onPress={() => {
+            if (!startChosen) {
+              alert("Please choose a starting point.");
+            } else {
+              fetchRoundTripRoute();
+            }
+          }}
+        >
+          <Text style={styles.buttonTextWhite}>   Generera   </Text>
+        </TouchableOpacity>
 
-<Pressable style={{marginLeft: "auto", marginRight: 25, zIndex: 20, position: "absolute", right: 0, backgroundColor: "white"}}  onPress={toggleMenuExpander} >
-<Arrow width={36} height={36} angle={menuExpand}/>
-</Pressable>
-</View>
-
-{menuExpand && (
-<Picker
-ref = {pickerRef}
-selectedValue= {distance}
-onValueChange={(distanceValue)=> {
-    setDistance(distanceValue)
-}}
-style = {{width:'50%', backgroundColor: "#007bff",  borderRadius: 30, height: 200, marginBottom: 90}}
-mode="dropdown"
->  
-<Picker.Item label='500 meters' value ={'500'} />
-<Picker.Item label='1km' value ={'1000'} />
-<Picker.Item label='1,5km' value ={'1500'} />
-<Picker.Item label='2km' value ={'2000'} />
-<Picker.Item label='2.5km' value ={'2500'} />
-<Picker.Item label='3km' value ={'3000'} />
-<Picker.Item label='3.5km' value ={'3500'} />
-<Picker.Item label='4km' value ={'4000'} />
-<Picker.Item label='4.5km' value ={'4500'} />
-<Picker.Item label='5km' value ={'5000'} />
-</Picker>
+           {/** Återställ */}
+                  <TouchableOpacity style={styles.resetButton} 
+                    onPress={() => {
+                        setShowStartText(true);
+                        setStartLocation(null);
+                        setStartChosen(false);
+                        setRoute([]);
+                        setShowStartText(true);
+                        setMenuExpand(false);
+                        setWalkGenerated(false);
+                        setShowRoundTrip(false);
+                      }}
+                    >
+                    <Text style={styles.buttonTextWhite}>Återställ</Text>
+                  </TouchableOpacity>
+                  </View>
+      </>
+    )}
+  </View>
 )}
-</View> 
-)}
-{menuExpand && (
-<View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
-  <View>
-  <TouchableOpacity 
-  style={[styles.buttoncontainer, {marginRight: Platform.OS === 'android' ? 15 : 0}]} 
-  onPress={() => {
-    if (!startChosen) {
-      alert("Please choose a starting point.");
-    } else {
-      fetchRoundTripRoute();
-    }
-  }}
->
-  <Text style={[styles.buttonTextWhite, {marginLeft: Platform.OS === 'android' ? -13: 0}]}>Generera</Text>
-  </TouchableOpacity>
 
-    </View> 
-    </View>
+
+
+
+  {WalkGenerated && (
+  <View style = {styles.savebuttoncontainer}>
+    <Button title = "Save route" onPress={sendRouteToBackend}/>
+  </View>
   )}
-
-{WalkGenerated && (
-<View style = {styles.savebuttoncontainer}>
-<Button title = "Save route" onPress={sendRouteToBackend}/>
-</View>
-)}
+  <MenuBar navigation={props.navigation}/>
 
 </View>
   
@@ -190,23 +213,21 @@ messageContainer: {
     zIndex: 10, // Ensure it sits above other elements
 },
 inputLable: {
-    fontSize: 22,
-    color:"#007bff",
-    marginBottom: 50,
-    marginTop: 20,
+    fontSize: 25,
+    color:"black",
+    margin: 30,
+    fontWeight: "bold",
+    textAlign: "center",
 },
 
 buttoncontainer: {
-    width: "70%",
-    marginBottom: 40,
+    padding: 20,
+    margin: 20,
     backgroundColor: '#1B2D92',
-    position: "absolute",
-    bottom: -8,
     borderRadius: 30,
     borderColor: "black",
     color: "white",
-    right: -140,
-    height: 50,
+    alignContent: "center",
 },
 
 savebuttoncontainer: {
@@ -226,6 +247,8 @@ startText: {
     marginBottom: 10,
     marginTop: 20,
     marginLeft: 0,
+    textAlign: "center",
+    fontWeight: "bold",
 },
 
 buttoncontainerRoundTrip: {
@@ -242,9 +265,68 @@ buttoncontainerRoundTrip: {
 buttonTextWhite: {
   color: "#fff",
   fontSize: 22,
-  left: 65,
- marginTop: 10,
-
+  fontWeight: "bold",
+  textAlign: "center",
 },
 
+pickerWrapper: {
+  backgroundColor: "white",
+  width: "100%",
+  paddingVertical: 20,
+  borderTopLeftRadius: 30,
+  borderTopRightRadius: 30,
+  position: "absolute",
+  bottom: 0,
+  zIndex: 5,
+  alignItems: "center",
+},
+panelContainer: {
+  position: "absolute",
+  bottom: 120,
+  width: "100%",
+  backgroundColor: "white",
+  borderTopLeftRadius: 30,
+  borderTopRightRadius: 30,
+  paddingVertical: 20,
+  paddingHorizontal: 20,
+  alignItems: "center",
+},
+
+arrowButton: {
+  backgroundColor: "white",
+},
+
+pickerBlock: {
+  backgroundColor: "#F5BFA2",
+  borderRadius: 30,
+  width: "100%",
+  marginBottom: 20,
+  overflow: "hidden",
+},
+
+pickerContainer: {
+  height: 80,
+  width: "100%",
+},
+resetButton: {
+    backgroundColor: 'grey',
+    borderRadius: 30,
+    borderColor: "black",
+    color: "white",
+    alignContent: "center",
+    padding: 20,
+    margin: 20,
+},
+buttonText: {
+  color: "white",
+  fontSize: 25,
+  textAlign:'center',
+  fontWeight: 'bold'
+},
+button: {
+  backgroundColor: "#1B2D92",
+  padding: 20,
+  margin: 4,
+  borderRadius: 30,
+},
 });
