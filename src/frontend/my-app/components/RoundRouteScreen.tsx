@@ -5,12 +5,12 @@ import { getRoundTripRoute, getRoundTripRouteCircle } from "./RoundTripRoutingAP
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker"; 
+import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
-import{getRouteWithStops} from "./RoundTripLocations";
+import { getRouteWithStops } from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
 import sendRouteDataHttpRequest from "./httpRequestClient";
 import { RemoveDuplicates, RoundRouting, calculateSquare, calulateCircle } from "./RoundRoutingAlgortihm";
@@ -18,19 +18,19 @@ import { all } from "axios";
 
 
 interface MapProps {
-    navigation:any
+  navigation: any
 }
 
-export const RoundRouteScreen = (props:MapProps) => {
+export const RoundRouteScreen = (props: MapProps) => {
 
-  const [route, setRoute] = useState<{longitude: number, latitude: number }[]>([]);
+  const [route, setRoute] = useState<{ longitude: number, latitude: number }[]>([]);
   const [distance, setDistance] = useState('500');
   const [menuExpand, setMenuExpand] = useState<boolean>(false);
   const [optionExpand, setOptionExpand] = useState<boolean>(false);
-  const [startLocation, setStartLocation] = useState<{latitude: number; longitude: number} | null> (null);
+  const [startLocation, setStartLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const distanceOptions = ['500', '700', '1000', '1500', '2000', '2500'];
   const pointValues = [3, 4, 5];
-  const pickerRef = useRef<Picker<string> | null>(null); 
+  const pickerRef = useRef<Picker<string> | null>(null);
   const [showStartText, setShowStartText] = useState<boolean>(true);
   const [geometry, setGeometry] = useState('');
   const [ShowRoundTrip, setShowRoundTrip] = useState<boolean>(true);
@@ -38,7 +38,7 @@ export const RoundRouteScreen = (props:MapProps) => {
   const [ShowtripWitStops, setShowTripWihStops] = useState<boolean>(false);
   const [ShowOptions, setShowOptions] = useState<boolean>(false);
   const [HasShowOptions, setHasShowOptions] = useState<boolean>(false);
-  const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
+  const [WalkGenerated, setWalkGenerated] = useState<boolean>(false);
   const [currentWalkData, setCurrentWalkData] = useState<JSON>();
   const [startChosen, setStartChosen] = useState(false);
 
@@ -47,150 +47,157 @@ export const RoundRouteScreen = (props:MapProps) => {
   const fetchRoundTripRoute = async () => {
     console.log("herre");
     setWalkGenerated(true);
-      const randomFactor = Math.random() + 1;
-      const randomPoints = Math.floor(Math.random()* pointValues.length);
-      const randomSeed = Math.floor(Math.random()* 1000);
-      const distanceNum = Number(distance);
+    const randomFactor = Math.random() + 1;
+    const randomPoints = Math.floor(Math.random() * pointValues.length);
+    const randomSeed = Math.floor(Math.random() * 1000);
+    const distanceNum = Number(distance);
 
-      //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
-      //const Allpoints = calculateSquare(startLocation, Number(distance));
+    //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
+    //const Allpoints = calculateSquare(startLocation, Number(distance));
 
-      console.log('hereeee');
+    console.log('hereeee');
 
-     // console.log("points", Allpoints);
-      
-      //const result = await getRoundTripRouteCircle(Allpoints, distanceNum, randomSeed, 3);
+    // console.log("points", Allpoints);
 
-      const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-      const resultGeometry = result.routes[0].geometry;
-      console.log("geo: ", resultGeometry);
-     
-          const decodegeom = polyline.decode(resultGeometry);
+    //const result = await getRoundTripRouteCircle(Allpoints, distanceNum, randomSeed, 3);
+    const userID = 1; // TODO: THIS IS A PLACEHOLDER PLEASE CORRECT WHEN IMPLEMENTED
+    const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, userID);
+    console.log(result);
+    const resultGeometry = result.routes[0].geometry; // Får ett type fel men funkar.
+    console.log("geo: ", resultGeometry);
 
-          const test = RemoveDuplicates(decodegeom);
+    const decodegeom = polyline.decode(resultGeometry);
 
-          console.log("test coord", test);
+    const test = RemoveDuplicates(decodegeom);
 
-          console.log("decode geo ", decodegeom);
-        
-          const formattedRoute = decodegeom.map((coord: number[]) => ({
-              latitude: coord[0],
-              longitude: coord[1],
-            }));
+    console.log("test coord", test);
 
-          setRoute(formattedRoute);
-          setCurrentWalkData(result);
-    };
+    console.log("decode geo ", decodegeom);
 
-    const sendRouteToBackend = async () => {
-      console.log("send data");
-      if(currentWalkData) {
-        console.log("send data walk");
+    const formattedRoute = decodegeom.map((coord: number[]) => ({
+      latitude: coord[0],
+      longitude: coord[1],
+    }));
+
+    setRoute(formattedRoute);
+    if (!result) {
+      console.error("route is null");
+      return;
+    }
+    setCurrentWalkData(result);
+  };
+
+  const sendRouteToBackend = async () => {
+    console.log("send data");
+    if (currentWalkData) {
+      console.log("send data walk");
       //sendToBackend(ws, currentWalkData, 1); 
       sendRouteDataHttpRequest(currentWalkData, 1); // 1 = userID, placeholder
-      }
     }
+  }
 
-return (
+  return (
 
-    
-<View style={styles.container}>
 
-    {showStartText && (
-        <View style={styles.messageContainer}> 
-            <Text style={styles.startText}> Click on screen to choose start point </Text> 
-        </View>  )} 
-    <MapView
-            style={styles.map}
-            initialRegion={{
-            latitude: 59.8586, //Example center (Uppsala) TODO: is it possible to change the start screen based on user location?
-            longitude: 17.6450,
-            latitudeDelta: 0.05, // Zoom level
-            longitudeDelta: 0.05,
-            }}
+    <View style={styles.container}>
 
-            onPress={(e) => {setStartLocation(e.nativeEvent.coordinate)
-                setStartChosen(true);
+      {showStartText && (
+        <View style={styles.messageContainer}>
+          <Text style={styles.startText}> Click on screen to choose start point </Text>
+        </View>)}
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: 59.8586, //Example center (Uppsala) TODO: is it possible to change the start screen based on user location?
+          longitude: 17.6450,
+          latitudeDelta: 0.05, // Zoom level
+          longitudeDelta: 0.05,
+        }}
 
-            console.log('ShowOptions:', ShowOptions);
-            }}
-        >
-            {startLocation && <Marker coordinate={startLocation} title="Start" pinColor="white"/>}
-            {/* Render the route on the map */}
-            {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
-        </MapView> 
+        onPress={(e) => {
+          setStartLocation(e.nativeEvent.coordinate)
+          setStartChosen(true);
 
-{ShowRoundTrip && (
+          console.log('ShowOptions:', ShowOptions);
+        }}
+      >
+        {startLocation && <Marker coordinate={startLocation} title="Start" pinColor="white" />}
+        {/* Render the route on the map */}
+        {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" />}
+      </MapView>
 
-<View style={{alignItems: 'center', width: "100%" , backgroundColor: 'white',   justifyContent: "center", flexDirection: "column", position: "absolute", bottom: 0}}>
+      {ShowRoundTrip && (
 
-<View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", position: "relative"}}> 
-<Text style={[styles.inputLable, {marginBottom: menuExpand ? 20 : 40}]}> Choose route length</Text>
+        <View style={{ alignItems: 'center', width: "100%", backgroundColor: 'white', justifyContent: "center", flexDirection: "column", position: "absolute", bottom: 0 }}>
 
-<Pressable style={{marginLeft: "auto", marginRight: 25, zIndex: 20, position: "absolute", right: 0, backgroundColor: "white"}}  onPress={toggleMenuExpander} >
-<Arrow width={36} height={36} angle={menuExpand}/>
-</Pressable>
-</View>
+          <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            <Text style={[styles.inputLable, { marginBottom: menuExpand ? 20 : 40 }]}> Choose route length</Text>
 
-{menuExpand && (
-<Picker
-ref = {pickerRef}
-selectedValue= {distance}
-onValueChange={(distanceValue)=> {
-    setDistance(distanceValue)
-}}
-style = {{width:'50%', backgroundColor: "#007bff",  borderRadius: 30, height: 200, marginBottom: 90}}
-mode="dropdown"
->  
-<Picker.Item label='500 meters' value ={'500'} />
-<Picker.Item label='1km' value ={'1000'} />
-<Picker.Item label='1,5km' value ={'1500'} />
-<Picker.Item label='2km' value ={'2000'} />
-<Picker.Item label='2.5km' value ={'2500'} />
-<Picker.Item label='3km' value ={'3000'} />
-<Picker.Item label='3.5km' value ={'3500'} />
-<Picker.Item label='4km' value ={'4000'} />
-<Picker.Item label='4.5km' value ={'4500'} />
-<Picker.Item label='5km' value ={'5000'} />
-</Picker>
-)}
-</View> 
-)}
-{menuExpand && (
-<View style={{width: "100%", alignItems: "center", justifyContent: "center"}}> 
-  <View>
-  <TouchableOpacity 
-  style={[styles.buttoncontainer, {marginRight: Platform.OS === 'android' ? 15 : 0}]} 
-  onPress={() => {
-    if (!startChosen) {
-      alert("Please choose a starting point.");
-    } else {
-      fetchRoundTripRoute();
-    }
-  }}
->
-  <Text style={[styles.buttonTextWhite, {marginLeft: Platform.OS === 'android' ? -13: 0}]}>Generate Route</Text>
-  </TouchableOpacity>
+            <Pressable style={{ marginLeft: "auto", marginRight: 25, zIndex: 20, position: "absolute", right: 0, backgroundColor: "white" }} onPress={toggleMenuExpander} >
+              <Arrow width={36} height={36} angle={menuExpand} />
+            </Pressable>
+          </View>
 
-    </View> 
+          {menuExpand && (
+            <Picker
+              ref={pickerRef}
+              selectedValue={distance}
+              onValueChange={(distanceValue) => {
+                setDistance(distanceValue)
+              }}
+              style={{ width: '50%', backgroundColor: "#007bff", borderRadius: 30, height: 200, marginBottom: 90 }}
+              mode="dropdown"
+            >
+              <Picker.Item label='500 meters' value={'500'} />
+              <Picker.Item label='1km' value={'1000'} />
+              <Picker.Item label='1,5km' value={'1500'} />
+              <Picker.Item label='2km' value={'2000'} />
+              <Picker.Item label='2.5km' value={'2500'} />
+              <Picker.Item label='3km' value={'3000'} />
+              <Picker.Item label='3.5km' value={'3500'} />
+              <Picker.Item label='4km' value={'4000'} />
+              <Picker.Item label='4.5km' value={'4500'} />
+              <Picker.Item label='5km' value={'5000'} />
+            </Picker>
+          )}
+        </View>
+      )}
+      {menuExpand && (
+        <View style={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
+          <View>
+            <TouchableOpacity
+              style={[styles.buttoncontainer, { marginRight: Platform.OS === 'android' ? 15 : 0 }]}
+              onPress={() => {
+                if (!startChosen) {
+                  alert("Please choose a starting point.");
+                } else {
+                  fetchRoundTripRoute();
+                }
+              }}
+            >
+              <Text style={[styles.buttonTextWhite, { marginLeft: Platform.OS === 'android' ? -13 : 0 }]}>Generate Route</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      )}
+
+      {WalkGenerated && (
+        <View style={styles.savebuttoncontainer}>
+          <Button title="Save route" onPress={sendRouteToBackend} />
+        </View>
+      )}
+
     </View>
-  )}
 
-{WalkGenerated && (
-<View style = {styles.savebuttoncontainer}>
-<Button title = "Save route" onPress={sendRouteToBackend}/>
-</View>
-)}
-
-</View>
-  
-)}
+  )
+}
 
 const styles = StyleSheet.create({
-container: { flex: 1 },
-map: { flex: 1 },
+  container: { flex: 1 },
+  map: { flex: 1 },
 
-messageContainer: {
+  messageContainer: {
     backgroundColor: '#1B2D92',
     padding: 10, // Add some padding to make it look less cramped
     alignItems: 'center', // Center the text
@@ -200,15 +207,15 @@ messageContainer: {
     left: 0,
     right: 0,
     zIndex: 10, // Ensure it sits above other elements
-},
-inputLable: {
+  },
+  inputLable: {
     fontSize: 22,
-    color:"#007bff",
+    color: "#007bff",
     marginBottom: 50,
     marginTop: 20,
-},
+  },
 
-buttoncontainer: {
+  buttoncontainer: {
     width: "70%",
     marginBottom: 40,
     backgroundColor: '#1B2D92',
@@ -219,44 +226,44 @@ buttoncontainer: {
     color: "white",
     right: -140,
     height: 50,
-},
+  },
 
-savebuttoncontainer: {
-  width: "50%",
-  marginBottom: 90,
-  backgroundColor: 'white',
-  position: "absolute",
-  bottom: 0,
-  borderRadius: 30,
-  borderColor: "black",
-  color: "black"
-},
+  savebuttoncontainer: {
+    width: "50%",
+    marginBottom: 90,
+    backgroundColor: 'white',
+    position: "absolute",
+    bottom: 0,
+    borderRadius: 30,
+    borderColor: "black",
+    color: "black"
+  },
 
-startText: {
+  startText: {
     fontSize: 22,
-    color:"white",
+    color: "white",
     marginBottom: 10,
     marginTop: 20,
     marginLeft: 0,
-},
+  },
 
-buttoncontainerRoundTrip: {
-  width: "40%",
-  marginBottom: 30,
-  backgroundColor: 'white',
-  position: "absolute",
-  bottom: 0,
-  borderRadius: 30,
-  borderColor: "white",
-  color: "black",
-  left: -5,
-},
-buttonTextWhite: {
-  color: "#fff",
-  fontSize: 22,
-  left: 65,
- marginTop: 10,
+  buttoncontainerRoundTrip: {
+    width: "40%",
+    marginBottom: 30,
+    backgroundColor: 'white',
+    position: "absolute",
+    bottom: 0,
+    borderRadius: 30,
+    borderColor: "white",
+    color: "black",
+    left: -5,
+  },
+  buttonTextWhite: {
+    color: "#fff",
+    fontSize: 22,
+    left: 65,
+    marginTop: 10,
 
-},
+  },
 
 });
