@@ -16,6 +16,11 @@ async function mockUser(db: Database): Promise<number|undefined> {
   return userID.data; 
 }
 
+async function mockUser2(db: Database): Promise<number|undefined> {
+  const userID = await createUser(db, name1, "annaaaaaa@email.com", age1, sex1);
+  return userID.data; 
+}
+
 async function clearDB(db: Database) {
     await clearUsers(db); 
     await clearGroups(db);
@@ -29,7 +34,21 @@ router.get('/userCreate', async(req: Request, res: Response) => {
     if(userID) {
       res.json(userID); 
     }
-    return; 
+    res.status(400).json(); 
+  } catch (err) {
+    console.log(err);
+    res.status(500);
+    res.json();
+  }
+});
+
+router.get('/userCreate2', async(req: Request, res: Response) => {
+  try {
+    const userID = await mockUser2(db); 
+    if(userID) {
+      res.json(userID); 
+    }
+    res.status(400).json();  
   } catch (err) {
     console.log(err);
     res.status(500);

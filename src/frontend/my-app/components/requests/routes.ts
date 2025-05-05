@@ -1,6 +1,6 @@
 export async function createRoute(userID: number, routeData: JSON): Promise<number | undefined> {
     try {
-        const res = await fetch("http://172.20.10.6:3000/routes/create", { // change IP address to your computer
+        const res = await fetch("http://172.20.10.3:3000/routes/create", { // change IP address to your computer
             body: JSON.stringify(routeData),
             headers: {"userID": userID.toString(),
             'Content-Type': 'application/json',
@@ -17,9 +17,9 @@ export async function createRoute(userID: number, routeData: JSON): Promise<numb
     }
 }
 
-async function routeGet(routeID: number): Promise<JSON | undefined> {
+export async function routeGet(routeID: number): Promise<JSON | undefined> {
     try {
-        const res = await fetch(`http://172.20.10.6:3000/routes/get?routeID=${routeID}`); 
+        const res = await fetch(`http://172.20.10.3:3000/routes/get?routeID=${routeID}`); 
         const data = await res.json();
         return JSON.parse(data); 
 
@@ -31,7 +31,7 @@ async function routeGet(routeID: number): Promise<JSON | undefined> {
 
 async function pairRouteAndUser(userID: number, routeID: number): Promise<boolean> {
     try {
-        const res = await fetch("http://0.0.0.0:3000/routes/add", { 
+        const res = await fetch("http://172.20.10.3:3000/routes/add", { 
             body: JSON.stringify({userID: userID, routeID: routeID}),
             headers: {
             'Content-Type': 'application/json',

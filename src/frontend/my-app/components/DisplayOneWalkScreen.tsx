@@ -11,7 +11,7 @@ import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
 import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
-import { getGroupByDate, sendGroupAdd } from "./requests/groups"
+import { getGroupByDate, sendGroupAdd, getIsInGroup, removeUserFromGroup } from "./requests/groups"
 import { useFocusEffect } from "expo-router";
 import {createRoute, routeGet} from "./requests/routes"
 import { translateCoordinate } from "./CoordinateToAddressAPI";
@@ -41,8 +41,12 @@ export const DisplayOneWalk = (props: DisplayProps) => {
     const [startLocationString, setStartLocationString] = useState<string>()
     const [hasBookedSuccess, setHasBookedSuccess] = useState(false);
     const [hasBookedFail, setHasBookedFail] = useState(false);
+    const [isBooked, setIsbooked] = useState(false);
+
+    const [userId, setUserId] = useState<number>();
 
     type Coordinate = [number, number];
+
  
     useEffect( () => {
         const setWalkData = async () => {
@@ -51,10 +55,13 @@ export const DisplayOneWalk = (props: DisplayProps) => {
             setDesc(props.route.params.walkData.description);
             setPar(props.route.params.walkData.availableSpots);
             setGroupID(props.route.params.walkData.id);
+
         
             console.log("route id here", props.route.params.walkData.routeID);
             const routeResp = await routeGet(props.route.params.walkData.routeID); 
+            console.log("route resp", routeResp);
             setRoute(routeResp);
+
             console.log("route: ", routeResp);  
             if(routeResp) {  
                 const resultGeometry = routeResp.routes[0].geometry; 
@@ -83,21 +90,51 @@ export const DisplayOneWalk = (props: DisplayProps) => {
             } else{
                 console.log("error in decoding route");
             }
+
+            const userID = await mockUser2(); // mockuser
+            if( userID) {
+            setUserId(userID);
+            }
+
           };
           setWalkData();
     }, []);
 
+    useEffect(() => {
+        const isUserBooked = async () => {
+            if(groupID && userId) {
+            const isBooked = await getIsInGroup(groupID, userId);
+            setIsbooked(isBooked);
+            }
+        }
+        isUserBooked();
+    }, [groupID]);
 
     const handleBookSpot = async () => {
-        const userID = await mockUser2(); // mock a user
+       
         console.log("route", route);
+
+        if(isBooked) {
+            if(groupID && userId) {
+                const resp = await removeUserFromGroup(userId, groupID);
+                if(resp) {
+                    Alert.alert("Borttagen!", "Du är borttagen från passet.", [{ text: "OK" }])
+                    setIsbooked(false);
+                }
+                else {
+                    Alert.alert("Något gick fel!", "Det gick inte att ta bort dig från passet.", [{ text: "OK" }])
+                }
+                return;
+            }
+        }
       
-        if (userID && groupID) {
+        if (userId && groupID) {
             console.log("group id", groupID);
-            console.log("used id", userID);
-            const resp = await sendGroupAdd(userID, groupID);
+            console.log("used id", userId);
+            const resp = await sendGroupAdd(userId, groupID);
             if (resp) {
               Alert.alert("Bokad", "Du har gått med i passet!", [{ text: "OK" }]);
+              setIsbooked(true);
             } else {
               Alert.alert("Något gick fel", "Det gick inte att gå med i passet. Försök igen senare.", [{ text: "OK" }]);
             }
@@ -124,6 +161,7 @@ export const DisplayOneWalk = (props: DisplayProps) => {
         <View>
         <Text style = {{fontSize: 25, textAlign: "center", color: "#1B2D92" }}>Distans: {distance.toFixed(2)} km</Text>
         </View>
+
         {startLocation && displayRoute.length > 0 && (
         <MapView
             style={{ height: 350, width: "95%", marginTop: 10, borderRadius: 20 }}
@@ -163,9 +201,9 @@ export const DisplayOneWalk = (props: DisplayProps) => {
                     <Text style = {{fontSize: 23, textAlign:"center", color: "#1B2D92", marginTop: 10}}> Deltagare: {10 - participants}/10 </Text>
                 </View>
 
-                <TouchableOpacity style = {styles.bookSpotContainer} onPress={handleBookSpot}>
-                    <Text style = {{color: "white", fontSize: 30}}>
-                        Boka plats
+                <TouchableOpacity style={styles.bookSpotContainer} onPress={handleBookSpot}>
+                    <Text style={{ color: "white", fontSize: 30 }}>
+                        {isBooked ? "Avboka" : "Boka plats"}
                     </Text>
                 </TouchableOpacity>
             </View>

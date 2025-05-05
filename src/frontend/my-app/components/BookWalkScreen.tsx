@@ -131,7 +131,7 @@ const BookWalkScreen = (props: BookingProps) => {
             />
         </View>
 
-        <View style = {{borderRadius: 20, width: "95%", height: 150, backgroundColor: "#1B2D92", alignItems: "center", alignSelf: "center",  marginTop: 10}}>
+        <View style = {{borderRadius: 20, width: "95%", height: 200, backgroundColor: "#1B2D92", alignItems: "center", alignSelf: "center",  marginTop: 40}}>
           <Text style = {{fontSize: 30, color: "white", marginTop: 10}}>
             Mina bokningar
           </Text>

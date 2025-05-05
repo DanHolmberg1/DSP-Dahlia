@@ -1,6 +1,6 @@
 export async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
     try {
-        const res = await fetch(`http://0.0.0.0:3000/groups/byDate?date=${date.toISOString()}`);
+        const res = await fetch(`http://172.20.10.3:3000/groups/byDate?date=${date.toISOString()}`);
 
         if (!res.ok) {
             const errorData = await res.json();
@@ -19,7 +19,7 @@ export async function getGroupByDate(date: Date): Promise<Array<any> | undefined
 
 export async function sendGroupCreate(date: Date, userID: number, routeID: number, description: string, name: string, spots: number): Promise<number | undefined> {
     try {
-        const res = await fetch('http://0.0.0.0:3000/groups/create', {
+        const res = await fetch('http://172.20.10.3:3000/groups/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -45,9 +45,9 @@ export async function sendGroupCreate(date: Date, userID: number, routeID: numbe
 
 }
 
-async function sendGroupAdd(userID: number, groupID: number): Promise<boolean> {
+export async function sendGroupAdd(userID: number, groupID: number): Promise<boolean> {
     try {
-        const res = await fetch('http://0.0.0.0:3000/groups/add', {
+        const res = await fetch('http://172.20.10.3:3000/groups/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -71,9 +71,9 @@ async function sendGroupAdd(userID: number, groupID: number): Promise<boolean> {
 
 }
 
-async function getAllGroupsForUser(userID: number): Promise<Array<any> | undefined> {
+export async function getAllGroupsForUser(userID: number): Promise<Array<any> | undefined> {
     try {
-        const res = await fetch(`http://localhost:3000/groups/byUser?userID=${userID}`);
+        const res = await fetch(`http://172.20.10.3:3000/groups/byUser?userID=${userID}`);
 
         if (!res.ok) {
             const errorData = await res.json();
@@ -90,9 +90,9 @@ async function getAllGroupsForUser(userID: number): Promise<Array<any> | undefin
     }
 }
 
-async function getAllUsersForGroup(groupID: number): Promise<Array<any> | undefined> {
+export async function getAllUsersForGroup(groupID: number): Promise<Array<any> | undefined> {
     try {
-        const res = await fetch(`http://localhost:3000/groups/byGroup?groupID=${groupID}`);
+        const res = await fetch(`http://172.20.10.3:3000/groups/byGroup?groupID=${groupID}`);
 
         if(!res.ok) {
             const errorData = await res.json(); 
@@ -109,9 +109,9 @@ async function getAllUsersForGroup(groupID: number): Promise<Array<any> | undefi
     }
 }
 
-async function removeUserFromGroup(userID: number, groupID: number): Promise<boolean> {
+export async function removeUserFromGroup(userID: number, groupID: number): Promise<boolean> {
     try {
-        const res = await fetch('http://localhost:3000/groups/removeUser', {
+        const res = await fetch('http://172.20.10.3:3000/groups/removeUser', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -132,3 +132,24 @@ async function removeUserFromGroup(userID: number, groupID: number): Promise<boo
 
     }
 }
+
+export async function getIsInGroup(groupID: number, userID: number): Promise<boolean> {
+    try {
+        const res = await fetch(`http://172.20.10.3:3000/groups/isInGroup?userID=${userID},groupID=${groupID}`);
+
+        if(!res.ok) {
+            const errorData = await res.json(); 
+            console.log("Database error:", errorData); 
+            return false;
+        }
+
+        const status = await res.json(); 
+        console.log("User is in group", status); 
+        return status;
+    } catch (err) {
+        console.error("Fetch error:", err); 
+        return false; 
+    }
+}
+
+

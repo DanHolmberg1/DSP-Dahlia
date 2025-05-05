@@ -1,4 +1,4 @@
-import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups, groupRemoveAllDate, groupRemoveUser } from "../db_opertions";
+import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups, groupRemoveAllDate, groupRemoveUser, isInGroup } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
 import { Router } from 'express';
@@ -75,7 +75,7 @@ router.post(`/add`, async(req: Request, res: Response) => {
     }
     //console.log(req.body);
     //console.log("id", groupID);
-
+    console.log("Added user: ", userID, "in group:", groupID); 
     res.status(201).json({ groupID: groupID });
 
   } catch (err) {
@@ -156,11 +156,37 @@ router.post(`/removeUser`, async(req: Request, res: Response) => {
       return; 
     }
 
+    console.log("Removed user: ", userID, "from group:", groupID); 
+
     res.status(201).json(); //behövs .json()??
   } catch (err) {
     console.log("Request error backend:", err);
     res.status(500).json({ error: "request error" }); 
   }
 })
+
+router.get('/isInGroup', async(req: Request, res: Response) => {
+  try {
+        
+    const {userID, groupID} = req.query; 
+    console.log(userID, groupID)
+
+    if(!userID) {
+      console.log("No date :("); 
+      res.status(400).json({ error: "Missing userID, groupID query parameter" });
+      return; 
+    }
+
+    const userIDParesd = Number(userID);
+    const status = await isInGroup(db, Number(userID), Number(groupID)); 
+
+    res.json(status.success);  
+
+  } catch (err) {
+    console.error("Request error backend: " + err); 
+    res.status(500);
+    res.json();
+  }
+});
 
 module.exports = router;
