@@ -1,59 +1,46 @@
-import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  TouchableOpacity,
-} from 'react-native';
-import { getAuth, signOut } from 'firebase/auth';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { RootStackParamList } from '../app/app.navigator';
+import React, { useEffect, useState, useRef } from "react";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
+import { getRoundTripRoute } from "./RoundTripRoutingAPI";
+import polyline, { decode } from "polyline";
+import { start } from "repl";
+import { Pressable, TextInput } from "react-native-gesture-handler";
+import { Picker } from "@react-native-picker/picker"; 
+import { StatusBar } from "expo-status-bar";
+import { abort } from "process";
+import Arrow from "@/icons/arrow";
+import { getStartEndTrip } from "./StartEndTripRoutingAPI";
+import{getRouteWithStops} from "./RoundTripLocations";
+import { RoundRouteScreen } from "./RoundRouteScreen";
+import MenuBar from "./menuBar";
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+interface savedRouteProps {
+    navigation: any
+  }
+  
+export const SavedRoute = (props: savedRouteProps) => {
 
-const HomeScreen = () => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+    const [allRoutes, setAllRoutes] = useState<any[]>([]);
 
-  const handleLogout = async () => {
-    const auth = getAuth();
-    try {
-      await signOut(auth);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Start' }],
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      alert('Failed to sign out');
-    }
-  };
+    useEffect(() => {
 
-  return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <Text style={styles.startText}>Hello</Text>
+        const getAllRoutes = async() => {
+            const routeData: any = await fetch(`http://0.0.0.0:3000/routesGet&UserId=${123}`); // need to add userid
+            setAllRoutes(routeData.data);
+        }
+    },[]);
 
-      <View>
-        <Button title="Map" onPress={() => navigation.navigate('Map')} />
-      </View>
-
-      <View>
-        <Button title="Book walk" onPress={() => navigation.navigate('Book walk')} />
-      </View>
-
-      <View>
-        <Button title="Find Walk Buddy" onPress={() => navigation.navigate('Walk Buddy')} />
-      </View>
-
-      <View style={styles.logoutContainer}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
+    return (
+        <View>
+            <View>
+                {allRoutes.map((route, index) => (
+                               <TouchableOpacity onPress={props.navigation.navigate(`/route/${route.id}`)} style={styles.buttoncontainerRoute}>
+                               <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>{index}</Text>
+                           </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+)}
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -115,14 +102,14 @@ const styles = StyleSheet.create({
 
     buttoncontainerRoute: {
         width: "80%",
-        marginBottom: -120,
-        backgroundColor: '#1B2D92',
+        marginBottom: -150,
+        backgroundColor: '#E25E17',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
         marginLeft: 40,
-        height: 80,
+        height: 100,
     },
 
     buttoncontainerBook: {
@@ -193,4 +180,4 @@ const styles = StyleSheet.create({
         marginTop: 5,
 
     }
-  }); export default HomeScreen;
+  });

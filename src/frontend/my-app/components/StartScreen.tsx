@@ -9,6 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import MenuBar from "./menuBar";
 
 
 interface StartProps {
@@ -16,6 +17,7 @@ interface StartProps {
 }
 const StartScreen = (props: StartProps) => {
     return (
+        
         <View style={{backgroundColor: "white", flex : 1}}>
             <Text>
                 Log in or create an account

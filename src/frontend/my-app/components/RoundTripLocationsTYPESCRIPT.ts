@@ -1,14 +1,15 @@
 
-
 import axios from 'axios';
 
-const ORS_API_KEY = '';
+import api_key from '../secrets.env'
+
+const ORS_API_KEY = api_key;
 const ORS_URL = 'https://api.openrouteservice.org/v2/directions/foot-walking';
 
 type Coordinate = [number, number]; // [lon, lat]
 
 async function getRouteWithStops(start: Coordinate, stops: Coordinate[]): Promise<void> {
-    const coordinates: Coordinate[] = [start, ...stops, start];
+  const coordinates: Coordinate[] = [start, ...stops, start];
 
   try {
     const response = await axios.post(ORS_URL, {
@@ -44,7 +45,7 @@ async function getRouteWithStops(start: Coordinate, stops: Coordinate[]): Promis
   } catch (error: any) {
     console.error("API-fel:", error.response?.data || error.message);
   }
-  
+
 }
 
 const start: Coordinate = [17.6389, 59.8586]; // Uppsala centrum
