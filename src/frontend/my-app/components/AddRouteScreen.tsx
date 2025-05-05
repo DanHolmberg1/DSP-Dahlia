@@ -40,6 +40,7 @@ export const AddRoute = (props: BookingProps) => {
 
     const randomSeed = Math.floor(Math.random()* 1000);
     const distanceNum = Number(distance);
+    console.log("dis", distanceNum);
     const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
     setRouteInfo(result);
     const resultGeometry = result.routes[0].geometry;

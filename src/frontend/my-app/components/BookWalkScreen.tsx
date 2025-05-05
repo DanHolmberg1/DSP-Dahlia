@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, BackHandler } from "react-native";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, BackHandler, ScrollView } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
@@ -83,7 +83,7 @@ const BookWalkScreen = (props: BookingProps) => {
   
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
   
-    const beforeRemove = navigation.addListener('beforeRemove', (e) => {
+    const beforeRemove = navigation.addListener('beforeRemove', (e:any) => {
       e.preventDefault(); 
       navigation.navigate('Home' as never);
     });
@@ -96,6 +96,8 @@ const BookWalkScreen = (props: BookingProps) => {
 
     return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}> 
+     <ScrollView contentContainerStyle={{paddingBottom: 150, backgroundColor: "white", justifyContent: "flex-start", display: "flex", width: "100%", minHeight: "100%"}}>
+    
         <Text style = {styles.HeaderText}> Boka en tur!</Text>
 
           <View style={{ marginRight: Platform.OS === 'android' ? -30: 0 }}>
@@ -107,28 +109,37 @@ const BookWalkScreen = (props: BookingProps) => {
          </TouchableOpacity>
        </View>
 
-       <View style = {{marginTop: 90}}>
+       <View style = {{marginTop: 10}}>
 
-<Calendar
-style={{ }}
-    onDayPress={(day: any) => {
-      handleDate(day.dateString);
-    }}
-    markedDates={{
-      [selectedDate]: {
-        selected: true,
-        selectedColor: '#E25E17',
-      },
-    }}
-    theme={{
-      dayTextColor: 'black',        // Regular day numbers
-      todayTextColor: 'blue',        // Today's date
-      selectedDayTextColor: 'white',// Text color when selected
-      textDisabledColor: 'gray',    // Disabled (non-current month) 
-    }}
-  />
-  </View>
-        
+          <Calendar
+          style={{ }}
+              onDayPress={(day: any) => {
+                handleDate(day.dateString);
+              }}
+              markedDates={{
+                [selectedDate]: {
+                  selected: true,
+                  selectedColor: '#E25E17',
+                },
+              }}
+              theme={{
+                dayTextColor: 'black',        // Regular day numbers
+                todayTextColor: 'blue',        // Today's date
+                selectedDayTextColor: 'white',// Text color when selected
+                textDisabledColor: 'gray',    // Disabled (non-current month) 
+              }}
+            />
+        </View>
+
+        <View style = {{borderRadius: 20, width: "95%", height: 150, backgroundColor: "#1B2D92", alignItems: "center", alignSelf: "center",  marginTop: 10}}>
+          <Text style = {{fontSize: 30, color: "white", marginTop: 10}}>
+            Mina bokningar
+          </Text>
+          
+        </View>
+
+        </ScrollView>
+
         <MenuBar navigation={props.navigation}/>
 
     </View>
@@ -157,6 +168,19 @@ const styles = StyleSheet.create({
       color: "black",
       marginLeft: 250,
       marginTop: 0
+    },
+
+    futureWalksContainer: {
+      width: "30%",
+      marginBottom: 10,
+      backgroundColor: '#F5BFA2',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 30,
+      borderColor: "black",
+      color: "black",
+      marginLeft: 250,
+      marginTop: 50
     },
 
     Addsign : {
@@ -220,7 +244,6 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginLeft: 5,
         fontFamily: 'inter',
-        
         
     },
     OptionContainer: {

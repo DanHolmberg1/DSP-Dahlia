@@ -25,6 +25,7 @@ export const DisplayWalk = (props: DisplayProps) => {
     const [valid, setValid] = useState<boolean>();
     const [walks, setWalks] = useState<Array<any>>([]);
     const [length, setlength] = useState<number>(0);
+    const [noWalks, setNoWalks] = useState<boolean>(false);
 
     useEffect(() => {
         const getAllWalks = async () => {
@@ -49,31 +50,37 @@ return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}>
         <ScrollView>
 
-        
-
         <Text style = {styles.dateTime}> Hitta pass för:  {props.route.params.dateInfo.date} </Text>
 
         <View>
 
-        {walks.map((walk, index) => (
-            <TouchableOpacity key={index} style = {styles.itemContainer} onPress={()=> props.navigation.navigate("Pass", {walkData: walk
-            })}>
-                <View style={styles.item}>
-                <Text style={styles.title}>Titel: {walk.groupName} </Text>
-                <Text style={styles.time}>Tid: {new Date(walk.datetime).toLocaleString('sv-SE', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                 })}
-                </Text>
-
+        {walks && walks.length > 0  ? (
+          walks.map((walk, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.itemContainer}
+            onPress={() => props.navigation.navigate("Pass", { walkData: walk })}
+          >
+            <View style={styles.item}>
+              <Text style={styles.title}>Titel: {walk.groupName}</Text>
+              <Text style={styles.time}>
+                Tid:
+                {new Date(walk.datetime).toLocaleString("sv-SE", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
             </View>
-            </TouchableOpacity>
-        ))}
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text style = {{fontSize: 25, textAlign: "center", marginTop: 25}}>Inga pass hittades</Text>
+      )}
 
-        </View>
+      </View>
     </ScrollView>
 
         <MenuBar navigation={props.navigation}/>

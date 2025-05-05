@@ -103,15 +103,17 @@ const CreateWalk = (props: CreateWalkProps) => {
             //Skicka data till databasen --> route och skapa nytt pass
             var canSendRequest = title.length > 0 && description.length > 0 && selectedRoute;
             const userID = await mockUser(); 
-            if(!canSendRequest){
+            if(!canSendRequest) {
                 alert("Besvara alla fält")
             } else if(userID && selectedRoute){
                 const routeID = await createRoute(userID, selectedRoute);
                 if(typeof routeID !== "number") {
                     alert("route undefined");
                 } else {
+                  console.log("hej hej hej");
                   const groupID = await sendGroupCreate(date, userID, routeID, description, title, 10); 
                   console.log("Group ID: " + groupID); 
+                  Alert.alert("Promenad skapad", "Du har nu skapat ett pass som andra kan gå med i!", [{ text: "OK" }]);
 
                 }
             } else {
@@ -240,12 +242,7 @@ const CreateWalk = (props: CreateWalkProps) => {
     </Pressable>
   </View>
 
-  {/* Dropdown Content */}
-  <View style={{
-    opacity: routeExpnad ? 1 : 0,
-    height: routeExpnad ? 60 : 0,
-    overflow: "hidden",
-    marginTop: routeExpnad ? 10 : 0,
+  <View style={{ opacity: routeExpnad ? 1 : 0, height: routeExpnad ? 60 : 0, overflow: "hidden", marginTop: routeExpnad ? 10 : 0,
   }}>
     <TouchableOpacity style = {styles.RouteConatiner} onPress={() => props.navigation.navigate("Välj rutt", {walkData: {
         title: title,
