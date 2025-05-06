@@ -1,7 +1,9 @@
+//import { IP } from '../../../../backend/httpDriver'; 
+const IP = "0.0.0.0";
 
 export async function mockUser(): Promise<number | undefined> {
     try {
-        const res = await fetch(`http://172.20.10.3:3000/mock/userCreate`);
+        const res = await fetch(`http://${IP}:3000/mock/userCreate`);
         const data = await res.json();
         console.log("userID:", data);
         return data;
@@ -13,7 +15,7 @@ export async function mockUser(): Promise<number | undefined> {
 
 export async function mockUser2(): Promise<number | undefined> {
     try {
-        const res = await fetch(`http://172.20.10.3:3000/mock/userCreate2`);
+        const res = await fetch(`http://${IP}:3000/mock/userCreate2`);
         const data = await res.json();
         console.log("userID:", data);
         return data;
@@ -24,6 +26,6 @@ export async function mockUser2(): Promise<number | undefined> {
 }
 
 async function clearDB() {
-    await fetch('http://localhost:3000/mock/clear'); 
+    await fetch(`http://${IP}:3000/mock/clear`); 
     console.log("Done"); 
 }

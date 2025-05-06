@@ -2,9 +2,9 @@ import { Database } from "sqlite";
 import { createUser, clearGroups, clearRoutes, clearUsers, clearUsersRoutes } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
-import { Router } from 'express';
+import express from 'express';
 
-const router = Router();
+const router = express.Router();
 
 const name1 = "Anna"; 
 const email1 = "ann@email.com"; 
@@ -28,13 +28,15 @@ async function clearDB(db: Database) {
     await clearUsersRoutes(db);
 }
 
-router.get('/userCreate', async(req: Request, res: Response) => {
+router.get('/userCreate', async(_req: Request, res: Response) => {
   try {
     const userID = await mockUser(db); 
     if(userID) {
       res.json(userID); 
     }
-    res.status(400).json(); 
+    res.status(400);
+    res.json(); 
+
   } catch (err) {
     console.log(err);
     res.status(500);
@@ -42,13 +44,14 @@ router.get('/userCreate', async(req: Request, res: Response) => {
   }
 });
 
-router.get('/userCreate2', async(req: Request, res: Response) => {
+router.get('/userCreate2', async(_req: Request, res: Response) => {
   try {
     const userID = await mockUser2(db); 
     if(userID) {
       res.json(userID); 
     }
-    res.status(400).json();  
+    res.status(400);
+    res.json();  
   } catch (err) {
     console.log(err);
     res.status(500);
@@ -56,7 +59,7 @@ router.get('/userCreate2', async(req: Request, res: Response) => {
   }
 });
 
-router.get('/clear', async(req: Request, res: Response) => {
+router.get('/clear', async(_req: Request, res: Response) => {
   try {
     await clearDB(db); 
     console.log("clear"); 
@@ -69,4 +72,4 @@ router.get('/clear', async(req: Request, res: Response) => {
   }
 })
 
-module.exports = router;
+export default router;

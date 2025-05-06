@@ -98,9 +98,6 @@ clean:
 frontend: 
 	cd src/frontend/my-app && npx expo start
 
-compile_backend: 
-	cd src/backend && tsc httpRequest.ts requestHandling/groups.ts requestHandling/mocks.ts requestHandling/routes.ts requestHandling/users.ts
-
-run_backend:
-	cd src/backend && node httpDriver.js
+backend:
+	cd src/backend && npx ts-node httpDriver.ts
 

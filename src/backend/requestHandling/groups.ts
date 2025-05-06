@@ -1,9 +1,9 @@
-import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups, groupRemoveAllDate, groupRemoveUser, isInGroup } from "../db_opertions";
+import { groupGetAllDate, groupCreate, groupAdd, groupGetAllUsers, groupGetAllGroups, groupRemoveUser, isInGroup } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
-import { Router } from 'express';
+import express from 'express';
 
-const router = Router();
+const router = express.Router();
 
 //Get all groups based on date 
 router.get('/byDate', async(req: Request, res: Response) => {
@@ -11,8 +11,8 @@ router.get('/byDate', async(req: Request, res: Response) => {
         
     const {date} = req.query; 
 
-    if(!date) {
-      console.log("No date :("); 
+    if(typeof date !== 'string' || isNaN(Date.parse(date))) {
+      console.log("Missing query parameters"); 
       res.status(400).json({ error: "Missing date query parameter" });
       return; 
     }
@@ -21,7 +21,7 @@ router.get('/byDate', async(req: Request, res: Response) => {
     const allGroups = await groupGetAllDate(db, parsedDate); 
 
     if(!allGroups.success) {
-      console.log("Failed to fetch :("); 
+      console.log("Failed to fetch"); 
       res.status(500).json({ error: "Failed to fetch groups" });
       return; 
     }
@@ -40,6 +40,20 @@ router.get('/byDate', async(req: Request, res: Response) => {
 router.post(`/create`, async(req: Request, res: Response) => {
   try {
     const { userID, routeID, name, description, availableSpots, date } = req.body;
+    console.log("here!!!!!!"); 
+    if (
+      typeof userID !== 'number' || isNaN(userID) ||
+      typeof routeID !== 'number' || isNaN(routeID) ||
+      typeof availableSpots !== 'number' || isNaN(availableSpots) ||
+      typeof name !== 'string' || name.trim() === '' ||
+      typeof description !== 'string' || description.trim() === '' ||
+      typeof date !== 'string' || isNaN(Date.parse(date))
+    ) {
+      console.log("Missing query params"); 
+      res.status(400).json({ error: "Missing query parameter" });
+      return; 
+    }
+
     const parsedDate = new Date(date);
     const groupID = await groupCreate(db, userID, routeID, description, name, availableSpots, parsedDate);
 
@@ -48,8 +62,6 @@ router.post(`/create`, async(req: Request, res: Response) => {
       res.status(500).json({ error: "Failed to create group" });
       return; 
     }
-    //console.log(req.body);
-    //console.log("id", groupID.data);
 
     res.status(201);
     res.json(groupID.data);
@@ -65,16 +77,22 @@ router.post(`/create`, async(req: Request, res: Response) => {
 router.post(`/add`, async(req: Request, res: Response) => {
   try {
     const { userID, groupID } = req.body;
+
+    if(typeof userID !== 'number' || isNaN(userID) ||
+       typeof groupID !== 'number' || isNaN(groupID) ) {
+      console.log("Missing query params"); 
+      res.status(400).json({ error: "Missing query parameter" });
+      return; 
+    }
+
     const status = await groupAdd(db, userID, groupID); 
 
     if(!status.success) {
       console.log("Failed to add to group"); 
-      res.status(500); 
-      res.json()
+      res.status(500).json();
       return; 
     }
-    //console.log(req.body);
-    //console.log("id", groupID);
+    
     console.log("Added user: ", userID, "in group:", groupID); 
     res.status(201).json({ groupID: groupID });
 
@@ -90,10 +108,9 @@ router.get('/byUser', async(req: Request, res: Response) => {
   try {
         
     const {userID} = req.query; 
-    console.log(userID)
 
-    if(!userID) {
-      console.log("No date :("); 
+    if(typeof userID !== 'number' || isNaN(userID)) {
+      console.log("Missing query parameters"); 
       res.status(400).json({ error: "Missing userID query parameter" });
       return; 
     }
@@ -102,9 +119,7 @@ router.get('/byUser', async(req: Request, res: Response) => {
     const allGroups = await groupGetAllGroups(db, userIDParesd); 
 
     if(!allGroups.success) {
-      console.log(allGroups);
       console.log("Failed to fetch :("); 
-      //Avbryt request?? 
       res.status(500).json({ error: "Failed to fetch groups" });
       return; 
     }
@@ -122,9 +137,10 @@ router.get('/byUser', async(req: Request, res: Response) => {
 router.get(`/byGroup`, async(req: Request, res: Response) => {
   try {
     const {groupID} = req.query; 
-    if(!groupID) {
+
+    if(typeof groupID !== 'number' || isNaN(groupID)) {
       console.log("no groupID"); 
-      res.status(400).json({error: "no groupID"}); 
+      res.status(400).json({error: "missing query parameters"}); 
     } 
 
     const groupIDParsed = Number(groupID);
@@ -148,6 +164,13 @@ router.get(`/byGroup`, async(req: Request, res: Response) => {
 router.post(`/removeUser`, async(req: Request, res: Response) => {
   try{
     const {userID, groupID} = req.body; 
+
+    if(typeof userID !== 'number' || isNaN(userID) ||
+       typeof groupID !== 'number' || isNaN(groupID) ) {
+      console.log("Missing query parameters"); 
+      res.status(400).json({ error: "Missing query parameter" });
+      return; 
+    }
     const removeStatus = await groupRemoveUser(db, userID, groupID);
     
     if(!removeStatus.success) {
@@ -169,15 +192,14 @@ router.get('/isInGroup', async(req: Request, res: Response) => {
   try {
         
     const {userID, groupID} = req.query; 
-    console.log(userID, groupID)
 
-    if(!userID) {
-      console.log("No date :("); 
+    if(typeof userID !== 'number' || isNaN(userID) ||
+       typeof groupID !== 'number' || isNaN(groupID) ) {
+      console.log("Missing query parameters"); 
       res.status(400).json({ error: "Missing userID, groupID query parameter" });
       return; 
     }
 
-    const userIDParesd = Number(userID);
     const status = await isInGroup(db, Number(userID), Number(groupID)); 
 
     res.json(status.success);  
@@ -189,4 +211,4 @@ router.get('/isInGroup', async(req: Request, res: Response) => {
   }
 });
 
-module.exports = router;
+export default router;

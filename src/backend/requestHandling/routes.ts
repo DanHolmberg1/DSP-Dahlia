@@ -1,16 +1,25 @@
-import { getAllRoutes, pairUserAndRoute, routeAdd, routeGet } from "../db_opertions";
+import { pairUserAndRoute, routeAdd, routeGet } from "../db_opertions";
 import { Request, Response } from 'express';
 import { db } from '../httpDriver' 
-import { Router } from 'express';
+import express from 'express';
 
-const router = Router();
+const router = express.Router();
 
 //Adds a route into the database 
 router.post('/create', async (req:Request, res: Response) => {
   try {
-    const routeId = await routeAdd(db, req.body);
+    const {data} = req.body; 
+
+    if(!data) {
+      console.log("request parameters missing");
+      res.status(400).json({error: "request parameters missing"});
+      return; 
+    }
+    const routeId = await routeAdd(db, data);
+
     if (!routeId.data) {
       console.error("route id invalid");
+      res.status(400).json({error: "route id invalid"});
       return;
     }
 
@@ -36,11 +45,13 @@ router.get('/get', async(req: Request, res: Response) => {
   try {
     const {routeID} = req.query;  
      
-    if(!routeID) {
-        return;
+    if(typeof routeID !== 'number' || isNaN(routeID)) {
+      console.log("missing request parameters");
+      res.status(400).json({error: "missing request parameters"})
+      return;
     }
 
-    var parsedRouteId = Number.parseInt(routeID.toString());
+    var parsedRouteId = Number(routeID);
     const route = await routeGet(db, parsedRouteId);
     if (route.success && route.data) {
       res.json(route.data.data);
@@ -58,7 +69,9 @@ router.get('/get', async(req: Request, res: Response) => {
 router.post(`/add`, async(req: Request, res: Response) => {
   try{
     const {userID, routeID} = req.body; 
-    if(!userID || !routeID) {
+    
+    if(typeof userID !== 'number' || isNaN(userID) ||
+       typeof routeID !== 'number' || isNaN(routeID) ) {
       console.log("No userID or routeID"); 
       res.status(500).json(); 
       return; 
@@ -80,4 +93,4 @@ router.post(`/add`, async(req: Request, res: Response) => {
 
 //remove 
 
-module.exports = router;
+export default router;
