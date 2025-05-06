@@ -15,6 +15,7 @@ import { getGroupByDate, sendGroupAdd, getIsInGroup, removeUserFromGroup } from 
 import { useFocusEffect } from "expo-router";
 import {createRoute, routeGet} from "./requests/routes"
 import { translateCoordinate } from "./CoordinateToAddressAPI";
+import * as Location from 'expo-location';
 //OBS MOCK FUNCTION, remove later 
 import { mockUser, mockUser2 } from "./requests/mock";
 //OBS MOCK FUNCTION, remove later 
@@ -42,6 +43,8 @@ export const DisplayOneWalk = (props: DisplayProps) => {
     const [hasBookedSuccess, setHasBookedSuccess] = useState(false);
     const [hasBookedFail, setHasBookedFail] = useState(false);
     const [isBooked, setIsbooked] = useState(false);
+    const [location, setLocation] = useState<Location.LocationObject | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [userId, setUserId] = useState<number>();
 
@@ -99,6 +102,42 @@ export const DisplayOneWalk = (props: DisplayProps) => {
           };
           setWalkData();
     }, []);
+
+    useEffect(() => {
+        let subscription: Location.LocationSubscription;
+      
+        const startTracking = async () => {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            setErrorMsg('Permission to access location was denied');
+            console.log(errorMsg);
+            return;
+          }
+    
+          const currentLocation = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+          });
+          setLocation(currentLocation);
+    
+          subscription = await Location.watchPositionAsync( //track user location continuously 
+            {
+              accuracy: Location.Accuracy.High,
+              timeInterval: 1000,      // every 1 second
+              distanceInterval: 1,     // or every 1 meter
+            },
+            (newLocation) => {
+              setLocation(newLocation);
+              console.log('Location:', newLocation.coords);
+            }
+          );
+        };
+      
+        startTracking();
+      
+        return () => {
+          if (subscription) subscription.remove(); // cleanup on unmount
+        };
+      }, []);
 
     useEffect(() => {
         const isUserBooked = async () => {
@@ -172,6 +211,7 @@ export const DisplayOneWalk = (props: DisplayProps) => {
             longitudeDelta: 0.05,
             }}
         >
+             {location && (<Marker coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }} title="Du är här" pinColor="blue" />)}
             <Marker coordinate={startLocation} title="Start" pinColor="white" />
             <Polyline coordinates={displayRoute} strokeWidth={4} strokeColor="blue" />
         </MapView>

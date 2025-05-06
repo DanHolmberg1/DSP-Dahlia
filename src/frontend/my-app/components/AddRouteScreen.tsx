@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
+import MapView, { Marker, Polyline, Region } from "react-native-maps";
+import { getRoundTripRoute, getRoundTripRouteSquare } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
-import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker"; 
 import { StatusBar } from "expo-status-bar";
-import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
+import * as Location from 'expo-location';
+import { calculateSquare } from "./RoundRoutingAlgortihm";
 interface BookingProps {
     navigation: any
     route: any
@@ -21,18 +21,95 @@ export const AddRoute = (props: BookingProps) => {
   const [routeInfo, setRouteInfo] = useState();
   const [distance, setDistance] = useState('500');
   const [menuExpand, setMenuExpand] = useState<boolean>(false);
-  const [optionExpand, setOptionExpand] = useState<boolean>(false);
   const [startLocation, setStartLocation] = useState<{latitude: number; longitude: number} | null> (null);
   const pickerRef = useRef<Picker<string> | null>(null); 
   const [showStartText, setShowStartText] = useState<boolean>(true);
   const [ShowRoundTrip, setShowRoundTrip] = useState<boolean>(true);
-  const [ShowOptions, setShowOptions] = useState<boolean>(false);
-  const [HasShowOptions, setHasShowOptions] = useState<boolean>(false);
   const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
   const [currentWalkData, setCurrentWalkData] = useState<JSON>();
   const [startChosen, setStartChosen] = useState(false);
+  
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  //const [region, setRegion] = useState<any>(null);
+  const [zoomLevel, setZoomLevel] = useState({ latitudeDelta: 0.05, longitudeDelta: 0.05 });
+  const [region, setRegion] = useState<Region | undefined>(
+    location
+      ? {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }
+      : undefined
+  );
+
+  const defaultRegion = { // Uppsala as deafult 
+    latitude: 59.8586,
+    longitude: 17.6450,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  };
+
+  const [ShowinitialRegion, setShowInitialRegion] = useState(defaultRegion);
 
   const toggleMenuExpander = () => setMenuExpand(prev => !prev);
+
+  useEffect(() => {
+    let subscription: Location.LocationSubscription;
+  
+    const startTracking = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        console.log(errorMsg);
+        return;
+      }
+
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      setLocation(currentLocation);
+
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 1000,      // every 1 second
+          distanceInterval: 1,     // or every 1 meter
+        },
+        (newLocation) => {
+          setLocation(newLocation);
+          console.log('Location:', newLocation.coords);
+        }
+      );
+    };
+  
+    startTracking();
+  
+    return () => {
+      if (subscription) subscription.remove(); // cleanup on unmount
+    };
+  }, []);
+
+  useEffect(() => {
+    if (location) {
+      setShowInitialRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.05, 
+        longitudeDelta: 0.05,
+      });
+    }
+  }, [location]);
+
+  // const initialRegion = location
+  // ? {
+  //     latitude: location.coords.latitude,
+  //     longitude: location.coords.longitude,
+  //     latitudeDelta: 0.05,
+  //     longitudeDelta: 0.05,
+  //   }
+  // : defaultRegion;
 
   const fetchRoundTripRoute = async () => {
    
@@ -40,13 +117,17 @@ export const AddRoute = (props: BookingProps) => {
 
     const randomSeed = Math.floor(Math.random()* 1000);
     const distanceNum = Number(distance);
-    console.log("dis", distanceNum);
-    const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
+
+    const squarePoints = calculateSquare(startLocation, distanceNum);
+
+    //const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
+    const result = await getRoundTripRouteSquare(squarePoints);
+
     setRouteInfo(result);
     const resultGeometry = result.routes[0].geometry;
-    console.log("geo: ", resultGeometry);
-    
     const decodegeom = polyline.decode(resultGeometry);
+
+    console.log("distance", result.routes[0].summary.distance);
 
     const formattedRoute = decodegeom.map((coord: number[]) => ({
         latitude: coord[0],
@@ -68,20 +149,33 @@ return (
         </View>  )} 
     <MapView
             style={styles.map}
-            initialRegion={{
-            latitude: 59.8586, //Example center (Uppsala) TODO: is it possible to change the start screen based on user location?
-            longitude: 17.6450,
-            latitudeDelta: 0.05, 
-            longitudeDelta: 0.05,
-            }}
+            initialRegion={ShowinitialRegion}
+            // region={location ? {
+            //   latitude: location.coords.latitude,
+            //   longitude: location.coords.longitude,
+            //   latitudeDelta: zoomLevel.latitudeDelta,
+            //   longitudeDelta: zoomLevel.longitudeDelta,
+            // } : undefined}  --> this tracks the user, maps follows
 
+            onRegionChangeComplete={(newRegion) => {
+              setZoomLevel({
+                latitudeDelta: newRegion.latitudeDelta,
+                longitudeDelta: newRegion.longitudeDelta
+              });
+              console.log("Zoom level updated:", newRegion.latitudeDelta, newRegion.longitudeDelta);
+            }}
+ 
             onPress={(e) => {setStartLocation(e.nativeEvent.coordinate)
                 setStartChosen(true);
-
-            console.log('ShowOptions:', ShowOptions);
             }}
+
         >
+            {/* Render location on map*/}
+            {location && (<Marker coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }} title="Du är här" pinColor="blue" />)}
+            
+            {/* Render the chosen start location*/}
             {startLocation && <Marker coordinate={startLocation} title="Start" pinColor="white"/>}
+            
             {/* Render the route on the map */}
             {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
         </MapView> 
@@ -220,7 +314,6 @@ startText: {
     color:"white",
     marginBottom: 10,
     marginTop: 20,
-    marginLeft: 0,
 },
 
 buttoncontainerRoundTrip: {

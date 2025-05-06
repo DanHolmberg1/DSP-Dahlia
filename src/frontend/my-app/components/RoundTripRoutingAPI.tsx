@@ -18,7 +18,7 @@ const ORS_API_KEY = '5b3ce3597851110001cf6248b1f7555fe5853475313cd0743d282c95980
  * which is usually a series of coordinates (latitude and longitude). 
  * This data is typically used to render a route on a map.
  */
-export const getRoundTripRouteCircle = async (start: {longitude: number, latitude:number}[] | null, len: number, seed: number, p: number) => {
+export const getRoundTripRouteSquare = async (start: {longitude: number, latitude:number}[] | null) => {
     console.log("hereeee");
 
     if (start == null) {
@@ -40,14 +40,6 @@ export const getRoundTripRouteCircle = async (start: {longitude: number, latitud
             body: JSON.stringify({
                 coordinates: coordinates, // Start/end coordinate
                 radiuses: Array(coordinates.length).fill(5000),
-
-                // options: { 
-                //     round_trip: { // Round-trip: start and end points are the same
-                //         length: len,  // Length of the route (in meters)
-                //         seed: seed,   // Random seed for the route calculation
-                //         points: 6 // Number of points for the round trip
-                //     }
-                // }
             }),  
         });
 
@@ -61,11 +53,9 @@ export const getRoundTripRouteCircle = async (start: {longitude: number, latitud
           }
      
         const data = await response.json();
-        console.log("data:", data);
+      
         if(data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-            console.log("here");
-            console.log("data:", data);
-            return data;
+             return data;
         }else {
             console.error("route data is invalid")
         }
