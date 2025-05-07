@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, BackHandler, ScrollView } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
@@ -10,33 +10,140 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
+import { useNavigation } from "expo-router";
+import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
+
+LocaleConfig.locales['sv'] = {
+  monthNames: [
+    'januari',
+    'februari',
+    'mars',
+    'april',
+    'maj',
+    'juni',
+    'juli',
+    'augusti',
+    'september',
+    'oktober',
+    'november',
+    'december'
+  ],
+  monthNamesShort: [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'maj',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'okt',
+    'nov',
+    'dec'
+  ],
+  dayNames: [
+    'söndag',
+    'måndag',
+    'tisdag',
+    'onsdag',
+    'torsdag',
+    'fredag',
+    'lördag'
+  ],
+  dayNamesShort: ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'],
+  today: 'Idag'
+};
+
+LocaleConfig.defaultLocale = 'sv';
 
 interface BookingProps {
-    navigation: any
+    navigation: any,
+    date: any
 }
 
 const BookWalkScreen = (props: BookingProps) => {
-    const [bookSpot, setbookSpot] = useState<boolean>(false);
+  const [selectedDate, setSelected] = useState('');
+
+  const handleDate = (date:string) => {
+    console.log("SELECTED " + selectedDate)
+    props.navigation.navigate("Tillgängliga pass", {dateInfo: {
+      date: date 
+    }})
+
+  }
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const onBackPress = () => {
+      navigation.navigate('Home' as never); 
+      return true; 
+    };
+  
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  
+    const beforeRemove = navigation.addListener('beforeRemove', (e:any) => {
+      e.preventDefault(); 
+      navigation.navigate('Home' as never);
+    });
+  
+    return () => {
+      backHandler.remove();
+      beforeRemove(); 
+    };
+  }, [navigation]);
 
     return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}> 
-        <Text style = {styles.HeaderText}> Book a walk with others!</Text>
-        <Text style = {styles.StartText}> Share a walk with others!</Text>
+     <ScrollView contentContainerStyle={{paddingBottom: 150, backgroundColor: "white", justifyContent: "flex-start", display: "flex", width: "100%", minHeight: "100%"}}>
+    
+        <Text style = {styles.HeaderText}> Boka en tur!</Text>
 
-        <View style = {styles.BookContainer}> 
-            <Button title = 'Family walk' onPress={() => props.navigation.navigate("Family walk")}/>
-            {/* <Text style = {styles.FamilyWalkText}> Family walk</Text> */}
-           
+          <View style={{ marginRight: Platform.OS === 'android' ? -30: 0 }}>
+         <TouchableOpacity 
+           style={styles.createWalkConatiner} 
+           onPress={() => props.navigation.navigate("Skapa promenad")}
+         >
+           <Text style = {styles.Addsign}> + </Text>
+         </TouchableOpacity>
+       </View>
 
+       <View style = {{marginTop: 10}}>
+
+          <Calendar
+          style={{ }}
+              onDayPress={(day: any) => {
+                handleDate(day.dateString);
+              }}
+              markedDates={{
+                [selectedDate]: {
+                  selected: true,
+                  selectedColor: '#E25E17',
+                },
+              }}
+              theme={{
+                dayTextColor: 'black',        // Regular day numbers
+                todayTextColor: 'blue',        // Today's date
+                selectedDayTextColor: 'white',// Text color when selected
+                textDisabledColor: 'gray',    // Disabled (non-current month) 
+              }}
+            />
         </View>
+
+        <View style = {{borderRadius: 20, width: "95%", height: 200, backgroundColor: "#1B2D92", alignItems: "center", alignSelf: "center",  marginTop: 40}}>
+          <Text style = {{fontSize: 30, color: "white", marginTop: 10}}>
+            Mina bokningar
+          </Text>
+          
+        </View>
+
+        </ScrollView>
+
         <MenuBar navigation={props.navigation}/>
 
     </View>
-    )
-
-    
-
-}; 
+)}; 
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -49,6 +156,42 @@ const styles = StyleSheet.create({
         padding: 20,
         justifyContent:"center",
         alignItems:"center",
+    },
+    createWalkConatiner: {
+      width: "30%",
+      marginBottom: 10,
+      backgroundColor: '#F5BFA2',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 30,
+      borderColor: "black",
+      color: "black",
+      marginLeft: 250,
+      marginTop: 0
+    },
+
+    futureWalksContainer: {
+      width: "30%",
+      marginBottom: 10,
+      backgroundColor: '#F5BFA2',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 30,
+      borderColor: "black",
+      color: "black",
+      marginLeft: 250,
+      marginTop: 50
+    },
+
+    Addsign : {
+      fontSize: 30,
+      marginLeft: 45,
+      marginBottom: 4,
+
+    },
+
+    AddSignContainer: {
+
     },
     BookContainer: {
         backgroundColor: 'rgb(5, 6, 58)',
@@ -99,7 +242,7 @@ const styles = StyleSheet.create({
         color:'rgb(5, 6, 58)',
         marginBottom: 10,
         marginTop: 20,
-        marginLeft: 0,
+        marginLeft: 5,
         fontFamily: 'inter',
         
     },

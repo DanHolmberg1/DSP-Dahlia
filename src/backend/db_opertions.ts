@@ -356,6 +356,15 @@ export async function groupRemoveUser(db: Database, userID: number, groupID: num
       DELETE FROM mapGroupsToUsers
       WHERE userID = ? AND groupID = ?
     `, [userID, groupID]);
+
+    const groupInfo = await groupGet(db, groupID); 
+
+    if(groupInfo.success && groupInfo.data && groupInfo.data.availableSpots > 0) {
+      const updateStatus = await db.run(
+        `UPDATE groups SET availableSpots = ? WHERE id = ?`,
+        [groupInfo.data.availableSpots + 1, groupID]
+      );
+    }
     
     if (removed.changes === 0) {
       return { success: false, error: "No pair found to delete." };

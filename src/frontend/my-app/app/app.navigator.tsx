@@ -15,6 +15,10 @@ import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
 import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
 import { Help, help } from "@/components/HelpScreen";
+import CreateWalk from "@/components/CreateWalkScreen";
+import AddRoute from "@/components/AddRouteScreen";
+import { DisplayWalk } from "@/components/DisplayWalksScreen";
+import { DisplayOneWalk } from "@/components/DisplayOneWalkScreen";
 
 
 export type RootStackParamList = {
@@ -49,7 +53,9 @@ const AppNavigator = () => (
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
         <Screen name="Generate routes" component={MapScreen} />
-        <Screen name="Book walk" component={BookWalkScreen} />
+        <Screen name="Book walk" component={BookWalkScreen} options={{
+            headerBackTitle: 'Home', 
+          }}  />
         <Screen name="Walk Buddy" component={WalkBuddyScreen} />
         <Screen options={{
             headerLeft: () => null,
@@ -60,6 +66,14 @@ const AppNavigator = () => (
         <Screen  name="Walk with stops" component={TripWithStopsScreen} />
         <Screen  name = "Saved routes" component= {SavedRoute}/>
         <Screen  name = "Help" component= {Help}/>
+        <Screen  name = "Skapa promenad" component= {CreateWalk}
+        options={{
+            headerBackTitle: 'Book Walk', 
+          }} />
+        <Screen  name = "Välj rutt" component= {AddRoute}/>
+        <Screen name = "Tillgängliga pass" component= {DisplayWalk}/>
+        <Screen name = "Pass" component= {DisplayOneWalk}/>
+        
     </Navigator>
 
 ); export default AppNavigator;

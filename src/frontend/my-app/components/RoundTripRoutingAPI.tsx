@@ -16,7 +16,6 @@ import MapView, { Polyline, Marker } from "react-native-maps";
  * which is usually a series of coordinates (latitude and longitude). 
  * This data is typically used to render a route on a map.
  */
-
 /*
 export const getRoundTripRouteCircle = async (start: { longitude: number, latitude: number }[] | null, len: number, seed: number, p: number) => {
   console.log("hereeee");
@@ -60,14 +59,6 @@ export const getRoundTripRouteCircle = async (start: { longitude: number, latitu
       return;
     }
 
-    const data = await response.json();
-    console.log("data:", data);
-    if (data.routes && data.routes.length > 0 && data.routes[0].geometry) {
-      console.log("here");
-      console.log("data:", data);
-      return data;
-    } else {
-      console.error("route data is invalid")
     }
   } catch (error) {
     console.error("API error:", error);

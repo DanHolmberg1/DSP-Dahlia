@@ -4,6 +4,7 @@
     "slug": "my-app",
     "owner": "g162477",
     "version": "1.0.0",
+    "sdkVersion": "53.0.0",
     "orientation": "portrait",
     "platforms": ["ios", "android", "web"],
     "icon": "./assets/images/icon.png",
