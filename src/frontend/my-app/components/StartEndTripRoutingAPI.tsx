@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 //import api_key from '../secrets.env'
 
-const ORS_API_KEY = '';
+const ORS_API_KEY = '5b3ce3597851110001cf6248f20c3a6050fc4ea9a72a9a8e2ab654d7';
 
 
 

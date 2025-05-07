@@ -7,10 +7,14 @@ import { getRouteWithStops } from "./RoundTripLocations";
 import { getClosestLocation } from "./FindClosestLocation";
 import { StyleSheet, TextInput, View, Text, Button, 
         KeyboardAvoidingView, Platform, TouchableWithoutFeedback, 
-        Keyboard, TouchableOpacity,  } from "react-native";
+        Keyboard, TouchableOpacity, Pressable } from "react-native";
 import { translatedAdress } from "./TranslateAdressToCoordinare";
 import MenuBar from "./menuBar";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import sendRouteDataHttpRequest from "./httpRequestClient";
+import Arrow from "@/icons/arrow";
+
+
 
 <SafeAreaView style={{ flex: 1 }}></SafeAreaView>
 
@@ -42,6 +46,10 @@ export default function TripWithStopsScreen(props: RouteProps) {
   const [showStartText, setShowStartText] = useState<boolean>(true);
   const [ShowOptions, setShowOptions] = useState<boolean>(false);
   const [isSelectingStart, setSelectingStart] = useState(true);
+  const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
+  const [currentWalkData, setCurrentWalkData] = useState<JSON>();
+  const [menuExpand, setMenuExpand] = useState<boolean>(false);
+  
   
 
   // Hantering av klick på kartan
@@ -58,6 +66,7 @@ export default function TripWithStopsScreen(props: RouteProps) {
       setShowMultipleChoice(true);
       setShowStartText(false);
       setSelectingStart(false);
+      setMenuExpand(true);
     } 
 
     const coordinate = e.nativeEvent.coordinate;
@@ -88,7 +97,18 @@ export default function TripWithStopsScreen(props: RouteProps) {
       alert("No location found for this address.");
     }
   };
+
+  //Sparade rutter
+  const sendRouteToBackend = async () => {
+    console.log("send data");
+    if(currentWalkData) {
+    console.log("send data walk");
+    //sendToBackend(ws, currentWalkData, 1); 
+    sendRouteDataHttpRequest(currentWalkData, 1); // 1 = userID, placeholder
+    }
+  };
   
+  const toggleMenuExpander = () => setMenuExpand(prev => !prev);
 
 
   return (
@@ -121,10 +141,18 @@ export default function TripWithStopsScreen(props: RouteProps) {
             {route.length > 0 && <Polyline coordinates={route} strokeWidth={4} strokeColor="blue" /> }
         </MapView> 
 
-    
+
       {/** View "Walk with stops" */}
       <View style={styles.card}>
 
+      <Pressable style={styles.arrowButton} 
+          onPress={toggleMenuExpander}>
+          <Arrow width={36} height={36} angle={menuExpand} />
+      </Pressable>
+
+    {menuExpand && (
+      
+      <>
 
       {/** Funktionalitet vid adding stop via karta */}
       {isAddingStop && (
@@ -206,12 +234,31 @@ export default function TripWithStopsScreen(props: RouteProps) {
                   const decoded = polyline.decode(result.geometry);
                   const formatted = decoded.map(([lat, lon]) => ({ latitude: lat, longitude: lon }));
                   setRoute(formatted);
+                  setWalkGenerated(true);
                 }
               }}>
             <Text style={styles.buttonText}>Generera</Text>
           </TouchableOpacity>
           </View>
-          </View>
+
+          {WalkGenerated && (
+                <View style={styles.buttonRow}>
+                    <TouchableOpacity
+                    style={styles.buttonSave}
+                    onPress={sendRouteToBackend}
+                  >
+                    <Text style={styles.buttonSaveText}>Spara rutt</Text>
+                  </TouchableOpacity>
+          
+                  <TouchableOpacity
+                    style={styles.buttonSave}
+                  >
+                      <Text style={styles.buttonSaveText}>Information</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+        </View>
 
       )}
         
@@ -292,47 +339,9 @@ export default function TripWithStopsScreen(props: RouteProps) {
           </View>
           
         )}
-
-          {/**  Funktionalitet - reset knapp */}
-          {reset && (
-          <View style={styles.buttoncontainerReset}>
-            <TouchableOpacity
-              // add some styling!
-              onPress={() => {
-                setButtontext(false);
-                setStartLocation(null);
-                setStartChosen(false);
-                setIsSelectingLocation(false);
-                setRoute([]);
-                setContainerColor('rgba(7, 67, 11, 0.8)');
-              }}
-            >
-              <Text style={[styles.buttonTextBlueReset, {marginLeft: Platform.OS === 'android' ? -10: 0}]}>Återställ</Text>
-            </TouchableOpacity>
-          </View>
+      </>
         )}
-
-        {/**  Funktionalitet - generate knapp */}
-        {generate && (
-        <View>
-        <TouchableOpacity 
-          onPress={async () => {
-            if (!startLocation) return alert("Choose a start location");
-            const result = await getRouteWithStops(startLocation, stops, 20000);
-            if (result) {
-              const decoded = polyline.decode(result.geometry);
-              const formatted = decoded.map(([lat, lon]) => ({ latitude: lat, longitude: lon }));
-              setRoute(formatted);
-            }
-          }}
-        >
-          <Text style={[styles.buttonTextBlueReset, { marginLeft: Platform.OS === 'android' ? -10 : 0 }]}>
-            Generate
-          </Text>
-        </TouchableOpacity>
         </View>
-        )}
-      </View>
       <MenuBar navigation={props.navigation}/>
     </View>
   );
@@ -361,7 +370,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 10
+    paddingLeft: 15,
+    paddingRight: 15,
+    marginBottom: 5,
   },
   button: {
     backgroundColor: "#1B2D92",
@@ -499,6 +510,31 @@ confirmText: {
   color: "white",
   fontWeight: "bold",
   fontSize: 19,
-}
-
+},
+buttonRow: {
+  flexDirection: "row",
+  marginTop: 5,
+},
+buttonSaveText: {
+  fontSize: 19,
+  color: "white",
+  textAlign: "center",
+  fontWeight: "bold",
+},
+buttonSave: {
+  backgroundColor: "#E15F18",
+  padding: 12,
+  borderRadius: 30,
+  width: "47.5%",
+  margin: 5,
+},
+arrowButton: {
+  position: "absolute",
+  top: -10,               // Lyft ovanför den expanderbara menyn
+  left: "50%",            // Placera mitten horisontellt
+  backgroundColor: "white",
+  borderRadius: 30,
+  padding: 5,
+  zIndex: 20,
+},
 });

@@ -12,6 +12,8 @@ import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import MenuBar from "./menuBar";
+import sendRouteDataHttpRequest from "./httpRequestClient";
+
 
 interface MapProps {
     navigation:any
@@ -37,7 +39,10 @@ export const RoutewithDesScreen = (props:MapProps) => {
     const [reset, setReset] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
     const [containerColor, setContainerColor] = useState('rgba(7, 67, 11, 0.8)');
+    const [WalkGenerated, setWalkGenerated]= useState<boolean>(false);
+    const [menuExpand, setMenuExpand] = useState<boolean>(false);
     
+    const toggleMenuExpander = () => setMenuExpand(prev => !prev);
 
     
     interface MapProps {
@@ -97,6 +102,7 @@ export const RoutewithDesScreen = (props:MapProps) => {
         setEndButtonText(false);
         setEndChosen(true);
         setReset(true);
+        setMenuExpand(true);
       }
     };
 
@@ -104,9 +110,19 @@ export const RoutewithDesScreen = (props:MapProps) => {
       setContainerColor(containerColor === 'rgba(7, 67, 11, 0.8)'? "rgba(107, 21, 21, 0.8)" : 'rgba(7, 67, 11, 0.8)'); // Toggle between white and light blue
     };
 
+        const sendRouteToBackend = async () => {
+          console.log("send data");
+          if(currentWalkData) {
+            console.log("send data walk");
+          //sendToBackend(ws, currentWalkData, 1); 
+          sendRouteDataHttpRequest(currentWalkData, 1); // 1 = userID, placeholder
+          }
+        };
+
     return ( 
 
         <View style={styles.container}>
+          
 
 {/**Välj startpunkt */}
 {showStartText && (
@@ -140,47 +156,74 @@ export const RoutewithDesScreen = (props:MapProps) => {
   </View>
 )}
 
-    <View style= {styles.OptionsMenu}>
-            <View style={styles.buttonContainer}>
+<View style={styles.buttonContainer}>
+        <Pressable style={styles.arrowButton} 
+          onPress={toggleMenuExpander}>
+          <Arrow width={36} height={36} angle={menuExpand} />
+        </Pressable>
 
-              <TouchableOpacity style={[styles.generateButton]}
-                            onPress={() => {
-                    if(startChosen && endChosen) {
-                        fetchRouteStartDes();
-                    }
-                    else {
-                        alert("Please choose a start and end point.")
-                    }  
-                }}>
-              <Text style={[styles.buttonText]}>Generera rutt</Text>
-              </TouchableOpacity>
+{menuExpand && (
 
-              <TouchableOpacity style={styles.resetButton}
-                // add some styling!
-                onPress={() => {
-                  setStartLocation(null);
-                  setEndLocation(null);
-                  setStartChosen(false);
-                  setEndChosen(false);
-                  setIsSelectingLocation(true);       // <-- Aktivera startval igen
-                  setIsSelectingLocationEnd(false);
-                  setShowStartText(true);             // <-- Visa infotekst igen
-                  setStartButtonText(true);
-                  setEndButtonText(true);
-                  setRoute([]);
-                  setShowInfo(false);
-                  setContainerColor('rgba(7, 67, 11, 0.8)');
-                  setReset(false);
-                }}
-                
-              >
-                <Text style={[styles.buttonText]}>Återställ</Text>
-              </TouchableOpacity>
-          </View>
+            <View>
+              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                    <TouchableOpacity
+                      style={styles.buttoncontainer}
+                      onPress={() => {
+                        if(startChosen && endChosen) {
+                          fetchRouteStartDes();
+                          setWalkGenerated(true);
+                      }
+                      else {
+                          alert("Please choose a start and end point.")
+                      }  
+                      }}
+                    >
+                      <Text style={styles.buttonTextWhite}>   Generera   </Text>
+                    </TouchableOpacity>
+              
+                    <TouchableOpacity
+                      style={styles.resetButton}
+                      onPress={() => {
+                        setStartLocation(null);
+                        setEndLocation(null);
+                        setStartChosen(false);
+                        setEndChosen(false);
+                        setIsSelectingLocation(true);       // <-- Aktivera startval igen
+                        setIsSelectingLocationEnd(false);
+                        setShowStartText(true);             // <-- Visa infotekst igen
+                        setStartButtonText(true);
+                        setEndButtonText(true);
+                        setRoute([]);
+                        setShowInfo(false);
+                        setContainerColor('rgba(7, 67, 11, 0.8)');
+                        setReset(false);
+                      }}
+                    >
+                      <Text style={styles.buttonTextWhite}>Återställ</Text>
+                    </TouchableOpacity>
+              </View>
 
-    </View>  
+              {WalkGenerated && (
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity
+                    style={styles.buttonSave}
+                    onPress={sendRouteToBackend}>
+                    <Text style={styles.buttonSaveText}>Spara rutt</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.buttonSave}>
+                    <Text style={styles.buttonSaveText}>Information</Text>
+                  </TouchableOpacity>
+                </View>
+                  )}
+                </View>
+            
+  )}
+  </View>
+
     <MenuBar navigation={props.navigation}/>
-</View>     
+    </View>     
 )}
 
 const styles = StyleSheet.create({
@@ -205,17 +248,19 @@ const styles = StyleSheet.create({
     paddingRight: 15,
     textAlign: "center",
   },
-  OptionsMenu: {
-    position: 'absolute',  // Position container absolutely relative to the screen
-    bottom: 0,             // Align it to the bottom of the screen
-    height: "30%",  // Set the container's height to 40% of the screen height
-    width: '100%',         // Make the container take the full width
-    backgroundColor: 'white',  // Background color for visibility
-    justifyContent: 'center', // Center the content vertically
-    alignItems: 'center', // Center the content horizontally
+  optionsMenu: {
+    position: "absolute",
+    bottom: 120,
+    width: "100%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: "center",
   },
   generateButton: {
-    backgroundColor: '#E15F18',
+    backgroundColor: '#1B2D92',
     padding: 15,
     borderRadius: 20,
     margin: 10,
@@ -228,13 +273,63 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     backgroundColor: 'grey',
+    borderRadius: 30,
+    borderColor: "black",
+    color: "white",
+    alignContent: "center",
     padding: 15,
-    borderRadius: 20,
-    margin: 10,
-  },
+    margin: 15,
+},
   buttonContainer: {
-    flexDirection: "row",
-    bottom: 57,
+    position: "absolute",
+    bottom: 120,
+    width: "100%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: "center",
   },
+  buttonSave: {
+    backgroundColor: "#E15F18",
+    padding: 12,
+    borderRadius: 30,
+    width: "47.5%",
+    margin: 5,
+  },
+  buttonTextWhite: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  mainButtons: {
+    flexDirection: "row",
+
+  },
+  buttonRow: {
+    flexDirection: "row",
+  },
+  buttonSaveText: {
+    fontSize: 19,
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  buttoncontainer: {
+    padding: 15,
+    margin: 15,
+    backgroundColor: '#1B2D92',
+    borderRadius: 30,
+    borderColor: "black",
+    color: "white",
+    alignContent: "center",
+    width: "55%",
+},
+arrowButton: {
+  backgroundColor: "white",
+  marginBottom: 10,
+},
 });
       

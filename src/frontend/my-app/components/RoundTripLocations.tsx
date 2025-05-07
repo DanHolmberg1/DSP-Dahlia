@@ -3,7 +3,7 @@
 
 import { addGridPointsToRoute, sortAngleSmallToBig } from "./LocationAlgorithm";
 
-const ORS_API_KEY =''
+const ORS_API_KEY ='5b3ce3597851110001cf6248f20c3a6050fc4ea9a72a9a8e2ab654d7'
 
 type Coordinate = [number, number]; // [lon, lat]
 type LatLng = {
