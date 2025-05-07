@@ -9,6 +9,27 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'; 
+
+const firebaseConfig = {
+  apiKey: "",
+
+  authDomain: "",
+
+  projectId: "",
+
+  storageBucket: "",
+
+  messagingSenderId: "",
+
+  appId: "",
+
+  measurementId: ""
+};
+
+const app = initializeApp(firebaseConfig);
+
 
 interface LoginProps {
     navigation: any;
@@ -19,47 +40,57 @@ const LoginScreen = (props: LoginProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    return (
+    const handleLogin = async () => {
+      const auth = getAuth();
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log('Logged in user:', userCredential.user);
+        props.navigation.navigate("Home"); 
+      } catch (error: any) {
+        console.error('Login error:', error.message);
+        alert('Login failed: ' + error.message);
+      }
+    };
 
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}> 
+      return (
+        <>
+          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <KeyboardAvoidingView
+              style={styles.container}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <View style={styles.container}>
+                <Text style={styles.startText}>Log in to your account</Text>
+      
+                <TextInput
+                  style={styles.inputEmail}
+                  placeholderTextColor="#888"
+                  placeholder="Email"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+      
+                <TextInput
+                  style={styles.inputPassword}
+                  placeholderTextColor="#888"
+                  placeholder="Password"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                />
+      
+                <Button title="Sign in" onPress={handleLogin} />
 
-        <View style = {styles.container}>
-            <Text style = {styles.startText}>
-                Log in to your account
-            </Text>
 
-            {/* <Text style = {styles.inputEmail}> 
+      
                 
-            </Text> */}
-
-        <TextInput
-          style={styles.inputEmail}
-          placeholderTextColor="#888"
-          placeholder="Email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-    <TextInput
-          style={styles.inputPassword}
-          placeholderTextColor="#888"
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <Button title="Login" onPress={() => props.navigation.navigate("Home")} />
-
-        </View>
-        </KeyboardAvoidingView>
-       </TouchableWithoutFeedback>
-
-    )
+              </View>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </>
+      )
+      
 }; 
 
 const styles = StyleSheet.create({

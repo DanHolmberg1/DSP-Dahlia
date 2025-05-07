@@ -21,13 +21,15 @@
     "axios": "^1.8.4",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "expo-auth-session": "~6.0.3",
     "polyline": "^0.2.0",
     "socket-io": "^1.0.0",
     "socket.io": "^4.8.1",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "websocket": "^1.0.35",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "undefined": "expo-auth-session/providers/google"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

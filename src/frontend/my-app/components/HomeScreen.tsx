@@ -1,81 +1,59 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
-import polyline, { decode } from "polyline";
-import { start } from "repl";
-import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker"; 
-import { StatusBar } from "expo-status-bar";
-import { abort } from "process";
-import Arrow from "@/icons/arrow";
-import MenuBar from "./menuBar";
+import React from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  TouchableOpacity,
+} from 'react-native';
+import { getAuth, signOut } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../app/app.navigator';
 
-interface HomeScreenProps {
-    navigation: any;
-}
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
-const HomeScreen = (props: HomeScreenProps) => {
+const HomeScreen = () => {
+  const navigation = useNavigation<HomeScreenNavigationProp>();
 
-    //const Map = () => props.navigation.navigate("Map");
+  const handleLogout = async () => {
+    const auth = getAuth();
+    try {
+      await signOut(auth);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Start' }],
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Failed to sign out');
+    }
+  };
 
-    return (
+  return (
+    <View style={{ backgroundColor: 'white', flex: 1 }}>
+      <Text style={styles.startText}>Hello</Text>
 
-    <View style= {{backgroundColor: "white", flex : 1}}>
-
-
-
-
-        <View>
-        <Text style = {styles.startText}>
-            Choose your 
-        </Text>
-
-        <Text style = {styles.startTextActivity}>
-        activity
-        </Text>
-        </View>
-
-        <View>
-        <TouchableOpacity 
-          style={styles.buttoncontainerRoute} 
-          onPress={() => props.navigation.navigate('Generate routes')}
-        >
-          <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
-        </TouchableOpacity>
+      <View>
+        <Button title="Map" onPress={() => navigation.navigate('Map')} />
       </View>
 
       <View>
-        <TouchableOpacity 
-          style={[styles.buttoncontainerBook ]} 
-          onPress={() => props.navigation.navigate('Book walk')}
-        >
-          <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
-        </TouchableOpacity>
+        <Button title="Book walk" onPress={() => navigation.navigate('Book walk')} />
       </View>
 
       <View>
-        <TouchableOpacity 
-          style={styles.buttoncontainerFindBuddy} 
-          onPress={() => props.navigation.navigate('Walk Buddy')}
-        >
-          <Text style={styles.buttonTextFindBuddy}>Find Walk Buddy</Text>
-        </TouchableOpacity>
-      </View> 
-
-      <View>
-        <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
-        onPress={() => props.navigation.navigate('Help')}>
-            <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
-
-        </TouchableOpacity>
+        <Button title="Find Walk Buddy" onPress={() => navigation.navigate('Walk Buddy')} />
       </View>
 
-        
-        <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
+      <View style={styles.logoutContainer}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
     </View>
-
-)};
+  );
+};
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
