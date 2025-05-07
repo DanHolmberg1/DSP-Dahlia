@@ -6,8 +6,10 @@ import {
 import Slider from '@react-native-community/slider';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { chatAPI } from './requests/chatAPI';
-import { useTypedNavigation } from '@/hooks/useTypedNavigation';
+//import { useTypedNavigation } from '@/hooks/useTypedNavigation';
 import { useAuth } from '@/context/authContext';
+import { useNavigation } from '@react-navigation/native';
+
 
 const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -35,7 +37,8 @@ const mapSex = (sex: number) => {
 };
 
 const WalkBuddyScreen = () => {
-  const navigation = useTypedNavigation();
+  // const navigation = useTypedNavigation();
+  const navigation = useNavigation();
   const { currentUser } = useAuth();
   const [people, setPeople] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,8 +136,8 @@ const WalkBuddyScreen = () => {
       
       const { chatId } = await chatAPI.createOrGetChat([currentUser.id, buddy.id]);
       console.log('Chat created/found with ID:', chatId);
-      
-      navigation.navigate('Chat', {
+      // borde göra en typednavigation
+      navigation.navigate('Chat' as never, {
         chatId,
         otherUser: buddy,
         currentUser
