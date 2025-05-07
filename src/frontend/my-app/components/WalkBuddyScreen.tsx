@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { chatAPI } from '@/http/chatAPI';
+import { chatAPI } from './requests/chatAPI';
 import { useTypedNavigation } from '@/hooks/useTypedNavigation';
 import { useAuth } from '@/context/authContext';
 

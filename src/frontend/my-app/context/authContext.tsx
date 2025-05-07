@@ -3,8 +3,13 @@ import React, { createContext, useContext, useState } from 'react';
 
 interface User {
   id: number;
-  name: string;
-  email: string;
+   // här borde det egentligen var typ;
+   //user_id: number:
+   //sub: string;
+   //token: string;
+   // resten ska inte behövas här
+  name: string;     
+  email: string;    
   avatar: string;
   latitude?: number;
   longitude?: number;

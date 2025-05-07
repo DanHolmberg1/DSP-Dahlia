@@ -14,7 +14,7 @@ import {
   Image 
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { chatAPI } from "@/http/chatAPI";
+import { chatAPI } from "./requests/chatAPI";
 import { useAuth } from "@/context/authContext"; // Uppdaterad import-sökväg
 
 interface User {

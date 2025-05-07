@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
 import Home from "@/icons/home";
 import Profile from "@/icons/profile";
-import { chatAPI } from "@/http/chatAPI";
+import { chatAPI } from "./requests/chatAPI";
 import { useAuth } from "@/context/authContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
