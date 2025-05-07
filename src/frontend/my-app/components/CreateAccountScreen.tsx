@@ -9,6 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'; 
 
 
 interface CreateAccountProps {
@@ -20,9 +21,31 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-    const [age, setAge] = useState('');
-    const [profilePic, setProfilePic] = useState(null); // How can we save a picture?
+    //const [age, setAge] = useState('');
+    //const [profilePic, setProfilePic] = useState(null); // How can we save a picture?
     // Add other info needed
+
+    const accCreate = async () => {
+      const auth = getAuth();
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User registered:', userCredential.user);
+
+        await updateProfile(user, {
+            displayName: name,
+          });
+
+        await user.reload();
+        console.log('Updated user info:', auth.currentUser?.displayName);
+
+        props.navigation.navigate("Home"); 
+
+      } catch (error: any) {
+        console.error('Signup error:', error.message);
+        alert('Signup failed: ' + error.message);
+      }
+    };
 
     return (
 
@@ -59,6 +82,14 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
         />
 
     <TextInput
+          style={styles.inputPassword}
+          placeholderTextColor="#888"
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+        />
+
+    {/*<TextInput
         keyboardType="numeric"
         value={age.toString()}
         // onChangeText={(age) =>  {
@@ -73,9 +104,11 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
         style={styles.inputAge}
         placeholderTextColor="#888"
         placeholder="Age"
-        />
+        />*/}
 
-        <Button title="Create account" onPress={() => props.navigation.navigate("Home")} />
+
+        
+        <Button title="Create Account" onPress={accCreate} />
 
         </View>
         </KeyboardAvoidingView>
