@@ -5,15 +5,21 @@ import {
   Text,
   Button,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { getAuth, signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import type { RootStackParamList } from '../app/app.navigator';
+import type { RootStackParamList } from '../app.navigator';
+import MenuBar from './menuBar';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
-const HomeScreen = () => {
+interface HomeScreenProps {
+  navigation: any;
+}
+
+const HomeScreen = (props: HomeScreenProps) => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
 
   const handleLogout = async () => {
@@ -31,23 +37,61 @@ const HomeScreen = () => {
   };
 
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <Text style={styles.startText}>Hello</Text>
+    <View style= {{backgroundColor: "white", flex : 1}}>
+
+
+
+
+    <View>
+    <Text style = {styles.startText}>
+        Choose your 
+    </Text>
+
+    <Text style = {styles.startTextActivity}>
+    activity
+    </Text>
+    </View>
+
+    <View>
+    <TouchableOpacity 
+      style={styles.buttoncontainerRoute} 
+      onPress={() => props.navigation.navigate('Generate routes')}
+    >
+      <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
+    </TouchableOpacity>
+  </View>
+
+  <View>
+    <TouchableOpacity 
+      style={[styles.buttoncontainerBook ]} 
+      onPress={() => props.navigation.navigate('Book walk')}
+    >
+      <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
+    </TouchableOpacity>
+  </View>
+
+  <View>
+    <TouchableOpacity 
+      style={styles.buttoncontainerFindBuddy} 
+      onPress={() => props.navigation.navigate('Walk Buddy')}
+    >
+      <Text style={styles.buttonTextFindBuddy}>Find Walk Buddy</Text>
+    </TouchableOpacity>
+  </View> 
+
+  <View>
+    <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
+    onPress={() => props.navigation.navigate('Help')}>
+        <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
+
+    </TouchableOpacity>
+  </View>
+
+    
+    <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
 
       <View>
-        <Button title="Map" onPress={() => navigation.navigate('Map')} />
-      </View>
-
-      <View>
-        <Button title="Book walk" onPress={() => navigation.navigate('Book walk')} />
-      </View>
-
-      <View>
-        <Button title="Find Walk Buddy" onPress={() => navigation.navigate('Walk Buddy')} />
-      </View>
-
-      <View style={styles.logoutContainer}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={styles.logoutContainer} onPress={handleLogout}>
           <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
@@ -185,6 +229,26 @@ const styles = StyleSheet.create({
         height: 40,
         fontFamily: 'Inter',
     },
+
+    logoutContainer: {
+      width: "30%",
+      marginBottom: 120,
+      backgroundColor: '#E25E17',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 25,
+      borderColor: "black",
+      marginLeft: 15,
+      height: 40,
+      fontFamily: 'Inter',
+  },
+
+  logoutText: {
+    color: 'white',
+    fontSize: 22,
+    marginLeft: 18,
+    marginTop: 5,
+},
 
     helpText: {
         color: 'white',

@@ -13,12 +13,16 @@ import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import{getRouteWithStops} from "./RoundTripLocations";
 import { RoundRouteScreen } from "./RoundRouteScreen";
 import MenuBar from "./menuBar";
+import { getAuth } from "firebase/auth";
 
 interface savedRouteProps {
     navigation: any
   }
   
 export const SavedRoute = (props: savedRouteProps) => {
+
+        const auth = getAuth();
+        const userId = auth.currentUser;
 
     const [allRoutes, setAllRoutes] = useState<any[]>([]);
 

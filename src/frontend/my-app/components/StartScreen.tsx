@@ -20,11 +20,11 @@ const StartScreen = (props: StartProps) => {
         
         <View style={{backgroundColor: "white", flex : 1}}>
             <Text>
-                Log in or create an account
+                Logga in eller skapa ett konto!
             </Text>
 
-            <Button title = "Login" onPress={() => props.navigation.navigate("Login")}/>
-            <Button title = "Create account" onPress={() => props.navigation.navigate("Create account")}/>
+            <Button title = "Logga in" onPress={() => props.navigation.navigate("Login")}/>
+            <Button title = "Skapa konto" onPress={() => props.navigation.navigate("Create account")}/>
             
         </View>
     )

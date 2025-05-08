@@ -9,27 +9,36 @@ import { Picker } from "@react-native-picker/picker";
 import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'; 
+import { getAuth, signInWithEmailAndPassword, 
+  // @ts-ignore
+  getReactNativePersistence, 
+  initializeAuth} from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: "",
+  apiKey: "AIzaSyDRa50GANID0l131R59Gr2ybUQc64YwAOs",
 
-  authDomain: "",
+  authDomain: "dahlia-334fa.firebaseapp.com",
 
-  projectId: "",
+  projectId: "dahlia-334fa",
 
-  storageBucket: "",
+  storageBucket: "dahlia-334fa.firebasestorage.app",
 
-  messagingSenderId: "",
+  messagingSenderId: "981511080704",
 
-  appId: "",
+  appId: "1:981511080704:web:ba2da57709d561a38901e5",
 
-  measurementId: ""
+  measurementId: "G-5S5ML74VDP"
+  
 };
 
 const app = initializeApp(firebaseConfig);
-
+//const db = getFirestore(app);
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 interface LoginProps {
     navigation: any;
@@ -39,12 +48,22 @@ const LoginScreen = (props: LoginProps) => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [age, setAge] = useState(0);
+    
 
     const handleLogin = async () => {
-      const auth = getAuth();
+
+      if(!email || !password) {
+        alert("Besvara alla fält");
+        return;
+      }
+      
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const loggedInUser = userCredential.user;
         console.log('Logged in user:', userCredential.user);
+        const userID = loggedInUser.uid;
+        console.log("user id", userID);
         props.navigation.navigate("Home"); 
       } catch (error: any) {
         console.error('Login error:', error.message);
@@ -60,7 +79,7 @@ const LoginScreen = (props: LoginProps) => {
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
               <View style={styles.container}>
-                <Text style={styles.startText}>Log in to your account</Text>
+                <Text style={styles.startText}>Logga in på ditt konto</Text>
       
                 <TextInput
                   style={styles.inputEmail}
@@ -74,17 +93,16 @@ const LoginScreen = (props: LoginProps) => {
                 <TextInput
                   style={styles.inputPassword}
                   placeholderTextColor="#888"
-                  placeholder="Password"
+                  placeholder="Lösenord"
                   secureTextEntry
                   value={password}
                   onChangeText={setPassword}
                 />
-      
-                <Button title="Sign in" onPress={handleLogin} />
 
-
-      
                 
+      
+                <Button title="Logga in" onPress={handleLogin} />
+
               </View>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>

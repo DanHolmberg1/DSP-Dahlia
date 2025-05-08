@@ -12,6 +12,8 @@ import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
 import { useNavigation } from "expo-router";
 import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
+import { getAuth } from 'firebase/auth';
+import { get } from "http";
 
 LocaleConfig.locales['sv'] = {
   monthNames: [
@@ -57,12 +59,33 @@ LocaleConfig.locales['sv'] = {
 
 LocaleConfig.defaultLocale = 'sv';
 
+// interface BookingProps {
+//     navigation: any,
+//     route: any,
+//     date: any
+// }
+
+type BookingScreenNavigationProp = {
+  navigate: (screen: string, params?: object) => void;
+};
+
+type BookingScreenRouteProp = {
+  params: {
+    dateInfo: { date: string };
+  };
+};
+
+// Define the props type for the component
 interface BookingProps {
-    navigation: any,
-    date: any
+  navigation: BookingScreenNavigationProp;
+  route: BookingScreenRouteProp;
 }
 
 const BookWalkScreen = (props: BookingProps) => {
+  
+  const auth = getAuth();
+  const userId = auth.currentUser;
+  
   const [selectedDate, setSelected] = useState('');
 
   const handleDate = (date:string) => {
