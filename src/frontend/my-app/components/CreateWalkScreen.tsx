@@ -15,10 +15,11 @@ import { showRoute } from "./routeDetailScreen";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { sendGroupCreate } from "./requests/groups";
 import { createRoute } from "./requests/routes"; 
+import { getAuth } from "firebase/auth";
 
 //OBS MOCK FUNCTION, remove later 
 import { mockUser } from "./requests/mock";
-import { getAuth } from "firebase/auth";
+
 //OBS MOCK FUNCTION, remove later 
 
 interface CreateWalkProps {

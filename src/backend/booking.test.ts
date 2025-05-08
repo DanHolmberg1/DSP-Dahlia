@@ -133,7 +133,7 @@ test('Update user', async () => {
     expect(id.success).toBeTruthy;
 
     if(id.success && id.data){
-        await updateUser(db, id.data, name2, email1, age1 + 1, sex2);
+        await updateUser(db, id.data, name2, email1, age1 + 1, sex2, 0, 0, null);
         const user = await getUser(db, id.data);
         expect(user.success).toBeTruthy;
 

@@ -19,6 +19,8 @@ import CreateWalk from "@/components/CreateWalkScreen";
 import AddRoute from "@/components/AddRouteScreen";
 import { DisplayWalk } from "@/components/DisplayWalksScreen";
 import { DisplayOneWalk } from "@/components/DisplayOneWalkScreen";
+import DiscoverPeopleScreen from "@/components/DiscoverPeopleScreen"
+import ChatScreen from "@/components/ChatScreen"
 
 
 export type RootStackParamList = {
@@ -40,6 +42,9 @@ export type RootStackParamList = {
     'Välj rutt': undefined;
     'Tillgängliga pass': undefined;
     'Pass': undefined;
+    'Find Friends': undefined;
+    'Profil': undefined;
+    'Messages': undefined;
 };
 
 // type BookingScreenProps = {
@@ -67,7 +72,7 @@ const AppNavigator = () => (
         <Screen name="Book walk" component={BookWalkScreen} options={{
             headerBackTitle: 'Home', 
           }}  />
-        <Screen name="Walk Buddy" component={WalkBuddyScreen} />
+        <Screen name="Walk Buddy" component={DiscoverPeopleScreen} />
         <Screen options={{
             headerLeft: () => null,
         }} name="Family walk" component={FamilyWalk} />
@@ -84,7 +89,7 @@ const AppNavigator = () => (
         <Screen  name = "Välj rutt" component= {AddRoute}/>
         <Screen name = "Tillgängliga pass" component= {DisplayWalk}/>
         <Screen name = "Pass" component= {DisplayOneWalk}/>
-        
+
     </Navigator>
   
 
