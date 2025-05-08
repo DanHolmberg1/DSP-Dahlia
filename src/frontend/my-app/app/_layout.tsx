@@ -1,6 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -9,10 +8,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import MapScreen from '@/components/MapScreen';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import HomeScreen from '@/components/HomeScreen';
-import AppNavigator from './app.navigator';
+import AppNavigator from '../app.navigator';
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import * as WebBrowser from 'expo-web-browser';
+import '../components/firebase';
+import React from 'react';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -26,9 +27,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       
+
+      
+      
       {/* <MapScreen /> */}
       {/* <HomeScreen/> */}
       <AppNavigator/>
+      
     </GestureHandlerRootView>
   );
 }

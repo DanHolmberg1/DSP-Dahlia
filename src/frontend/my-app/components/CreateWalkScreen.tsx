@@ -18,6 +18,7 @@ import { createRoute } from "./requests/routes";
 
 //OBS MOCK FUNCTION, remove later 
 import { mockUser } from "./requests/mock";
+import { getAuth } from "firebase/auth";
 //OBS MOCK FUNCTION, remove later 
 
 interface CreateWalkProps {
@@ -25,6 +26,9 @@ interface CreateWalkProps {
     route: any
 }
 const CreateWalk = (props: CreateWalkProps) => {
+
+    const auth = getAuth();
+    const userId = auth.currentUser;
 
     const navigation = useNavigation();
 

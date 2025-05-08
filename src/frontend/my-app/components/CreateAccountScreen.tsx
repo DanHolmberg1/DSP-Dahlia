@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Alert } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
@@ -21,11 +21,16 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-    //const [age, setAge] = useState('');
+    const [age, setAge] = useState('');
     //const [profilePic, setProfilePic] = useState(null); // How can we save a picture?
     // Add other info needed
 
     const accCreate = async () => {
+
+      if(!email || !password || !name) {
+        alert("Besvara alla fält");
+        return;
+      }
       const auth = getAuth();
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -38,6 +43,8 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
 
         await user.reload();
         console.log('Updated user info:', auth.currentUser?.displayName);
+
+        //Add to database???
 
         props.navigation.navigate("Home"); 
 
@@ -55,13 +62,14 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}> 
 
         <View style = {styles.container}>
-            <Text style = {styles.startText}>
-                Create account
-            </Text>
 
-            {/* <Text style = {styles.inputEmail}> 
-                
-            </Text> */}
+          <View style = {{marginTop: -50}}>
+          <Text style = {styles.startText}>
+                Skapa konto
+            </Text>
+          </View>
+
+  <View style = {{alignContent: "center", marginTop: -220}}>
 
         <TextInput
           style={styles.inputEmail}
@@ -75,7 +83,7 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
     <TextInput
           style={styles.inputPassword}
           placeholderTextColor="#888"
-          placeholder="Password"
+          placeholder="Lösenord"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -84,27 +92,30 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
     <TextInput
           style={styles.inputPassword}
           placeholderTextColor="#888"
-          placeholder="Name"
+          placeholder="Namn"
           value={name}
           onChangeText={setName}
         />
 
-    {/*<TextInput
+      <TextInput
         keyboardType="numeric"
         value={age.toString()}
-        // onChangeText={(age) =>  {
-        // const validNum = Number(age);
-        // if(validNum > 0 && validNum < 150) {
-        //     setAge(age);
-        //     console.log(validNum);
-        // } else {
-        //     <Text> Not a valid age</Text>
-        // }}}
-        onChangeText={setAge}
+        onChangeText={(age) => {
+          setAge(age);  // just update state, no validation here
+        }}
+        onEndEditing={() => {
+          const validNum = Number(age);
+          if (validNum <= 17 || validNum >= 122) {
+            alert('Ogiltig ålder');
+          }
+        }}
         style={styles.inputAge}
         placeholderTextColor="#888"
-        placeholder="Age"
-        />*/}
+        placeholder="Ålder"
+      />
+
+
+  </View>
 
 
         
@@ -121,7 +132,7 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1,
         backgroundColor: "white",
-        padding: 10,
+        padding: 10, 
     },
 
     controls: {
@@ -169,8 +180,9 @@ const styles = StyleSheet.create({
         color:"black",
         marginBottom: 10,
         marginTop: 85,
-        marginLeft: 55,
-        position: "absolute",
+        //marginLeft: 90,
+        //position: "absolute",
+        textAlign: "center"
     },
 
     inputEmail: {

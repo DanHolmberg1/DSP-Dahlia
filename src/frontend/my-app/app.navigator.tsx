@@ -1,20 +1,20 @@
 import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
-import { NavigationContainer } from "@react-navigation/native";
-import HomeScreen from "../components/HomeScreen";
-import MapScreen from "../components/MapScreen";
-import WalkBuddyScreen from "../components/WalkBuddyScreen"
+import { createStackNavigator, StackNavigationProp } from "@react-navigation/stack";
+import { NavigationContainer, RouteProp } from "@react-navigation/native";
+import HomeScreen from "./components/HomeScreen";
+import MapScreen from "./components/MapScreen";
+import WalkBuddyScreen from "./components/WalkBuddyScreen"
 import { Stack } from "expo-router";
-import BookWalkScreen from "../components/BookWalkScreen";
-import LoginScreen from "../components/LoginScreen";
-import CreateAccountScreen from "../components/CreateAccountScreen";
-import StartScreen from "../components/StartScreen";
+import BookWalkScreen from "./components/BookWalkScreen";
+import LoginScreen from "./components/LoginScreen";
+import CreateAccountScreen from "./components/CreateAccountScreen";
+import StartScreen from "./components/StartScreen";
 import FamilyWalk from "@/components/FamilyWalk";
 import { RoutewithDesScreen } from "@/components/RouteWithDesScreen";
 import { RoundRouteScreen } from "@/components/RoundRouteScreen";
 import TripWithStopsScreen from "@/components/TripwithStopsScreen";
-import { SavedRoute, savedRoute } from "@/components/savedRouteScree";
-import { Help, help } from "@/components/HelpScreen";
+import { SavedRoute } from "@/components/savedRouteScree";
+import { Help } from "@/components/HelpScreen";
 import CreateWalk from "@/components/CreateWalkScreen";
 import AddRoute from "@/components/AddRouteScreen";
 import { DisplayWalk } from "@/components/DisplayWalksScreen";
@@ -27,10 +27,25 @@ export type RootStackParamList = {
     'Create account': undefined;
     Home: undefined;
     Map: undefined;
-    'Book walk': undefined;
+    'Book walk': { dateInfo: { date: string } };
     'Walk Buddy': undefined;
     'Family walk': undefined;
-  };
+    'Generate routes': undefined;   
+    'Walk with destination': undefined;
+    'Round walk': undefined;
+    'Walk with stops': undefined;
+    'Saved routes': undefined;
+    'Help': undefined;
+    'Skapa promenad': undefined;
+    'Välj rutt': undefined;
+    'Tillgängliga pass': undefined;
+    'Pass': undefined;
+};
+
+// type BookingScreenProps = {
+//     navigation: StackNavigationProp<RootStackParamList, 'Book walk'>;
+//     route: RouteProp<RootStackParamList, 'Book walk'>;
+//   };
 
   const stack = createStackNavigator<RootStackParamList>();
   const { Navigator, Screen } = stack;
@@ -43,12 +58,8 @@ const AppNavigator = () => (
         <Screen options={{
             headerLeft: () => null, 
         }} name="Start" component={StartScreen} />
-        <Screen options={{
-            headerLeft: () => null, 
-        }} name="Login" component={LoginScreen} />
-        <Screen options={{
-            headerLeft: () => null, 
-        }} name="Create account" component={CreateAccountScreen} />
+        <Screen name="Login" component={LoginScreen} />
+        <Screen name="Create account" component={CreateAccountScreen} />
         <Screen options={{
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
@@ -75,5 +86,6 @@ const AppNavigator = () => (
         <Screen name = "Pass" component= {DisplayOneWalk}/>
         
     </Navigator>
+  
 
 ); export default AppNavigator;
