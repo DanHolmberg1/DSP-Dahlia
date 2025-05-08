@@ -14,7 +14,7 @@ import { getAuth, signInWithEmailAndPassword,
   getReactNativePersistence, 
   initializeAuth} from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -35,7 +35,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-//const db = getFirestore(app);
+const db = getFirestore(app);
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
@@ -62,9 +62,24 @@ const LoginScreen = (props: LoginProps) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const loggedInUser = userCredential.user;
         console.log('Logged in user:', userCredential.user);
-        const userID = loggedInUser.uid;
-        console.log("user id", userID);
+        const userIDFirebase = loggedInUser.uid;
+        console.log("user id", userIDFirebase);
         props.navigation.navigate("Home"); 
+
+        let userId = '';
+
+        const q = query(collection(db, "users"), where("uid", "==", userIDFirebase));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+        const data = doc.data();
+
+        userId = data.UserId;
+        console.log("Custom user ID:", userId)
+        });
+
+        const resp = await AsyncStorage.setItem('userId', userId);
+
       } catch (error: any) {
         console.error('Login error:', error.message);
         alert('Login failed: ' + error.message);

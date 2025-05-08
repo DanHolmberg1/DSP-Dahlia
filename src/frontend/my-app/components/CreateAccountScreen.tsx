@@ -10,6 +10,8 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'; 
+import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { sendUserCreate } from "./requests/users";
 
 
 interface CreateAccountProps {
@@ -32,6 +34,7 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
         return;
       }
       const auth = getAuth();
+      const db = getFirestore()
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -41,10 +44,22 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
             displayName: name,
           });
 
+
+          //Add to database???
+          const userID = await sendUserCreate(name, email, Number(age), 1); //change when implemented 
+
+          await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            UserId: userID
+          });
+
         await user.reload();
         console.log('Updated user info:', auth.currentUser?.displayName);
+        console.log('')
 
-        //Add to database???
+
+
+
 
         props.navigation.navigate("Home"); 
 

@@ -14,6 +14,7 @@ import { useNavigation } from "expo-router";
 import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
 import { getAuth } from 'firebase/auth';
 import { get } from "http";
+import { getAllGroupsForUser } from "./requests/groups";
 
 LocaleConfig.locales['sv'] = {
   monthNames: [
@@ -96,6 +97,11 @@ const BookWalkScreen = (props: BookingProps) => {
 
   }
 
+
+  if(userId) {
+  const bookings = getAllGroupsForUser(1);
+  } 
+  
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -158,6 +164,12 @@ const BookWalkScreen = (props: BookingProps) => {
           <Text style = {{fontSize: 30, color: "white", marginTop: 10}}>
             Mina bokningar
           </Text>
+
+          <TouchableOpacity>
+          getAllGroupsForUser(userid)
+
+          </TouchableOpacity>
+
           
         </View>
 
