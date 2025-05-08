@@ -1,103 +1,87 @@
-import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
-import { getAuth, signOut } from 'firebase/auth';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { RootStackParamList } from '../app.navigator';
-import MenuBar from './menuBar';
-
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
-
+import React, { useEffect, useState, useRef } from "react";
+import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
+import { getRoundTripRoute } from "./RoundTripRoutingAPI";
+import polyline, { decode } from "polyline";
+import { start } from "repl";
+import { Pressable, TextInput } from "react-native-gesture-handler";
+import { Picker } from "@react-native-picker/picker"; 
+import { StatusBar } from "expo-status-bar";
+import { abort } from "process";
+import { MaterialIcons } from "@expo/vector-icons";
+import Arrow from "@/icons/arrow";
+import MenuBar from "./menuBar";
+import { useAuth } from "@/context/authContext"; 
 interface HomeScreenProps {
-  navigation: any;
+    navigation: any;
 }
 
 const HomeScreen = (props: HomeScreenProps) => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { currentUser } = useAuth();
+    //const Map = () => props.navigation.navigate("Map");
 
-  const handleLogout = async () => {
-    const auth = getAuth();
-    try {
-      await signOut(auth);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Start' }],
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      alert('Failed to sign out');
-    }
-  };
+    return (
 
-  return (
     <View style= {{backgroundColor: "white", flex : 1}}>
 
-
-
-
-    <View>
-    <Text style = {styles.startText}>
-        Choose your 
-    </Text>
-
-    <Text style = {styles.startTextActivity}>
-    activity
-    </Text>
-    </View>
-
-    <View>
-    <TouchableOpacity 
-      style={styles.buttoncontainerRoute} 
-      onPress={() => props.navigation.navigate('Generate routes')}
-    >
-      <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
-    </TouchableOpacity>
-  </View>
-
-  <View>
-    <TouchableOpacity 
-      style={[styles.buttoncontainerBook ]} 
-      onPress={() => props.navigation.navigate('Book walk')}
-    >
-      <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
-    </TouchableOpacity>
-  </View>
-
-  <View>
-    <TouchableOpacity 
-      style={styles.buttoncontainerFindBuddy} 
-      onPress={() => props.navigation.navigate('Walk Buddy')}
-    >
-      <Text style={styles.buttonTextFindBuddy}>Find Walk Buddy</Text>
-    </TouchableOpacity>
-  </View> 
-
-  <View>
-    <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
-    onPress={() => props.navigation.navigate('Help')}>
-        <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
-
-    </TouchableOpacity>
-  </View>
-
+<View style={styles.userInfoContainer}>
+            <Text style={styles.userInfoText}>
+                (temp)ID: {currentUser?.id || '0'}
+            </Text>
     
-    <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
+        </View>
 
-      <View>
-        <TouchableOpacity style={styles.logoutContainer} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Sign Out</Text>
+
+        <View>
+        <Text style = {styles.startText}>
+            Choose your 
+        </Text>
+
+        <Text style = {styles.startTextActivity}>
+        activity
+        </Text>
+        </View>
+
+        <View>
+        <TouchableOpacity 
+          style={styles.buttoncontainerRoute} 
+          onPress={() => props.navigation.navigate('Generate routes')}
+        >
+          <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
         </TouchableOpacity>
       </View>
+
+      <View>
+        <TouchableOpacity 
+          style={[styles.buttoncontainerBook ]} 
+          onPress={() => props.navigation.navigate('Book walk')}
+        >
+          <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View>
+        <TouchableOpacity 
+          style={styles.buttoncontainerFindBuddy} 
+          onPress={() => props.navigation.navigate('Walk Buddy')}
+        >
+          <Text style={styles.buttonTextFindBuddy}>Find Walk Buddy</Text>
+        </TouchableOpacity>
+      </View> 
+
+      <View>
+        <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
+        onPress={() => props.navigation.navigate('Help')}>
+            <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
+
+        </TouchableOpacity>
+      </View>
+
+        
+        <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
     </View>
-  );
-};
+
+)};
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -229,26 +213,31 @@ const styles = StyleSheet.create({
         height: 40,
         fontFamily: 'Inter',
     },
-
-    logoutContainer: {
-      width: "30%",
-      marginBottom: 120,
-      backgroundColor: '#E25E17',
-      position: "absolute",
-      bottom: 0,
-      borderRadius: 25,
-      borderColor: "black",
-      marginLeft: 15,
-      height: 40,
-      fontFamily: 'Inter',
-  },
-
-  logoutText: {
-    color: 'white',
-    fontSize: 22,
-    marginLeft: 18,
-    marginTop: 5,
-},
+    
+      userInfoContainer: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        backgroundColor: 'rgba(225, 94, 23, 0.2)',
+        borderRadius: 8,
+        padding: 8,
+        zIndex: 1,
+        borderWidth: 1,
+        borderColor: '#E15E17',
+    },
+    userInfoText: {
+        color: '#1B2D92',
+        fontSize: 12,
+        lineHeight: 16,
+    },
+    featuresContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 4,
+    },
+    featureIcon: {
+        marginRight: 8,
+    },
 
     helpText: {
         color: 'white',

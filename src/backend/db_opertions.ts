@@ -13,6 +13,14 @@ export interface User {
   email: string;
   age: number;
   sex: number;
+  avatar?: string; 
+  latitude?: number;
+  longitude?: number;
+  bio?: string;
+  pace?: string; // Pace in minutes per kilometer.
+  features?: string; // JSON string of features.
+  friends?: Array<User>; // List of friends.
+  created_at?: string; // Date of creation.
 }
 
 export interface Route {
@@ -36,6 +44,27 @@ export interface DBResponse<T> {
   error?: string;
 }
 
+// Chat message interface.
+export interface Chat {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface ChatMember {
+  chat_id: number;
+  user_id: number;
+  joined_at: string;
+}
+
+export interface Message {
+  id: number;
+  chat_id: number;
+  user_id: number;
+  content: string;
+  sent_at: string;
+}
+
 
 // Initialize the database with the required tables.
 // nameing????
@@ -55,7 +84,13 @@ export async function DBInit(): Promise<Database> {
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       age INTEGER NOT NULL CHECK(age < 122 AND age > 17),
-      sex INTEGER NOT NULL CHECK(sex > 0 AND sex < 4)
+      sex INTEGER NOT NULL CHECK(sex > 0 AND sex < 4), 
+      latitude REAL,
+      longitude REAL,
+      bio TEXT,
+      pace TEXT,
+      features TEXT,
+      avatar TEXT
     )
   `);
 
@@ -103,6 +138,51 @@ export async function DBInit(): Promise<Database> {
     )
   `);
 
+  //chat tables
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS chats (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS friends (
+      user_id INTEGER,
+      friend_id INTEGER,
+      PRIMARY KEY (user_id, friend_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS chat_members (
+      chat_id INTEGER,
+      user_id INTEGER,
+      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_read_at DATETIME, 
+      PRIMARY KEY (chat_id, user_id),
+      FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id INTEGER,
+    user_id INTEGER,
+    content TEXT,
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+`);
+await db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id)
+`); // for faster access to chat members by user ID(behövs egentligen inte för små dataset men hjälpte i enhetstester)
+
+
 
   //Creates search trees based on userID and routeID 
   //routes - users search trees 
@@ -115,6 +195,9 @@ export async function DBInit(): Promise<Database> {
 
   //groups - date search trees 
   await db.exec(`CREATE INDEX IF NOT EXISTS idx_groups_datetime ON groups(datetime)`);
+
+  //users - mail 
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
   
 
   //Allows deletion to happen automatically in the mapRoutesToUsers table 
@@ -688,3 +771,251 @@ export async function clearUsersGroups(db: Database): Promise<boolean> {
   }
 }
 
+//Chat functions ******************** Dom kanske inte ska ligga här??*********************
+
+export async function createChat(db: Database, name: string): Promise<DBResponse<number>> {
+  if (!name.trim()) {
+    return { success: false, error: "Chat name required" };
+  }
+
+  try {
+    const result = await db.run("INSERT INTO chats (name) VALUES (?)", [name]);
+    return result.lastID 
+      ? { success: true, data: result.lastID }
+      : { success: false, error: "Failed to create chat" };
+  } catch (err) {
+    console.error("Error creating chat:", err);
+    return { success: false, error: "Database error" };
+  }
+}
+
+export async function addUserToChat(db: Database, chatId: number, userId: number): Promise<DBResponse<void>> {
+  try {
+    await db.run("INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)", [chatId, userId]);
+    return { success: true };
+  } catch (err) {
+    console.error("Error adding user to chat:", err);
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : "Database error" 
+    };
+  }
+}
+
+export async function sendMessage(db: Database, chatId: number, userId: number, content: string): Promise<DBResponse<number>> {
+  try {
+    const result = await db.run(
+      "INSERT INTO messages (chat_id, user_id, content) VALUES (?, ?, ?)",
+      [chatId, userId, content]
+    );
+    if (result.lastID) {
+      return {
+        success: true,
+        data: result.lastID // Only include defined properties
+      };
+    }
+    return { success: false, error: "Failed to send message" };
+  } catch (err) {
+    console.error("Error sending message:", err);
+    return { success: false, error: "Error sending message" };
+  }
+}
+
+export async function getMessages(db: Database, chatId: number, limit: number = 50): Promise<DBResponse<Message[]>> {
+  try {
+    const messages = await db.all(
+      "SELECT * FROM messages WHERE chat_id = ? ORDER BY sent_at DESC LIMIT ?",
+      [chatId, limit]
+    );
+    return { 
+      success: true, 
+      data: messages.reverse() // Correctly return the messages array
+    };
+  } catch (err) {
+    console.error("Error getting messages:", err);
+    return { success: false, error: "Error getting messages" };
+  }
+}
+
+export async function getUserChats(db: Database, userId: number): Promise<DBResponse<Chat[]>> {
+  try {
+    const chats = await db.all(
+      `SELECT c.* FROM chats c
+       JOIN chat_members cm ON c.id = cm.chat_id
+       WHERE cm.user_id = ?`,
+      [userId]
+    );
+    return { success: true, data: chats };
+  } catch (err) {
+    console.error("Error getting user chats:", err);
+    return { success: false, error: "Error getting user chats" };
+  }
+}
+
+export async function getOtherChatMembers(db: Database, chatId: number, userId: number): Promise<DBResponse<User[]>> {
+  try {
+    const members = await db.all(
+      `SELECT u.* FROM users u
+       JOIN chat_members cm ON u.id = cm.user_id
+       WHERE cm.chat_id = ? AND cm.user_id != ?`,
+      [chatId, userId]
+    );
+    return { success: true, data: members };
+  } catch (err) {
+    console.error("Error getting chat members:", err);
+    return { success: false, error: "Error getting chat members" };
+  }
+}
+
+export async function markChatAsRead(db: Database, chatId: number, userId: number): Promise<DBResponse<void>> {
+  try {
+    await db.run(
+      "UPDATE chat_members SET last_read_at = CURRENT_TIMESTAMP WHERE chat_id = ? AND user_id = ?",
+      [chatId, userId]
+    );
+    return { success: true };
+  } catch (err) {
+    console.error("Error marking chat as read:", err);
+    return { success: false, error: "Error marking chat as read" };
+  }
+}
+
+export async function getUnreadCount(db: Database, chatId: number, userId: number): Promise<DBResponse<number>> {
+  try {
+    const result = await db.get(
+      `SELECT COUNT(*) as count FROM messages m
+       WHERE m.chat_id = ? 
+       AND m.user_id != ?
+       AND (SELECT last_read_at FROM chat_members 
+            WHERE chat_id = ? AND user_id = ?) < m.sent_at`,
+      [chatId, userId, chatId, userId]
+    );
+    return { success: true, data: result?.count || 0 };
+  } catch (err) {
+    console.error("Error getting unread count:", err);
+    return { success: false, error: "Error getting unread count" };
+  }
+}
+
+// Add friend function
+export async function addFriend(db: Database, userId: number, friendId: number): Promise<DBResponse<void>> {
+  try {
+    await db.run(
+      "INSERT INTO friends (user_id, friend_id) VALUES (?, ?), (?, ?)",
+      [userId, friendId, friendId, userId]
+    );
+    return { success: true };
+  } catch (err) {
+    console.error("Error adding friend:", err);
+    return { success: false, error: "Error adding friend" };
+  }
+}
+
+// Get user friends
+export async function getUserFriends(db: Database, userId: number): Promise<DBResponse<User[]>> {
+  try {
+    const friends = await db.all(
+      `SELECT u.* FROM users u
+       JOIN friends f ON u.id = f.friend_id
+       WHERE f.user_id = ?`,
+      [userId]
+    );
+    return { success: true, data: friends };
+  } catch (err) {
+    console.error("Error getting friends:", err);
+    return { success: false, error: "Error getting friends" };
+  }
+  
+}
+export async function findExistingChat(db: Database, userIds: number[]): Promise<DBResponse<{id: number} | null>> {
+  try {
+    console.log('Finding chat for users:', userIds);
+    
+    const query = `
+      SELECT c.id FROM chats c
+      WHERE (
+        SELECT COUNT(*) FROM chat_members cm 
+        WHERE cm.chat_id = c.id AND cm.user_id IN (${userIds.map(() => '?').join(',')})
+      ) = ? 
+      AND (
+        SELECT COUNT(*) FROM chat_members cm 
+        WHERE cm.chat_id = c.id
+      ) = ?
+    `;
+
+    const result = await db.get(query, [...userIds, userIds.length, userIds.length]);
+    
+    console.log('Find chat result:', result);
+    
+    return { 
+      success: true, 
+      data: result ? { id: result.id } : null 
+    };
+  } catch (error) {
+    console.error('Error in findExistingChat:', error);
+    return { 
+      success: false, 
+      error: 'Error finding existing chat' 
+    };
+  }
+}
+
+export async function createNewChat(db: Database, userIds: number[]): Promise<DBResponse<{id: number}>> {
+  try {
+    console.log('Creating new chat for users:', userIds);
+    
+    const chatResult = await db.run(
+      "INSERT INTO chats (name) VALUES (?)",
+      [`Chat ${new Date().toISOString()}`]
+    );
+
+    if (!chatResult.lastID) {
+      throw new Error('Failed to create chat - no ID returned');
+    }
+
+    const chatId = chatResult.lastID;
+    console.log('Created chat with ID:', chatId);
+
+    // Lägg till alla medlemmar
+    await Promise.all(
+      userIds.map(userId => 
+        db.run(
+          "INSERT INTO chat_members (chat_id, user_id) VALUES (?, ?)",
+          [chatId, userId]
+        ).catch(err => {
+          console.error(`Error adding user ${userId} to chat:`, err);
+          throw err;
+        })
+      )
+    );
+
+    console.log('Successfully added all users to chat');
+    return { 
+      success: true, 
+      data: { id: chatId } 
+    };
+  } catch (error) {
+    console.error('Error in createNewChat:', error);
+    return { 
+      success: false, 
+      error: 'Error creating new chat' 
+    };
+  }
+}
+export async function getTotalUnreadMessages(db: Database, userId: number): Promise<DBResponse<number>> {
+  try {
+    const result = await db.get(
+      `SELECT COUNT(*) as total
+       FROM messages m
+       JOIN chat_members cm ON m.chat_id = cm.chat_id
+       WHERE cm.user_id = ?
+       AND m.user_id != ?
+       AND (cm.last_read_at IS NULL OR m.sent_at > cm.last_read_at)`,
+      [userId, userId]
+    );
+    return { success: true, data: result?.total || 0 };
+  } catch (err) {
+    console.error("Error getting total unread messages:", err);
+    return { success: false, error: "Error getting total unread messages" };
+  }
+}

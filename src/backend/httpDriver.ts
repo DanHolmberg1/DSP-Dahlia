@@ -9,6 +9,7 @@ import routesRequests from './requestHandling/routes';
 import groupsRequests from './requestHandling/groups';
 import usersRequests from './requestHandling/users';
 import mockRequests from './requestHandling/mocks';
+import chatRequests from './requestHandling/chat';
 
 export const app = express();
 app.use(cors());
@@ -39,3 +40,4 @@ app.use('/routes', routesRequests);
 app.use('/groups', groupsRequests);  
 app.use('/users', usersRequests);  
 app.use('/mock', mockRequests); 
+app.use('/chat', chatRequests);

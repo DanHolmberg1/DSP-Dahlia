@@ -59,27 +59,26 @@ LocaleConfig.locales['sv'] = {
 
 LocaleConfig.defaultLocale = 'sv';
 
-// interface BookingProps {
-//     navigation: any,
-//     route: any,
-//     date: any
-// }
-
-type BookingScreenNavigationProp = {
-  navigate: (screen: string, params?: object) => void;
-};
-
-type BookingScreenRouteProp = {
-  params: {
-    dateInfo: { date: string };
-  };
-};
-
-// Define the props type for the component
 interface BookingProps {
-  navigation: BookingScreenNavigationProp;
-  route: BookingScreenRouteProp;
+    navigation: any,
+    route: any,
 }
+
+// type BookingScreenNavigationProp = {
+//   navigate: (screen: string, params?: object) => void;
+// };
+
+// type BookingScreenRouteProp = {
+//   params: {
+//     dateInfo: { date: string };
+//   };
+// };
+
+// // Define the props type for the component
+// interface BookingProps {
+//   navigation: BookingScreenNavigationProp;
+//   route: BookingScreenRouteProp;
+// }
 
 const BookWalkScreen = (props: BookingProps) => {
   
