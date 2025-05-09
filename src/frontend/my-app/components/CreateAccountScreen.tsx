@@ -76,7 +76,7 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
 
           <View style = {{marginTop: -50}}>
           <Text style = {styles.startText}>
-                Skapa konto
+                Skapa konto hos Walk&Talk
             </Text>
           </View>
 
@@ -128,9 +128,16 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
 
   </View>
 
+  <View style = {{alignItems: "center", marginTop: 40, flex: 1}}>
+    <TouchableOpacity style = {{borderRadius: 70, backgroundColor: "#E15F18", width: "80%", height: 60, marginTop: 20}} onPress={accCreate}>
+        <Text style = {{textAlign: "center", marginTop: 15, fontSize: 25, color: "white"}}> Skapa konto</Text>
+
+    </TouchableOpacity>
+  </View>
+
 
         
-        <Button title="Create Account" onPress={accCreate} />
+        {/* <Button title="Create Account" onPress={accCreate} /> */}
 
         </View>
         </KeyboardAvoidingView>
@@ -143,7 +150,8 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1,
         backgroundColor: "white",
-        padding: 10, 
+        padding: 10
+        
     },
 
     controls: {
@@ -187,13 +195,12 @@ const styles = StyleSheet.create({
     },
 
     startText: {
-        fontSize: 30,
-        color:"black",
-        marginBottom: 10,
-        marginTop: 85,
-        //marginLeft: 90,
-        //position: "absolute",
-        textAlign: "center"
+      fontSize: 40,
+      color:"#1B2D92",
+      marginBottom: 10,
+      marginTop: 85,
+      fontWeight: "bold",
+      textAlign: "center"
     },
 
     inputEmail: {
