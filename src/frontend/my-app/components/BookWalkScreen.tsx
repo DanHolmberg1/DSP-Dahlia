@@ -217,7 +217,7 @@ const BookWalkScreen = (props: BookingProps) => {
 
             
             <TouchableOpacity style = {{marginTop: 20}}>
-              <Text style = {{fontSize: 22, color: "white", borderBottomWidth: 1, borderBottomColor: 'white'}} onPress={()=> props.navigation.navigate()}>
+              <Text style = {{fontSize: 22, color: "white", borderBottomWidth: 1, borderBottomColor: 'white'}} onPress={()=> props.navigation.navigate("Users groups")}>
                 Se alla bokningar
               </Text>
             </TouchableOpacity>
