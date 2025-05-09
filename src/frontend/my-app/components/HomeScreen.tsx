@@ -26,7 +26,7 @@ const HomeScreen = (props: HomeScreenProps) => {
 
 <View style={styles.userInfoContainer}>
             <Text style={styles.userInfoText}>
-                (temp)ID: {currentUser?.id || '0'}
+                (temp)ID: {currentUser?.id || '7777'}
             </Text>
     
         </View>

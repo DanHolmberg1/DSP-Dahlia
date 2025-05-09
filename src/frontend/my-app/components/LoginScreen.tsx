@@ -1,205 +1,148 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute } from "./RoundTripRoutingAPI";
-import polyline, { decode } from "polyline";
-import { start } from "repl";
-import { Pressable, TextInput } from "react-native-gesture-handler";
-import { Picker } from "@react-native-picker/picker"; 
-import { StatusBar } from "expo-status-bar";
-import { abort } from "process";
-import Arrow from "@/icons/arrow";
-import { getAuth, signInWithEmailAndPassword, 
-  // @ts-ignore
-  getReactNativePersistence, 
-  initializeAuth} from "firebase/auth";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
+import { TextInput } from "react-native-gesture-handler";
+import { getAuth, signInWithEmailAndPassword,// @ts-ignore
+  getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserByEmail } from "./requests/users";
-import { setUSERID } from "./global/userID";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserByEmail, getUserByID } from "./requests/users";
+import { useAuth } from "../context/authContext";
+import { chatAPI } from "./requests/chatAPI";
 const firebaseConfig = {
   apiKey: "AIzaSyDRa50GANID0l131R59Gr2ybUQc64YwAOs",
-
   authDomain: "dahlia-334fa.firebaseapp.com",
-
   projectId: "dahlia-334fa",
-
-  storageBucket: "dahlia-334fa.firebasestorage.app",
-
+  storageBucket: "dahlia-334fa.appspot.com",
   messagingSenderId: "981511080704",
-
   appId: "1:981511080704:web:ba2da57709d561a38901e5",
-
-  measurementId: "G-5S5ML74VDP"
-  
+  measurementId: "G-5S5ML74VDP",
 };
 
 const app = initializeApp(firebaseConfig);
-//const db = getFirestore(app);
+
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
 
 interface LoginProps {
-    navigation: any;
+  navigation: any;
 }
 
-const LoginScreen = (props: LoginProps) => {
+const LoginScreen = ({ navigation }: LoginProps) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [age, setAge] = useState(0);
+  const { login } = useAuth();
+
+  const handleLogin = async () => {
+  if (!email || !password) {
+    alert("Besvara alla fält");
+    return;
+  }
+
+  try {
+    // Firebase auth
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     
+    // Hämta vårt eget userID från databasen
+    const userID = await getUserByEmail(email);
+    if (!userID) {
+      alert("Kunde inte hitta användar-ID");
+      return;
+    }
 
-    const handleLogin = async () => {
+    // Hämta hela user-objektet med den nya funktionen
+    const fullUser = await chatAPI.getUser(userID);
+    if (!fullUser) {
+      alert("Kunde inte hämta användardata");
+      return;
+    }
 
-      if(!email || !password) {
-        alert("Besvara alla fält");
-        return;
-      }
-      
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const loggedInUser = userCredential.user;
-        console.log('Logged in user:', userCredential.user);
-        const userID = loggedInUser.uid;
-        console.log("user id", userID);
+    // Spara användare i context och navigera
+    login(fullUser);
+    navigation.navigate("Home");
 
-        // call db to see what userid is connected to email
-        const respUserId = await getUserByEmail(email); 
+  } catch (error: any) {
+    console.error("Login error:", error.message);
+    alert("Inloggning misslyckades: " + error.message);
+  }
+};
 
-        if(respUserId === undefined) {
-          alert("Något gick fel med att logga in.");
-          return; 
-        }
-        
-        setUSERID(respUserId); 
+  return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          <Text style={styles.startText}>Logga in på ditt konto</Text>
 
-        
-        props.navigation.navigate("Home"); 
-        
-      } catch (error: any) {
-        console.error('Login error:', error.message);
-        alert('Login failed: ' + error.message);
-      }
-    };
+          <TextInput
+            style={styles.inputEmail}
+            placeholderTextColor="#888"
+            placeholder="Email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
 
-      return (
-        <>
-          <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <KeyboardAvoidingView
-              style={styles.container}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-              <View style={styles.container}>
-                <Text style={styles.startText}>Logga in på ditt konto</Text>
-      
-                <TextInput
-                  style={styles.inputEmail}
-                  placeholderTextColor="#888"
-                  placeholder="Email"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-      
-                <TextInput
-                  style={styles.inputPassword}
-                  placeholderTextColor="#888"
-                  placeholder="Lösenord"
-                  secureTextEntry
-                  value={password}
-                  onChangeText={setPassword}
-                />
+          <TextInput
+            style={styles.inputPassword}
+            placeholderTextColor="#888"
+            placeholder="Lösenord"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
 
-                
-      
-                <Button title="Logga in" onPress={handleLogin} />
-
-              </View>
-            </KeyboardAvoidingView>
-          </TouchableWithoutFeedback>
-        </>
-      )
-      
-}; 
+          <Button title="Logga in" onPress={handleLogin} />
+        </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
+  );
+};
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1,
-        backgroundColor: "white",
-        padding: 10,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 10,
+  },
+  startText: {
+    fontSize: 30,
+    color: "black",
+    marginBottom: 10,
+    marginTop: 85,
+    marginLeft: 55,
+    position: "absolute",
+  },
+  inputEmail: {
+    height: 50,
+    borderColor: "black",
+    borderWidth: 1,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginTop: 250,
+  },
+  inputPassword: {
+    height: 50,
+    borderColor: "black",
+    borderWidth: 1,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+});
 
-    controls: {
-        position: "absolute",
-        bottom: 0,
-        width:"100%",
-        height:"30%",
-        backgroundColor: 'rgba(52, 52, 52, 0.8)',
-        padding: 20,
-        justifyContent:"center",
-        alignItems:"center",
-    },
-    messageContainer: {
-        backgroundColor: 'rgba(7, 39, 14, 0.8)',
-        padding: 10, // Add some padding to make it look less cramped
-        alignItems: 'center', // Center the text
-        justifyContent: 'center',
-        position: 'absolute', // Position it over the screen if needed
-        top: 0, // Position it at the top or adjust based on your layout
-        left: 0,
-        right: 0,
-        zIndex: 10, // Ensure it sits above other elements
-      },
-    inputLable: {
-        fontSize: 22,
-        color:"white",
-        marginBottom: 50,
-        marginTop: 20,
-    
-    },
-
-    buttoncontainer: {
-        width: "50%",
-        marginBottom: 40,
-        backgroundColor: 'white',
-        position: "absolute",
-        bottom: 0,
-        borderRadius: 30,
-        borderColor: "black",
-        color: "black"
-    },
-
-    startText: {
-        fontSize: 30,
-        color:"black",
-        marginBottom: 10,
-        marginTop: 85,
-        marginLeft: 55,
-        position: "absolute",
-    },
-
-    inputEmail: {
-        height: 50,
-        borderColor: 'black',
-        borderWidth: 1,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        marginTop: 250,
-      },
-
-      
-    inputPassword: {
-        height: 50,
-        borderColor: 'black',
-        borderWidth: 1,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        marginTop: 10,
-      },
-  }); export default LoginScreen;
+export default LoginScreen;

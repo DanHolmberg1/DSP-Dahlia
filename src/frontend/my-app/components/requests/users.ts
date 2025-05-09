@@ -1,4 +1,4 @@
-const IP = "172.20.10.3";
+const IP = "192.168.0.74";
 
 export async function sendUserCreate(name: string, email: string, age: number, sex: number): Promise<number | undefined> {
     try {

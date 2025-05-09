@@ -318,6 +318,43 @@ router.get('/users/:userId/unread-total', async (req: Request, res: Response):Pr
     return res.status(500).json({ error: 'Server error' });
   }
 });
+router.get('/users/:userId', async (req: Request, res: Response): Promise<any> => {
+  try {
+    const userIdParam = req.params['userId'];
+    if (!userIdParam) {
+      return res.status(400).json({ error: 'User ID is missing' });
+    }
+    
+    const userId = parseInt(userIdParam);
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const user = await db.get(`
+      SELECT 
+        id, name, email, age, sex, 
+        avatar, latitude, longitude, 
+        bio, pace, features 
+      FROM users 
+      WHERE id = ?
+    `, [userId]);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Parse features från JSON sträng om den finns
+    const userData = {
+      ...user,
+      features: user.features ? JSON.parse(user.features) : []
+    };
+
+    return res.json(userData);
+  } catch (err) {
+    console.error('Error fetching user:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
 router.get('/chats/:chatId/unread-count', async (req: Request, res: Response): Promise<any> => {
   try {
     const chatIdParam = req.params['chatId'];
