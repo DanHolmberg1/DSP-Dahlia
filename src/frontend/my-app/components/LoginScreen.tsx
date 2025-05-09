@@ -77,7 +77,7 @@ const LoginScreen = (props: LoginProps) => {
         
         setUSERID(respUserId); 
 
-        
+
         props.navigation.navigate("Home"); 
         
       } catch (error: any) {
@@ -94,7 +94,7 @@ const LoginScreen = (props: LoginProps) => {
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
               <View style={styles.container}>
-                <Text style={styles.startText}>Logga in på ditt konto</Text>
+                <Text style={styles.startText}>Logga in på ditt Walk&Talk konto</Text>
       
                 <TextInput
                   style={styles.inputEmail}
@@ -114,10 +114,14 @@ const LoginScreen = (props: LoginProps) => {
                   onChangeText={setPassword}
                 />
 
-                
-      
-                <Button title="Logga in" onPress={handleLogin} />
+                        
+              <View  style = {{alignItems: "center", marginTop: 70, flex: 1}}>
+                <TouchableOpacity style = {{borderRadius: 70, backgroundColor: "#E15F18", width: "80%", height: 60}} onPress={handleLogin}>
+                <Text style = {{textAlign: "center", marginTop: 15, fontSize: 25, color: "white"}}> Logga in </Text>
 
+                </TouchableOpacity>
+              </View>
+              
               </View>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
@@ -174,12 +178,14 @@ const styles = StyleSheet.create({
     },
 
     startText: {
-        fontSize: 30,
-        color:"black",
+        fontSize: 40,
+        color:"#1B2D92",
         marginBottom: 10,
         marginTop: 85,
-        marginLeft: 55,
+
         position: "absolute",
+        fontWeight: "bold",
+        textAlign: "center"
     },
 
     inputEmail: {
