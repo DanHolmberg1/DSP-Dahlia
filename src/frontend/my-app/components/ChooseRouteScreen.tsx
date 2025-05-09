@@ -1,18 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Picker } from "@react-native-picker/picker";
-import polyline from "polyline";
 import MenuBar from "./menuBar";
-import { StyleSheet, TextInput, View, Text, Button, 
-        KeyboardAvoidingView, Platform, TouchableWithoutFeedback, 
-        Keyboard, TouchableOpacity, Pressable } from "react-native";
-import { VELOCITY_EPS } from "react-native-reanimated/lib/typescript/animation/decay/utils";
+import { StyleSheet, View, Text, TouchableOpacity, Pressable } from "react-native";
 import Checkbox from 'expo-checkbox';
 import Arrow from "@/icons/arrow";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 
-
-
-
+// Navigation via MenuBar
 interface ChooseScreenProps {
     navigation: any;
 }
@@ -30,15 +24,12 @@ const ChooseRoute = (props: ChooseScreenProps) => {
   const [HasShowOptions, setHasShowOptions] = useState<boolean>(false);
 
   const toggleOptionExpander = () => setOptionExpand(prev => !prev);
-  
-
   const toggleMenuExpander = () => setMenuExpand(prev => !prev);
 
   return (
     <View style={styles.container}>
       
       {/* Övre panelen */}
-      
       <View style={styles.panelContainer}>
         <View>
           <Text style={styles.headerText}>Designa din rutt</Text>
@@ -132,9 +123,6 @@ const styles = StyleSheet.create({
         textAlign:'center',
         fontWeight: 'bold',
         fontFamily: 'Inter',
-      },
-      bottomContainer: {
-        alignItems: "center",
       },
       buttonContainer: {
         flexDirection: "column",
