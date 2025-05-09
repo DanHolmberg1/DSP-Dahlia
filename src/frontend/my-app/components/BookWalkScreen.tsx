@@ -89,6 +89,8 @@ const BookWalkScreen = (props: BookingProps) => {
   
   const [selectedDate, setSelected] = useState('');
   const [nextWalk, setNextWalk] = useState();
+  const [nextTitle, setNextTitle] = useState('');
+  const [nextDateTime, setNextDateTime] = useState<string>();
 
   const handleDate = (date:string) => {
     console.log("SELECTED " + selectedDate)
@@ -104,11 +106,15 @@ const BookWalkScreen = (props: BookingProps) => {
       const allWalks = await getAllGroupsForUser(Number(USERID));
       if(allWalks) {
         setNextWalk(allWalks[0]);
+        setNextTitle(allWalks[0].groupName);
+        setNextDateTime(allWalks[0].datetime);
+        console.log("time",allWalks[0].datetime);
+        
       }
     }
 
     getNextWalk();
-  })
+  }, []);
 
   const navigation = useNavigation();
 
@@ -173,8 +179,36 @@ const BookWalkScreen = (props: BookingProps) => {
             Mina bokningar
           </Text>
           <View>
+
+            <Text>
+              {nextTitle}
+             
+            </Text>
+
+            <Text>
+
+            Datum: {new Date(nextDateTime?? '').toLocaleString('sv-SE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                })} 
+            </Text>
+
+        <Text>
+
+         Tid: {new Date(nextDateTime?? '').toLocaleString('sv-SE', {
+              hour: 'numeric',
+             minute: 'numeric',
+               })} 
+      </Text>
+
+
+          
+
+           
             
           </View>
+
 
 
           
