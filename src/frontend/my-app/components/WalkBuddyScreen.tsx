@@ -9,6 +9,7 @@ import { chatAPI } from './requests/chatAPI';
 //import { useTypedNavigation } from '@/hooks/useTypedNavigation';
 import { useAuth } from '@/context/authContext';
 import { useNavigation } from '@react-navigation/native';
+import MenuBar from './menuBar';
 
 
 const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -36,7 +37,11 @@ const mapSex = (sex: number) => {
   return sex === 1 ? 'Kvinna' : sex === 2 ? 'Man' : 'Annat';
 };
 
-const WalkBuddyScreen = () => {
+interface WalkBuddyProps {
+  navigation: any
+}
+
+const WalkBuddyScreen = (props: WalkBuddyProps) => {
   // const navigation = useTypedNavigation();
   const navigation = useNavigation();
   const { currentUser } = useAuth();
@@ -512,6 +517,10 @@ const WalkBuddyScreen = () => {
         </View>
       </Pressable>
     </Modal>
+
+    <MenuBar navigation={props.navigation}/>
+
+     
   </View>
 );
 };

@@ -14,6 +14,7 @@ import { chatAPI } from "@/components/requests/chatAPI";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "@/context/authContext"; 
 import { useFocusEffect } from '@react-navigation/native';
+import MenuBar from "./menuBar";
 
 interface ConversationItem {
   id: number;
@@ -25,7 +26,11 @@ interface ConversationItem {
   unreadCount: number;
 }
 
-const ConversationListScreen = () => {
+interface ConversationProps {
+  navigation: any,
+}
+
+const ConversationListScreen = (props: ConversationProps) => {
   const navigation = useNavigation();
   const { currentUser } = useAuth();
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -185,12 +190,18 @@ const ConversationListScreen = () => {
           onRefresh={loadConversations}
         />
         
+        <View style = {{marginBottom: 100}}>
+
+       
         <TouchableOpacity 
           style={styles.newConversationButton} 
           onPress={handleNewConversation}
         >
           <Text style={styles.newConversationButtonText}>Hitta personer att chatta med</Text>
         </TouchableOpacity>
+        </View>
+
+        <MenuBar navigation={props.navigation}/>
       </View>
     </SafeAreaView>
   );
@@ -203,13 +214,16 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+    padding: 0,
+    minHeight: "100%"
   },
   header: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 16,
     color: '#1B2D92',
+    textAlign: "left",
+    padding: 16
   },
   loadingContainer: {
     flex: 1,
