@@ -15,6 +15,7 @@ import { showRoute } from "./routeDetailScreen";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { sendGroupCreate } from "./requests/groups";
 import { createRoute } from "./requests/routes"; 
+import {USERID} from "./global/userID"
 
 //OBS MOCK FUNCTION, remove later 
 import { mockUser } from "./requests/mock";
@@ -27,8 +28,8 @@ interface CreateWalkProps {
 }
 const CreateWalk = (props: CreateWalkProps) => {
 
-    const auth = getAuth();
-    const userId = auth.currentUser;
+    // const auth = getAuth();
+    // const userId = auth.currentUser;
 
     const navigation = useNavigation();
 
@@ -106,16 +107,16 @@ const CreateWalk = (props: CreateWalkProps) => {
         const handleCreateWalk = async () => {
             //Skicka data till databasen --> route och skapa nytt pass
             var canSendRequest = title.length > 0 && description.length > 0 && selectedRoute;
-            const userID = await mockUser(); 
+            //const userID = await mockUser(); 
             if(!canSendRequest) {
                 alert("Besvara alla fält")
-            } else if(userID && selectedRoute){
-                const routeID = await createRoute(userID, selectedRoute);
+            } else if(USERID && selectedRoute){
+                const routeID = await createRoute(USERID, selectedRoute);
                 if(typeof routeID !== "number") {
                     alert("route undefined");
                 } else {
                   console.log("hej hej hej");
-                  const groupID = await sendGroupCreate(date, userID, routeID, description, title, 10); 
+                  const groupID = await sendGroupCreate(date, USERID, routeID, description, title, 10); 
                   console.log("Group ID: " + groupID); 
                   Alert.alert("Promenad skapad", "Du har nu skapat ett pass som andra kan gå med i!", [{ text: "OK" }]);
 

@@ -44,14 +44,15 @@ router.post('/create', async (req:Request, res: Response) => {
 router.get('/get', async(req: Request, res: Response) => {
   try {
     const {routeID} = req.query;  
+
+    var parsedRouteId = Number(routeID);
      
-    if(typeof routeID !== 'number' || isNaN(routeID)) {
+    if(typeof parsedRouteId !== 'number' || isNaN(parsedRouteId)) {
       console.log("missing request parameters");
       res.status(400).json({error: "missing request parameters"})
       return;
     }
 
-    var parsedRouteId = Number(routeID);
     const route = await routeGet(db, parsedRouteId);
     if (route.success && route.data) {
       res.json(route.data.data);

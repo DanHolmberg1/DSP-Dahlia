@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
-import { getRoundTripRoute, getRoundTripRouteCircle } from "./RoundTripRoutingAPI";
+import { getRoundTripRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { start } from "repl";
 import { Pressable, TextInput } from "react-native-gesture-handler";
@@ -12,9 +12,10 @@ import Arrow from "@/icons/arrow";
 import { getStartEndTrip } from "./StartEndTripRoutingAPI";
 import { getRouteWithStops } from "./RoundTripLocations";
 import { ws, sendToBackend } from "./webSocketsClient";
-import sendRouteDataHttpRequest from "./httpRequestClient";
-import { RemoveDuplicates, RoundRouting, calculateSquare, calulateCircle } from "./RoundRoutingAlgortihm";
+import {sendRouteDataHttpRequest} from "./httpRequestClient";
+
 import { all } from "axios";
+import {USERID} from "./global/userID"
 
 
 interface MapProps {
@@ -45,34 +46,20 @@ export const RoundRouteScreen = (props: MapProps) => {
   const toggleMenuExpander = () => setMenuExpand(prev => !prev);
 
   const fetchRoundTripRoute = async () => {
-    console.log("herre");
+
     setWalkGenerated(true);
     const randomFactor = Math.random() + 1;
     const randomPoints = Math.floor(Math.random() * pointValues.length);
     const randomSeed = Math.floor(Math.random() * 1000);
     const distanceNum = Number(distance);
 
-    //const Allpoints = calulateCircle(startLocation, Number(distance), 36);
-    //const Allpoints = calculateSquare(startLocation, Number(distance));
 
-    console.log('hereeee');
-
-    // console.log("points", Allpoints);
-
-    //const result = await getRoundTripRouteCircle(Allpoints, distanceNum, randomSeed, 3);
-    const userID = 1; // TODO: THIS IS A PLACEHOLDER PLEASE CORRECT WHEN IMPLEMENTED
-    const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, userID);
+    const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, USERID);
     console.log(result);
     const resultGeometry = result.routes[0].geometry; // Får ett type fel men funkar.
     console.log("geo: ", resultGeometry);
 
     const decodegeom = polyline.decode(resultGeometry);
-
-    const test = RemoveDuplicates(decodegeom);
-
-    console.log("test coord", test);
-
-    console.log("decode geo ", decodegeom);
 
     const formattedRoute = decodegeom.map((coord: number[]) => ({
       latitude: coord[0],
@@ -90,15 +77,12 @@ export const RoundRouteScreen = (props: MapProps) => {
   const sendRouteToBackend = async () => {
     console.log("send data");
     if (currentWalkData) {
-      console.log("send data walk");
-      //sendToBackend(ws, currentWalkData, 1); 
-      sendRouteDataHttpRequest(currentWalkData, 1); // 1 = userID, placeholder
+      console.log("send data walk"); 
+      sendRouteDataHttpRequest(currentWalkData, USERID); // 1 = userID, placeholder
     }
   }
 
   return (
-
-
     <View style={styles.container}>
 
       {showStartText && (
@@ -189,7 +173,6 @@ export const RoundRouteScreen = (props: MapProps) => {
       )}
 
     </View>
-
   )
 }
 

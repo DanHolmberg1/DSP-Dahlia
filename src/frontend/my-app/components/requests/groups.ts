@@ -1,5 +1,5 @@
 //import { IP } from `../../../../backend/httpDriver`; 
-const IP = "0.0.0.0";
+const IP = "172.20.10.3";
 
 export async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
     try {
@@ -138,7 +138,7 @@ export async function removeUserFromGroup(userID: number, groupID: number): Prom
 
 export async function getIsInGroup(groupID: number, userID: number): Promise<boolean> {
     try {
-        const res = await fetch(`http://${IP}:3000/groups/isInGroup?userID=${userID},groupID=${groupID}`);
+        const res = await fetch(`http://${IP}:3000/groups/isInGroup?userID=${userID}&groupID=${groupID}`);
 
         if(!res.ok) {
             const errorData = await res.json(); 

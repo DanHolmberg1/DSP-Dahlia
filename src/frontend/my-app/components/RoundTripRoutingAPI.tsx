@@ -16,56 +16,56 @@ import MapView, { Polyline, Marker } from "react-native-maps";
  * which is usually a series of coordinates (latitude and longitude). 
  * This data is typically used to render a route on a map.
  */
-/*
-export const getRoundTripRouteCircle = async (start: { longitude: number, latitude: number }[] | null, len: number, seed: number, p: number) => {
-  console.log("hereeee");
 
-  if (start == null) {
-    console.error("Something went wrong with the coordinates.");
-    return;
-  }
+// export const getRoundTripRouteCircle = async (start: { longitude: number, latitude: number }[] | null, len: number, seed: number, p: number) => {
+//   console.log("hereeee");
 
-  const coordinates = start.map(start => [start.longitude, start.latitude]);
+//   if (start == null) {
+//     console.error("Something went wrong with the coordinates.");
+//     return;
+//   }
 
-  console.log("coordinate:", coordinates);
+//   const coordinates = start.map(start => [start.longitude, start.latitude]);
 
-  try {
-    const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
-      method: "POST",
-      headers: {
-        Authorization: ORS_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        coordinates: coordinates, // Start/end coordinate
-        radiuses: Array(coordinates.length).fill(5000),
+//   console.log("coordinate:", coordinates);
 
-        // options: { 
-        //     round_trip: { // Round-trip: start and end points are the same
-        //         length: len,  // Length of the route (in meters)
-        //         seed: seed,   // Random seed for the route calculation
-        //         points: 6 // Number of points for the round trip
-        //     }
-        // }
-      }),
-    });
+//   try {
+//     const response = await fetch("https://api.openrouteservice.org/v2/directions/foot-walking", {
+//       method: "POST",
+//       headers: {
+//         Authorization: ORS_API_KEY,
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         coordinates: coordinates, // Start/end coordinate
+//         radiuses: Array(coordinates.length).fill(5000),
 
-    console.log("Response Status:", response.status);
+//         // options: { 
+//         //     round_trip: { // Round-trip: start and end points are the same
+//         //         length: len,  // Length of the route (in meters)
+//         //         seed: seed,   // Random seed for the route calculation
+//         //         points: 6 // Number of points for the round trip
+//         //     }
+//         // }
+//       }),
+//     });
+
+//     console.log("Response Status:", response.status);
 
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error response:", errorText);
-      return;
-    }
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Error response:", errorText);
+//       return;
+//     }
 
-    }
-  } catch (error) {
-    console.error("API error:", error);
-  }
-};
+//     }
+//   } catch (error) {
+//     console.error("API error:", error);
+//   }
+// };
 
-*/
+
 
 
 export async function getRoundTripRoute(
@@ -80,7 +80,7 @@ export async function getRoundTripRoute(
   console.log("we should fetch");
 
   const res = await fetch(
-    "http://172.20.10.8:8443/routeGenerateRoundWalk",
+    "http://172.20.10.3:8443/routeGenerateRoundWalk",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,6 +88,45 @@ export async function getRoundTripRoute(
         start: { latitude: start.latitude, longitude: start.longitude },
         len,
         seed,
+        userID,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    // optional: custom handling
+    throw new Error(`Fetch failed with status ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data;
+}
+
+
+export async function getSquareRoute (
+  coord: { longitude: number; latitude: number }[] | null,
+  userID: number
+): Promise<JSON | null> {
+  if (!coord) {
+    return null;
+  }
+  console.log("we should fetch");
+  console.log("start coords", coord);
+
+  const coordsLatLon = coord.map(point => ({
+    latitude: point.latitude,
+    longitude: point.longitude,
+  }));
+
+  console.log("coordslatlon:", coordsLatLon);
+
+  const res = await fetch(
+    "http://172.20.10.3:8443/SquareRoute",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        start: coordsLatLon,
         userID,
       }),
     }

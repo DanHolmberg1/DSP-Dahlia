@@ -21,6 +21,7 @@ import { DisplayWalk } from "@/components/DisplayWalksScreen";
 import ConversationListScreen from "@/components/ConversationListScreen";
 import { AuthProvider } from "../context/authContext"; 
 import ChatScreen from "@/components/ChatScreen";
+import { DisplayOneWalk } from "@/components/DisplayOneWalkScreen";
 
 const { Navigator, Screen } = createStackNavigator();
 
@@ -51,6 +52,7 @@ const AppNavigator = () => (
         <Screen  name="Walk with stops" component={TripWithStopsScreen} />
         <Screen  name = "Saved routes" component= {SavedRoute}/>
         <Screen  name = "Help" component= {Help}/>
+        <Screen name = "Pass" component= {DisplayOneWalk}/>
         <Screen 
       name="ConversationList" 
       component={ConversationListScreen}

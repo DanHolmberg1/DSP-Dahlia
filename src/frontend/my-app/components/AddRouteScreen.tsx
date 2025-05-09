@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, Text, Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline, Region } from "react-native-maps";
-import { getRoundTripRoute, getRoundTripRouteSquare } from "./RoundTripRoutingAPI";
+import { getRoundTripRoute, getSquareRoute } from "./RoundTripRoutingAPI";
 import polyline, { decode } from "polyline";
 import { Pressable, TextInput } from "react-native-gesture-handler";
 import { Picker } from "@react-native-picker/picker"; 
@@ -10,6 +10,9 @@ import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
 import * as Location from 'expo-location';
 import { calculateSquare } from "./RoundRoutingAlgortihm";
+import {USERID} from "./global/userID";
+
+
 interface BookingProps {
     navigation: any
     route: any
@@ -18,7 +21,7 @@ interface BookingProps {
 export const AddRoute = (props: BookingProps) => {
 
   const [route, setRoute] = useState<{longitude: number, latitude: number }[]>([]);
-  const [routeInfo, setRouteInfo] = useState();
+  const [routeInfo, setRouteInfo] = useState<JSON>();
   const [distance, setDistance] = useState('500');
   const [menuExpand, setMenuExpand] = useState<boolean>(false);
   const [startLocation, setStartLocation] = useState<{latitude: number; longitude: number} | null> (null);
@@ -118,11 +121,24 @@ export const AddRoute = (props: BookingProps) => {
     const randomSeed = Math.floor(Math.random()* 1000);
     const distanceNum = Number(distance);
 
-    const squarePoints = calculateSquare(startLocation, distanceNum);
+    type coordinates = {longitude: number, latitude:number};
+
+    const squarePoints: coordinates[] | null = calculateSquare(startLocation, distanceNum);
+
+    const squarePointsLatLon = squarePoints?.map(point => ({
+      latitude: point.latitude,
+      longitude: point.longitude,
+    }));
 
     //const result = await getRoundTripRoute(startLocation, distanceNum, randomSeed, 3);
-    const result = await getRoundTripRouteSquare(squarePoints);
+    if(!squarePointsLatLon) {
+      console.log("error in squarepoints");
+      alert("Något gick fel med att rutt generering.")
+    }
+    const result = await getSquareRoute(squarePoints, USERID);
 
+    if(result) {
+      
     setRouteInfo(result);
     const resultGeometry = result.routes[0].geometry;
     const decodegeom = polyline.decode(resultGeometry);
@@ -136,6 +152,9 @@ export const AddRoute = (props: BookingProps) => {
 
     setRoute(formattedRoute);
     setCurrentWalkData(result);
+
+    }
+
 };
 
 return (

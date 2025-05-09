@@ -77,7 +77,7 @@ export async function DBInit(): Promise<Database> {
   });
 
   try {
-
+    //await db.exec(`DROP TABLE IF EXISTS users`); //run if you made changes to any table 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -443,7 +443,7 @@ export async function groupRemoveUser(db: Database, userID: number, groupID: num
     const groupInfo = await groupGet(db, groupID); 
 
     if(groupInfo.success && groupInfo.data && groupInfo.data.availableSpots > 0) {
-      const updateStatus = await db.run(
+      await db.run(
         `UPDATE groups SET availableSpots = ? WHERE id = ?`,
         [groupInfo.data.availableSpots + 1, groupID]
       );
@@ -519,8 +519,8 @@ export async function createUser(db: Database, name: string, email: string, age:
 
   try {
     const result = await db.run(
-      `INSERT INTO users (name, email, age, sex) VALUES (?, ?, ?, ?)`,
-      [name, email, age, sex]
+      `INSERT INTO users (name, email, age, sex, latitude, longitude, bio, pace, features, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, age, sex, 0, 0, null, 0, null, null]
     );
 
     if (result.lastID) {
@@ -544,6 +544,21 @@ export async function getUser(db: Database, id: number): Promise<DBResponse<User
   } catch (err) {
     console.error("Error retrieving user:", err);
     return { success: false, error: "Error retrieving user." };
+  }
+}
+
+export async function getUserEmail(db: Database, email: string): Promise<DBResponse<User>> {
+  try {
+    
+    const user = await db.get(`SELECT * FROM users WHERE email = ?`, [email.trim()]);
+    
+    if (!user) {
+      return { success: false, error: "User not found." };
+    }
+    return { success: true, data: user };
+  } catch (err) {
+    console.error("Error retrieving user id:", err);
+    return { success: false, error: "Error retrieving user id." };
   }
 }
 

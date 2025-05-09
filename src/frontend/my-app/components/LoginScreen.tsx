@@ -16,6 +16,8 @@ import { getAuth, signInWithEmailAndPassword,
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserByEmail } from "./requests/users";
+import { setUSERID } from "./global/userID";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDRa50GANID0l131R59Gr2ybUQc64YwAOs",
@@ -64,7 +66,20 @@ const LoginScreen = (props: LoginProps) => {
         console.log('Logged in user:', userCredential.user);
         const userID = loggedInUser.uid;
         console.log("user id", userID);
+
+        // call db to see what userid is connected to email
+        const respUserId = await getUserByEmail(email); 
+
+        if(respUserId === undefined) {
+          alert("Något gick fel med att logga in.");
+          return; 
+        }
+        
+        setUSERID(respUserId); 
+
+        
         props.navigation.navigate("Home"); 
+        
       } catch (error: any) {
         console.error('Login error:', error.message);
         alert('Login failed: ' + error.message);

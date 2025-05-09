@@ -1,3 +1,5 @@
+//LOG IN FROM CHAT BRANCH
+
 import React, { useState, useEffect } from "react";
 import { 
   StyleSheet, 

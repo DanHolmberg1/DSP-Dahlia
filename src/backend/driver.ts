@@ -1,9 +1,10 @@
 import { DBInit, routeAdd, } from './db_opertions.ts';
-import { LatLng, getRoundRoute, getRouteWithStops, getStartEndTrip } from './api_calls.ts'
+import { LatLng, getRoundRoute, getRouteWithStops, getSquareRoute, getStartEndTrip } from './api_calls.ts'
 import http from 'http';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { startupSnapshot } from 'v8';
 
 dotenv.config();
 
@@ -159,6 +160,8 @@ async function main() {
     }
   );
 
+  
+
 
 
   app.post('/routeWithStops', async (req: Request<{}, {}, {
@@ -182,7 +185,28 @@ async function main() {
     }
   })
 
+  app.post('/Squareroute', async (req: Request<{}, {}, {
+    start: LatLng[];
+    userID: number;
+  }>, res: Response,): Promise<void> => {
+    const { start } = req.body;
+    if (
+      isLatLng(start)
+    )
+      console.log("islatlng funkar")
+    try {
 
+      console.log("coords in driver", startupSnapshot);
+
+      const response = await getSquareRoute(start);
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("API error:", error);
+      return;
+    }
+  })
 
   app.post('/startEndTrip', async (req: Request<{}, {}, {
     start: { latitude: number, longitude: number };

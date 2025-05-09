@@ -34,11 +34,11 @@ const HomeScreen = (props: HomeScreenProps) => {
 
         <View>
         <Text style = {styles.startText}>
-            Choose your 
+            Välj din
         </Text>
 
         <Text style = {styles.startTextActivity}>
-        activity
+        aktivitet
         </Text>
         </View>
 
@@ -47,7 +47,7 @@ const HomeScreen = (props: HomeScreenProps) => {
           style={styles.buttoncontainerRoute} 
           onPress={() => props.navigation.navigate('Generate routes')}
         >
-          <Text style={[styles.buttonTextRoute, {marginLeft: Platform.OS === 'android' ? 40: 40}]}>Generate routes</Text>
+          <Text style={[styles.buttonTextRoute, {textAlign: "center"}]}>Generera rutter</Text>
         </TouchableOpacity>
       </View>
 
@@ -56,7 +56,7 @@ const HomeScreen = (props: HomeScreenProps) => {
           style={[styles.buttoncontainerBook ]} 
           onPress={() => props.navigation.navigate('Book walk')}
         >
-          <Text style={[styles.buttonTextBook, {marginLeft: Platform.OS === 'android' ? 80: 80}]}>Book walk</Text>
+          <Text style={[styles.buttonTextBook, {textAlign: "center"}]}>Hitta grupppromenad</Text>
         </TouchableOpacity>
       </View>
 
@@ -65,14 +65,14 @@ const HomeScreen = (props: HomeScreenProps) => {
           style={styles.buttoncontainerFindBuddy} 
           onPress={() => props.navigation.navigate('Walk Buddy')}
         >
-          <Text style={styles.buttonTextFindBuddy}>Find Walk Buddy</Text>
+          <Text style={styles.buttonTextFindBuddy}>Hitta vänner</Text>
         </TouchableOpacity>
       </View> 
 
       <View>
         <TouchableOpacity style = {[styles.helpButton, {marginLeft: Platform.OS === 'android' ? 230: 250}, {marginBottom: Platform.OS === 'android' ? 130 : 120}]}
         onPress={() => props.navigation.navigate('Help')}>
-            <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Help</Text>
+            <Text style = {[styles.helpText, {marginLeft: Platform.OS === 'android' ? 29 : 32}]}> Hjälp </Text>
 
         </TouchableOpacity>
       </View>
@@ -142,45 +142,47 @@ const styles = StyleSheet.create({
     },
 
     buttoncontainerRoute: {
-        width: "80%",
+        width: "90%",
         marginBottom: -120,
         backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
-        marginLeft: 40,
+        marginLeft: 20,
         height: 80,
+        alignContent:"center"
     },
 
     buttoncontainerBook: {
-        width: "80%",
+        width: "90%",
         marginBottom: -220,
         backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
-        marginLeft: 40,
+        marginLeft: 20,
         height: 80,
+         alignContent:"center"
     },
 
     buttoncontainerFindBuddy: {
-        width: "80%",
+        width: "90%",
         marginBottom: -320,
         backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
-        marginLeft: 40,
+        marginLeft: 20,
         height: 80,
+        alignContent:"center"
     },
 
     buttonTextRoute: {
         color: 'white',
         fontSize: 30,
-        marginLeft: 50,
         marginTop: 18,
         fontFamily: 'Inter',
     },
@@ -188,7 +190,6 @@ const styles = StyleSheet.create({
     buttonTextBook: {
         color: 'white',
         fontSize: 30,
-        marginLeft: 90,
         marginTop: 18,
         fontFamily: 'Inter',
     },
@@ -196,9 +197,9 @@ const styles = StyleSheet.create({
     buttonTextFindBuddy: {
         color: 'white',
         fontSize: 30,
-        marginLeft: 40,
         marginTop: 18,
         fontFamily: 'Inter',
+        textAlign: "center"
     },
 
     helpButton: {

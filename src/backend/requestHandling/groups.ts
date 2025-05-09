@@ -109,14 +109,16 @@ router.get('/byUser', async(req: Request, res: Response) => {
         
     const {userID} = req.query; 
 
-    if(typeof userID !== 'number' || isNaN(userID)) {
+    const useridParsed = Number(userID); 
+
+    if(typeof useridParsed !== 'number' || isNaN(useridParsed)) {
       console.log("Missing query parameters"); 
       res.status(400).json({ error: "Missing userID query parameter" });
       return; 
     }
 
     const userIDParesd = Number(userID);
-    const allGroups = await groupGetAllGroups(db, userIDParesd); 
+    const allGroups = await groupGetAllGroups(db, useridParsed); 
 
     if(!allGroups.success) {
       console.log("Failed to fetch :("); 
@@ -193,14 +195,19 @@ router.get('/isInGroup', async(req: Request, res: Response) => {
         
     const {userID, groupID} = req.query; 
 
-    if(typeof userID !== 'number' || isNaN(userID) ||
-       typeof groupID !== 'number' || isNaN(groupID) ) {
+    const useridParsed = Number(userID); 
+    const groupidParsed = Number(groupID); 
+
+    if(typeof useridParsed !== 'number' || isNaN(useridParsed) ||
+       typeof groupidParsed !== 'number' || isNaN(groupidParsed) ) {
       console.log("Missing query parameters"); 
+      console.log("The user id: ", userID); 
+      console.log("The group id: ", groupID); 
       res.status(400).json({ error: "Missing userID, groupID query parameter" });
       return; 
     }
 
-    const status = await isInGroup(db, Number(userID), Number(groupID)); 
+    const status = await isInGroup(db, useridParsed, groupidParsed); 
 
     res.json(status.success);  
 

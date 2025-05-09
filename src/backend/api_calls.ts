@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const ORS_API_KEY = process.env['ORS_API_KEY']!;
+const ORS_API_KEY = ''; //process.env['ORS_API_KEY']!;
 const ORS_URL = "https://api.openrouteservice.org/v2/directions/foot-walking";
 
 export interface apiResponse<T> {
@@ -12,7 +12,6 @@ export interface apiResponse<T> {
 }
 
 export interface LatLng { latitude: number; longitude: number }
-
 
 export async function getRouteWithStops(coordinates: LatLng[]): Promise<Response> {
   console.log(coordinates);
@@ -33,7 +32,29 @@ export async function getRouteWithStops(coordinates: LatLng[]): Promise<Response
 
 };
 
+export async function getSquareRoute(coordinates: LatLng[]) : Promise<Response> {
 
+  console.log("coords in api call", coordinates);
+
+  const orsCoords = coordinates.map(({ latitude, longitude }) => [longitude, latitude]);
+
+  console.log("coords", orsCoords);
+
+        const response = await fetch(ORS_URL, {
+          method: "POST",
+          headers: {
+            Authorization: ORS_API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            coordinates: orsCoords, // Start/end coordinate
+            radiuses: Array(coordinates.length).fill(5000),
+  
+          }),
+        });
+
+        return response;
+};
 
 
 export async function getRoundRoute(start: LatLng, seed: number, len: number) {
@@ -62,6 +83,8 @@ export async function getRoundRoute(start: LatLng, seed: number, len: number) {
 
   return response;
 }
+
+
 
 
 export async function getStartEndTrip(start: LatLng, end: LatLng) {

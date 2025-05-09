@@ -10,6 +10,8 @@ import { StatusBar } from "expo-status-bar";
 import { abort } from "process";
 import Arrow from "@/icons/arrow";
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'; 
+import { sendUserCreate } from './requests/users'
+import { setUSERID } from "./global/userID";
 
 
 interface CreateAccountProps {
@@ -22,6 +24,7 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
+    const [sex, setSex] = useState(1);
     //const [profilePic, setProfilePic] = useState(null); // How can we save a picture?
     // Add other info needed
 
@@ -44,14 +47,22 @@ const CreateAccountScreen = (props: CreateAccountProps) => {
         await user.reload();
         console.log('Updated user info:', auth.currentUser?.displayName);
 
-        //Add to database???
+        const respUserId = await sendUserCreate(name, email, Number(age), sex); // change sex later
 
+        if(respUserId === undefined) {
+          alert("Something went wrong with creating account.");
+          return;
+        } 
+        setUSERID(respUserId);   //Set userID globally
+        
         props.navigation.navigate("Home"); 
 
       } catch (error: any) {
         console.error('Signup error:', error.message);
         alert('Signup failed: ' + error.message);
       }
+
+      
     };
 
     return (

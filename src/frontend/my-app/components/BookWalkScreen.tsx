@@ -14,6 +14,8 @@ import { useNavigation } from "expo-router";
 import {Calendar, CalendarList, Agenda, LocaleConfig} from 'react-native-calendars';
 import { getAuth } from 'firebase/auth';
 import { get } from "http";
+import {USERID} from "./global/userID"
+import { getAllGroupsForUser } from "./requests/groups";
 
 LocaleConfig.locales['sv'] = {
   monthNames: [
@@ -86,6 +88,7 @@ const BookWalkScreen = (props: BookingProps) => {
   const userId = auth.currentUser;
   
   const [selectedDate, setSelected] = useState('');
+  const [nextWalk, setNextWalk] = useState();
 
   const handleDate = (date:string) => {
     console.log("SELECTED " + selectedDate)
@@ -94,6 +97,18 @@ const BookWalkScreen = (props: BookingProps) => {
     }})
 
   }
+
+  useEffect (()=> {
+
+    const getNextWalk = async () => {
+      const allWalks = await getAllGroupsForUser(Number(USERID));
+      if(allWalks) {
+        setNextWalk(allWalks[0]);
+      }
+    }
+
+    getNextWalk();
+  })
 
   const navigation = useNavigation();
 
@@ -122,7 +137,7 @@ const BookWalkScreen = (props: BookingProps) => {
     
         <Text style = {styles.HeaderText}> Boka en tur!</Text>
 
-          <View style={{ marginRight: Platform.OS === 'android' ? -30: 0 }}>
+        <View style={{ marginRight: Platform.OS === 'android' ? -30: 0 }}>
          <TouchableOpacity 
            style={styles.createWalkConatiner} 
            onPress={() => props.navigation.navigate("Skapa promenad")}
@@ -157,6 +172,11 @@ const BookWalkScreen = (props: BookingProps) => {
           <Text style = {{fontSize: 30, color: "white", marginTop: 10}}>
             Mina bokningar
           </Text>
+          <View>
+            
+          </View>
+
+
           
         </View>
 

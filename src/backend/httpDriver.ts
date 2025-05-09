@@ -2,7 +2,7 @@
 //Placeholder?? 
 import cors from 'cors'; 
 import { Database } from "sqlite";
-import { clearGroups, clearRoutes, clearUsers, DBInit } from "./db_opertions";
+import { DBInit } from "./db_opertions";
 import express from 'express';
 
 import routesRequests from './requestHandling/routes';
@@ -28,9 +28,9 @@ app.listen(port, () => {
 
 process.on('SIGINT', async () => {
     console.log('Closing down');
-    await clearUsers(db); 
-    await clearGroups(db); 
-    await clearRoutes(db); 
+    //await clearUsers(db); 
+    //await clearGroups(db); 
+    //await clearRoutes(db); 
     await db.close(); 
     //Skicka något till alla clients? 
     process.exit(); 

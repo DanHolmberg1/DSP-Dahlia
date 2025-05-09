@@ -21,7 +21,7 @@ interface DisplayProps {
 }
 
 export const DisplayWalk = (props: DisplayProps) => {
-    const [chosenDate, setChosenDate] = useState<string>();
+    const [chosenDate, setChosenDate] = useState<Date>(new Date());
     const [valid, setValid] = useState<boolean>();
     const [walks, setWalks] = useState<Array<any>>([]);
     const [length, setlength] = useState<number>(0);
@@ -37,6 +37,8 @@ export const DisplayWalk = (props: DisplayProps) => {
                     setlength(groups.length);
 
                 }
+
+                setChosenDate(props.route.params.dateInfo.date);
         }
 
         getAllWalks();
@@ -48,11 +50,17 @@ export const DisplayWalk = (props: DisplayProps) => {
     
 return (
     <View style={{minHeight: '100%', backgroundColor: "white" }}>
+              <View style = {{backgroundColor: "#1B2D92", padding: 20}}>
+        <Text style = {styles.dateTime}> Tillgängiga pass:                             {new Date(chosenDate).toLocaleString("sv-SE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })} </Text>
+        </View>
         <ScrollView>
 
-        <Text style = {styles.dateTime}> Hitta pass för:  {props.route.params.dateInfo.date} </Text>
 
-        <View>
+        <View style = {{marginTop: 30}}>
 
         {walks && walks.length > 0  ? (
           walks.map((walk, index) => (
@@ -64,8 +72,7 @@ return (
             <View style={styles.item}>
               <Text style={styles.title}>Titel: {walk.groupName}</Text>
               <Text style={styles.time}>
-                Tid:
-                {new Date(walk.datetime).toLocaleString("sv-SE", {
+                Tid: {new Date(walk.datetime).toLocaleString("sv-SE", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -77,7 +84,7 @@ return (
           </TouchableOpacity>
         ))
       ) : (
-        <Text style = {{fontSize: 25, textAlign: "center", marginTop: 25}}>Inga pass hittades</Text>
+        <Text style = {{fontSize: 25, textAlign: "center", marginTop: 10, color: "grey"}}>Inga pass hittades</Text>
       )}
 
       </View>
@@ -96,7 +103,9 @@ const styles = StyleSheet.create({
   },
 
   dateTime: {
-    fontSize: 30
+    fontSize: 30,
+    color: "white",
+    textAlign: "center"
   },
   item: {
     padding: 20,
@@ -106,14 +115,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     color: "white",
-    marginTop: 10
+    marginTop: 10,
+    textAlign: "center"
   },
 
   time: {
     fontSize: 20,
     color: "white",
     marginTop:10,
-    marginLeft: -10
+    textAlign: "center"
   },
 
   itemContainer: {

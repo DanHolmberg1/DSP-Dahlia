@@ -16,6 +16,7 @@ import { useFocusEffect } from "expo-router";
 import {createRoute, routeGet} from "./requests/routes"
 import { translateCoordinate } from "./CoordinateToAddressAPI";
 import * as Location from 'expo-location';
+import {USERID} from "./global/userID"
 //OBS MOCK FUNCTION, remove later 
 import { mockUser, mockUser2 } from "./requests/mock";
 //OBS MOCK FUNCTION, remove later 
@@ -38,7 +39,7 @@ export const DisplayOneWalk = (props: DisplayProps) => {
     const [startLat, setStartLat] = useState<number>(59.8586);
     const [startLon, setStartLon] = useState<number>(17.6450);
     const [distance, setDistance] = useState<number>(0);
-    const [groupID, setGroupID] = useState();
+    const [groupID, setGroupID] = useState<number>();
     const [startLocationString, setStartLocationString] = useState<string>()
     const [hasBookedSuccess, setHasBookedSuccess] = useState(false);
     const [hasBookedFail, setHasBookedFail] = useState(false);
@@ -46,7 +47,7 @@ export const DisplayOneWalk = (props: DisplayProps) => {
     const [location, setLocation] = useState<Location.LocationObject | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const [userId, setUserId] = useState<number>();
+    //const [userId, setUserId] = useState<number>();
 
     type Coordinate = [number, number];
 
@@ -59,7 +60,12 @@ export const DisplayOneWalk = (props: DisplayProps) => {
             setPar(props.route.params.walkData.availableSpots);
             setGroupID(props.route.params.walkData.id);
 
-        
+            console.log("groupid", groupID);
+
+            console.log("group id walks",  props.route.params.walkData.id);
+
+            console.log("user id", USERID);
+
             console.log("route id here", props.route.params.walkData.routeID);
             const routeResp = await routeGet(props.route.params.walkData.routeID); 
             console.log("route resp", routeResp);
@@ -94,14 +100,14 @@ export const DisplayOneWalk = (props: DisplayProps) => {
                 console.log("error in decoding route");
             }
 
-            const userID = await mockUser2(); // mockuser
-            if( userID) {
-            setUserId(userID);
-            }
+            // const userID = await mockUser2(); // mockuser
+            // if( userID) {
+            // setUserId(userID);
+            // }
 
           };
           setWalkData();
-    }, []);
+    }, []); 
 
     useEffect(() => {
         let subscription: Location.LocationSubscription;
@@ -127,7 +133,7 @@ export const DisplayOneWalk = (props: DisplayProps) => {
             },
             (newLocation) => {
               setLocation(newLocation);
-              console.log('Location:', newLocation.coords);
+              //console.log('Location:', newLocation.coords);
             }
           );
         };
@@ -141,8 +147,8 @@ export const DisplayOneWalk = (props: DisplayProps) => {
 
     useEffect(() => {
         const isUserBooked = async () => {
-            if(groupID && userId) {
-            const isBooked = await getIsInGroup(groupID, userId);
+            if(groupID && USERID) {
+            const isBooked = await getIsInGroup(Number(groupID), USERID);
             setIsbooked(isBooked);
             }
         }
@@ -154,8 +160,8 @@ export const DisplayOneWalk = (props: DisplayProps) => {
         console.log("route", route);
 
         if(isBooked) {
-            if(groupID && userId) {
-                const resp = await removeUserFromGroup(userId, groupID);
+            if(groupID && USERID) {
+                const resp = await removeUserFromGroup(USERID, groupID);
                 if(resp) {
                     Alert.alert("Borttagen!", "Du är borttagen från passet.", [{ text: "OK" }])
                     setIsbooked(false);
@@ -167,10 +173,10 @@ export const DisplayOneWalk = (props: DisplayProps) => {
             }
         }
       
-        if (userId && groupID) {
+        if (USERID && groupID) {
             console.log("group id", groupID);
-            console.log("used id", userId);
-            const resp = await sendGroupAdd(userId, groupID);
+            console.log("used id", USERID);
+            const resp = await sendGroupAdd(USERID, groupID);
             if (resp) {
               Alert.alert("Bokad", "Du har gått med i passet!", [{ text: "OK" }]);
               setIsbooked(true);
@@ -247,8 +253,6 @@ export const DisplayOneWalk = (props: DisplayProps) => {
                     </Text>
                 </TouchableOpacity>
             </View>
-
-
 
         </ScrollView>
 
