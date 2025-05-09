@@ -117,7 +117,6 @@ router.get('/byUser', async(req: Request, res: Response) => {
       return; 
     }
 
-    const userIDParesd = Number(userID);
     const allGroups = await groupGetAllGroups(db, useridParsed); 
 
     if(!allGroups.success) {

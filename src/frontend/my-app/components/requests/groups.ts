@@ -1,5 +1,5 @@
 //import { IP } from `../../../../backend/httpDriver`; 
-const IP = "172.20.10.3";
+const IP = "192.168.0.15";
 
 export async function getGroupByDate(date: Date): Promise<Array<any> | undefined> {
     try {

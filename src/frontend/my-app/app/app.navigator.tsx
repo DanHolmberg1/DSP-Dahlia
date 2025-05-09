@@ -23,8 +23,30 @@ import { AuthProvider } from "../context/authContext";
 import ChatScreen from "@/components/ChatScreen";
 import { DisplayOneWalk } from "@/components/DisplayOneWalkScreen";
 import  {DisplayUserGroups} from "@/components/DisplayUserGroups"
+import ChooseRoute from "@/components/ChooseRouteScreen";
 
 const { Navigator, Screen } = createStackNavigator();
+
+export type RootStackParamList = {
+    Start: undefined;
+    Login: undefined;
+    'Create account': undefined;
+    Home: undefined;
+    Map: undefined;
+    'Book walk': { dateInfo: { date: string } };
+    'Walk Buddy': undefined;
+    'Family walk': undefined;
+    'Generate routes': undefined;   
+    'Walk with destination': undefined;
+    'Round walk': undefined;
+    'Walk with stops': undefined;
+    'Saved routes': undefined;
+    'Help': undefined;
+    'Skapa promenad': undefined;
+    'Välj rutt': undefined;
+    'Tillgängliga pass': undefined;
+    'Pass': undefined;
+};
 
 const AppNavigator = () => (
     <AuthProvider>
@@ -39,7 +61,7 @@ const AppNavigator = () => (
         <Screen options={{
             headerLeft: () => null, 
         }} name="Home" component={HomeScreen} />
-        <Screen name="Generate routes" component={MapScreen} />
+        <Screen name="Generate rutter" component={ChooseRoute} />
         <Screen name="Book walk" component={BookWalkScreen} options={{
             headerBackTitle: 'Home', 
           }}  />
@@ -58,8 +80,7 @@ const AppNavigator = () => (
         <Screen 
       name="ConversationList" 
       component={ConversationListScreen}
-     
-    />
+     />
         <Screen  name = "Skapa promenad" component= {CreateWalk}
         options={{
             headerBackTitle: 'Book Walk', 
@@ -67,6 +88,11 @@ const AppNavigator = () => (
         <Screen  name = "Välj rutt" component= {AddRoute}/>
         <Screen name = "Tillgängliga pass" component= {DisplayWalk}/>
         <Screen name = "Chat" component= {ChatScreen}/>
+        <Screen 
+        name="Start-stop" component={RoutewithDesScreen} />
+        <Screen  name="Rundpromenad" component={RoundRouteScreen} />
+        <Screen  name="Rutt med stopp" component={TripWithStopsScreen} />
+        <Screen  name = "Sparade rutter" component= {SavedRoute}/>
         
     </Navigator>
     </AuthProvider>

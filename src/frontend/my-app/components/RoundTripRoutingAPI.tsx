@@ -80,7 +80,7 @@ export async function getRoundTripRoute(
   console.log("we should fetch");
 
   const res = await fetch(
-    "http://172.20.10.3:8443/routeGenerateRoundWalk",
+    "http://192.168.0.15:8443/routeGenerateRoundWalk",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -121,7 +121,7 @@ export async function getSquareRoute (
   console.log("coordslatlon:", coordsLatLon);
 
   const res = await fetch(
-    "http://172.20.10.3:8443/SquareRoute",
+    "http://192.168.0.15:8443/SquareRoute",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -8,8 +8,25 @@ interface Friend {
   avatar: string;
 }
 
+interface User {
+  id: number;
+   // här borde det egentligen var typ;
+   //user_id: number:
+   //sub: string;
+   //token: string;
+   // resten ska inte behövas här
+  name: string;     
+  email: string;    
+  avatar: string;
+  latitude?: number;
+  longitude?: number;
+  features?: string[]; // Assuming features is an array of strings
+  pace?: string; // Assuming pace is a string (e.g., 'Low', 'Medium', 'High')
+  bio?: string; // Assuming bio is a
+}
+
 const api = axios.create({
-  baseURL: 'http://192.168.0.74:3000', // Removed /api since we're adding /chat prefix to all endpoints
+  baseURL: 'http://192.168.0.15:3000', // Removed /api since we're adding /chat prefix to all endpoints
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json'
@@ -351,5 +368,23 @@ export const chatAPI = {
     } catch (error) {
       console.error('Error marking chat as read:', error);
     }
-  }
+  },
+   getUser: async (userId: number): Promise<User | null> => {
+    try {
+      const res = await api.get(`/chat/users/${userId}`);
+      return {
+        ...res.data,
+        features: Array.isArray(res.data.features) 
+          ? res.data.features 
+          : [],
+        avatar: res.data.avatar || `https://i.pravatar.cc/150?u=${res.data.id}`
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      console.error('Error fetching user:', error);
+      throw new Error('Failed to fetch user data');
+    }
+  },
 };

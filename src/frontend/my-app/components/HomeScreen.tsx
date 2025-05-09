@@ -12,13 +12,34 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Arrow from "@/icons/arrow";
 import MenuBar from "./menuBar";
 import { useAuth } from "@/context/authContext"; 
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigation } from "expo-router";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "@/app/app.navigator";
 interface HomeScreenProps {
     navigation: any;
 }
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = (props: HomeScreenProps) => {
   const { currentUser } = useAuth();
     //const Map = () => props.navigation.navigate("Map");
+
+    const navigation = useNavigation<HomeScreenNavigationProp>();
+
+    const handleLogout = async () => {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Start' }],
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Failed to sign out');
+      }
+    };
 
     return (
 
@@ -45,7 +66,7 @@ const HomeScreen = (props: HomeScreenProps) => {
         <View>
         <TouchableOpacity 
           style={styles.buttoncontainerRoute} 
-          onPress={() => props.navigation.navigate('Generate routes')}
+          onPress={() => props.navigation.navigate('Generate rutter')}
         >
           <Text style={[styles.buttonTextRoute, {textAlign: "center"}]}>Generera rutter</Text>
         </TouchableOpacity>
@@ -79,6 +100,13 @@ const HomeScreen = (props: HomeScreenProps) => {
 
         
         <MenuBar navigation={props.navigation}  iconFocus="HOME"/>
+
+        <View>
+        <TouchableOpacity style={styles.logoutContainer} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logga ut</Text>
+        </TouchableOpacity>
+      </View>
+
     </View>
 
 )};
@@ -246,5 +274,26 @@ const styles = StyleSheet.create({
         marginLeft: 30,
         marginTop: 5,
 
-    }
+    },
+    logoutContainer: {
+      width: "30%",
+      marginBottom: 120,
+      backgroundColor: '#E25E17',
+      position: "absolute",
+      bottom: 0,
+      borderRadius: 25,
+      borderColor: "black",
+      marginLeft: 15,
+      height: 40,
+      fontFamily: 'Inter',
+  },
+
+  logoutText: {
+    color: 'white',
+    fontSize: 22,
+    marginLeft: 18,
+    marginTop: 5,
+},
+
+    
   }); export default HomeScreen;

@@ -4,7 +4,7 @@ export const getStartEndTrip = async (start: { latitude: number, longitude: numb
     return;
   }
   const res = await fetch(
-    "http://172.20.10.8:8443/startEndTrip",
+    "http://192.168.0.15:8443/startEndTrip",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
