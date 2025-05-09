@@ -174,19 +174,29 @@ const BookWalkScreen = (props: BookingProps) => {
             />
         </View>
 
-        <View style = {{borderRadius: 20, width: "95%", height: 200, backgroundColor: "#1B2D92", alignItems: "center", alignSelf: "center",  marginTop: 40}}>
+        <View style = {{borderRadius: 20, width: "95%", height: 295, backgroundColor: "#1B2D92", alignItems: "center", alignSelf: "center",  marginTop: 40, marginVertical: 10 }}>
           <Text style = {{fontSize: 30, color: "white", marginTop: 10}}>
             Mina bokningar
           </Text>
-          <View>
 
-            <Text>
-              {nextTitle}
+          {nextWalk && (
+            
+          <View style={{ width: '80%', alignItems: 'center' }}>
+
+          <Text style = {{fontSize: 24, color: "white", marginTop: 10}}>
+            Mitt nästa pass
+          </Text>
+            
+            <TouchableOpacity style = {{ borderRadius: 20, backgroundColor: "#E25E17", height: 120, width: "90%", marginLeft: -60, marginTop: 20}}
+            onPress={() => props.navigation.navigate("Pass", { walkData: nextWalk })}>
+            <View>
+
+            <Text style = {{marginLeft:20, marginTop: 10, fontSize: 25, color: "white"}}>
+              Titel: {nextTitle}
              
             </Text>
 
-            <Text>
-
+            <Text style = {{marginLeft:20,fontSize: 23, color: "white"}}>
             Datum: {new Date(nextDateTime?? '').toLocaleString('sv-SE', {
                 year: 'numeric',
                 month: 'long',
@@ -194,20 +204,40 @@ const BookWalkScreen = (props: BookingProps) => {
                 })} 
             </Text>
 
-        <Text>
+            <Text style = {{marginLeft:20,fontSize: 23,  color: "white"}}>
+            Tid: {new Date(nextDateTime?? '').toLocaleString('sv-SE', {
+                hour: 'numeric',
+              minute: 'numeric',
+                })} 
+            </Text>
 
-         Tid: {new Date(nextDateTime?? '').toLocaleString('sv-SE', {
-              hour: 'numeric',
-             minute: 'numeric',
-               })} 
-      </Text>
+            </View>
+
+            </TouchableOpacity>
+
+            
+            <TouchableOpacity style = {{marginTop: 20}}>
+              <Text style = {{fontSize: 22, color: "white", borderBottomWidth: 1, borderBottomColor: 'white'}} onPress={()=> props.navigation.navigate()}>
+                Se alla bokningar
+              </Text>
+            </TouchableOpacity>
+            </View>
+
+          )}
+
+          {!nextTitle && (
+            <View style = {{marginTop: 30}}>
+              <Text style = {{fontSize: 21, color: "grey", textAlign: "center"}}> Inga inbokade pass finns</Text>
+            </View>
+          )}
 
 
+
+
+   
           
 
-           
-            
-          </View>
+        
 
 
 

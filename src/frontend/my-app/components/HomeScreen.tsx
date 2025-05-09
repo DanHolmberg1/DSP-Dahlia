@@ -56,7 +56,7 @@ const HomeScreen = (props: HomeScreenProps) => {
           style={[styles.buttoncontainerBook ]} 
           onPress={() => props.navigation.navigate('Book walk')}
         >
-          <Text style={[styles.buttonTextBook, {textAlign: "center"}]}>Hitta grupppromenad</Text>
+          <Text style={[styles.buttonTextBook, {textAlign: "center"}]}>Hitta gruppromenad</Text>
         </TouchableOpacity>
       </View>
 
@@ -65,7 +65,7 @@ const HomeScreen = (props: HomeScreenProps) => {
           style={styles.buttoncontainerFindBuddy} 
           onPress={() => props.navigation.navigate('Walk Buddy')}
         >
-          <Text style={styles.buttonTextFindBuddy}>Hitta vänner</Text>
+          <Text style={styles.buttonTextFindBuddy}>Hitta någon att gå med</Text>
         </TouchableOpacity>
       </View> 
 
@@ -142,40 +142,40 @@ const styles = StyleSheet.create({
     },
 
     buttoncontainerRoute: {
-        width: "90%",
+        width: "95%",
         marginBottom: -120,
         backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
-        marginLeft: 20,
+        marginLeft: 10,
         height: 80,
         alignContent:"center"
     },
 
     buttoncontainerBook: {
-        width: "90%",
+        width: "95%",
         marginBottom: -220,
         backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
-        marginLeft: 20,
+        marginLeft: 10,
         height: 80,
          alignContent:"center"
     },
 
     buttoncontainerFindBuddy: {
-        width: "90%",
+        width: "95%",
         marginBottom: -320,
         backgroundColor: '#1B2D92',
         position: "absolute",
         bottom: 0,
         borderRadius: 25,
         borderColor: "black",
-        marginLeft: 20,
+        marginLeft: 10,
         height: 80,
         alignContent:"center"
     },
