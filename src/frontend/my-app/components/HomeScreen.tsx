@@ -16,10 +16,13 @@ import { getAuth, signOut } from "firebase/auth";
 import { useNavigation } from "expo-router";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/app/app.navigator";
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
 interface HomeScreenProps {
     navigation: any;
 }
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
 
 const HomeScreen = (props: HomeScreenProps) => {
   const { currentUser } = useAuth();
@@ -28,9 +31,12 @@ const HomeScreen = (props: HomeScreenProps) => {
     const navigation = useNavigation<HomeScreenNavigationProp>();
 
     const handleLogout = async () => {
+      console.log("hej")
       const auth = getAuth();
       try {
+        console.log("hej hej")
         await signOut(auth);
+        console.log("hej hej hej")
         navigation.reset({
           index: 0,
           routes: [{ name: 'Start' }],
@@ -53,7 +59,7 @@ const HomeScreen = (props: HomeScreenProps) => {
         </View>
 
 
-        <View>
+        <View style = {{marginTop: 10}}>
         <Text style = {styles.startText}>
             Välj din
         </Text>
@@ -155,8 +161,8 @@ const styles = StyleSheet.create({
     startText: {
         fontSize: 50,
         color:'#1B2D92',
-        marginBottom: 50,
-        marginTop: 55,
+        marginBottom: 40,
+        marginTop: 59,
         marginLeft: 20,
     },
 

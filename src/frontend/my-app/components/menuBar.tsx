@@ -74,6 +74,8 @@ const MenuBar = (props: Props) => {
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
+            
+
           }}
         >
           <FontAwesome 

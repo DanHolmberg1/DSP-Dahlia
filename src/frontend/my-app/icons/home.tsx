@@ -10,7 +10,7 @@ interface Props {
 
 const Home: React.FC<Props> = ({ width, height, isFocused }) => {
   return (
-    <View style={isFocused ? {borderRadius: "full", backgroundColor: "gray"} : null}>
+    <View style={isFocused ? {borderRadius: 5, backgroundColor: "#F5BFA2"} : null}>
       <Svg
         width={width}
         height={height}

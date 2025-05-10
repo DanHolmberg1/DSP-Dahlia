@@ -48,6 +48,8 @@ export type RootStackParamList = {
     'Pass': undefined;
 };
 
+const stack = createStackNavigator<RootStackParamList>();
+
 const AppNavigator = () => (
     <AuthProvider>
     <Navigator screenOptions={{
